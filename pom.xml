@@ -1,0 +1,8 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.rogiel.seedbox</groupId>
+  <artifactId>seedbox-httpchannel</artifactId>
+  <version>1.0.0</version>
+  <name>Seedbox - HTTP Channel library</name>
+  <description>Library capable of downloading and uploading files from free servers using channels.</description>
+</project>
