@@ -1,5 +1,5 @@
 /*
- * This file is part of seedbox <github.com/Rogiel/seedbox>.
+ * This file is part of seedbox <github.com/seedbox>.
  *
  * seedbox is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
