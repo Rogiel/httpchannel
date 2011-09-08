@@ -14,13 +14,28 @@
  * You should have received a copy of the GNU General Public License
  * along with seedbox.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.rogiel.httpchannel;
+package com.rogiel.httpchannel.service;
 
-import java.nio.channels.ReadableByteChannel;
+
+import org.apache.http.client.HttpClient;
+import org.apache.http.impl.client.DefaultHttpClient;
+
+import com.rogiel.httpchannel.service.config.ServiceConfiguration;
 
 /**
- * @author <a href="http://www.rogiel.com">Rogiel</a>
+ * Abstract base service for HTTP enabled services.
+ * 
+ * @author Rogiel
+ * @since 1.0
  */
-public interface DownloadChannel extends ReadableByteChannel {
+public abstract class AbstractHttpService<T extends ServiceConfiguration>
+		extends AbstractService<T> implements Service {
+	/**
+	 * The {@link HttpClient} instance for this service
+	 */
+	protected HttpClient client = new DefaultHttpClient();
 
+	protected AbstractHttpService(T configuration) {
+		super(configuration);
+	}
 }

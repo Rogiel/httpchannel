@@ -16,42 +16,46 @@
  */
 package com.rogiel.httpchannel.service;
 
-import java.io.IOException;
-import java.net.URI;
-import java.nio.ByteBuffer;
-import java.nio.channels.ReadableByteChannel;
+import java.net.URL;
 
-import com.rogiel.httpchannel.DownloadChannel;
+import javax.tools.FileObject;
 
 /**
- * @author <a href="http://www.rogiel.com">Rogiel</a>
+ * Implements an service capable of downloading a file.
  * 
+ * @author Rogiel
+ * @since 1.0
  */
-public interface DownloadService {
-	DownloadChannel download(URI uri, CaptchaResolver captchaResolver);
+public interface DownloadService extends Service {
+	/**
+	 * Creates a new instance of the {@link Downloader}. This instance will be
+	 * attached to the {@link URL}, {@link FileObject} provided through the the
+	 * arguments and the parent {@link Service} instance.
+	 * 
+	 * @param url
+	 *            the url to be downloaded
+	 * @param file
+	 *            the destination file
+	 * @return an new instance of {@link Downloader}
+	 */
+	Downloader getDownloader(URL url);
 
 	/**
-	 * Simple delegating implementation for {@link DownloadChannel}.
+	 * Check if this {@link Service} can download from this URL. Implemtations
+	 * might or might not perform network activity.
 	 * 
-	 * @author <a href="http://www.rogiel.com">Rogiel</a>
+	 * @param url
+	 *            the url to be tested.
+	 * @return true if supported, false otherwise.
 	 */
-	public abstract class SimpleDownloadChannel implements DownloadChannel {
-		protected final ReadableByteChannel channel;
+	boolean matchURL(URL url);
 
-		public SimpleDownloadChannel(ReadableByteChannel channel) {
-			this.channel = channel;
-		}
-
-		public int read(ByteBuffer dst) throws IOException {
-			return channel.read(dst);
-		}
-
-		public boolean isOpen() {
-			return channel.isOpen();
-		}
-
-		public void close() throws IOException {
-			channel.close();
-		}
-	}
+	/**
+	 * Return the matrix of capabilities for this {@link Downloader}.
+	 * 
+	 * @return {@link CapabilityMatrix} with all capabilities of this
+	 *         {@link Downloader}.
+	 * @see DownloaderCapability
+	 */
+	CapabilityMatrix<DownloaderCapability> getDownloadCapabilities();
 }

@@ -16,10 +16,30 @@
  */
 package com.rogiel.httpchannel.service;
 
-/**
- * @author <a href="http://www.rogiel.com">Rogiel</a>
- *
- */
-public interface CaptchaResolver {
+import java.io.IOException;
 
+import com.rogiel.httpchannel.service.DownloadListener.TimerWaitReason;
+
+import net.sf.f2s.util.ThreadUtils;
+
+/**
+ * @author rogiel
+ * 
+ */
+public abstract class AbstractDownloader implements Downloader {
+	protected void timer(DownloadListener listener, long timer) {
+		listener.timer(timer, TimerWaitReason.DOWNLOAD_TIMER);
+		ThreadUtils.sleep(timer);
+	}
+
+	protected boolean cooldown(DownloadListener listener, long cooldown)
+			throws IOException {
+		if (listener.timer(cooldown, TimerWaitReason.COOLDOWN)) {
+			ThreadUtils.sleep(cooldown);
+			return true;
+		} else {
+			throw new IOException("Timer " + TimerWaitReason.COOLDOWN
+					+ " aborted due to listener request");
+		}
+	}
 }

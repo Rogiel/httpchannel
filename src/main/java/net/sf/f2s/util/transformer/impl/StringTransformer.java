@@ -14,14 +14,17 @@
  * You should have received a copy of the GNU General Public License
  * along with seedbox.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.rogiel.httpchannel;
+package net.sf.f2s.util.transformer.impl;
 
-import java.net.URI;
-import java.nio.channels.WritableByteChannel;
+import net.sf.f2s.util.transformer.Transformer;
 
 /**
- * @author <a href="http://www.rogiel.com">Rogiel</a>
+ * @author rogiel
+ *
  */
-public interface UploadChannel extends WritableByteChannel {
-	URI getLink();
+public class StringTransformer implements Transformer<String> {
+	@Override
+	public String transform(String data) {
+		return data;
+	}
 }

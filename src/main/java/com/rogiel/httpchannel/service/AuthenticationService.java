@@ -17,38 +17,28 @@
 package com.rogiel.httpchannel.service;
 
 /**
- * Implements an service capable of uploading a file.
+ * Implements an service capable of authenticating into an account.
  * 
  * @author Rogiel
  * @since 1.0
  */
-public interface UploadService extends Service {
+public interface AuthenticationService extends Service {
 	/**
-	 * Creates a new instance of {@link Uploader}. This instance is attached
-	 * with the parent {@link Service} instance.<br>
-	 * <b>Note</b>: not all services might support <tt>description</tt>
+	 * Creates {@link Authenticator} instance for this service. This instance is
+	 * attached to an {@link Credential} and to its parent {@link Service}.
 	 * 
-	 * @param file
-	 *            the file to be uploaded
-	 * @param description
-	 *            the description of the upload. If supported.
-	 * @return the new {@link Uploader} instance
+	 * @param credential
+	 *            the credential
+	 * @return an new {@link Authenticator} instance
 	 */
-	Uploader getUploader(String description);
+	Authenticator getAuthenticator(Credential credential);
 
 	/**
-	 * Get the maximum upload file size supported by this service.
-	 * 
-	 * @return the maximum filesize supported
-	 */
-	long getMaximumFilesize();
-
-	/**
-	 * Return the matrix of capabilities for this {@link Uploader}.
+	 * Return the matrix of capabilities for this {@link Authenticator}.
 	 * 
 	 * @return {@link CapabilityMatrix} with all capabilities of this
-	 *         {@link Uploader}.
-	 * @see UploaderCapability
+	 *         {@link Authenticator}.
+	 * @see AuthenticatorCapability
 	 */
-	CapabilityMatrix<UploaderCapability> getUploadCapabilities();
+	CapabilityMatrix<AuthenticatorCapability> getAuthenticationCapability();
 }
