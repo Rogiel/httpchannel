@@ -1,4 +1,5 @@
-# What is this?
+== What is this? ==
+
 This is a Java Library written to simplify download and upload from multiple
 free share sites.
 
@@ -8,3 +9,8 @@ Channels and with those you can stream the file, both up and down.
 
 Also, if you wish, you can easily (with less than 10 lines!) implement an
 file copier. It downloads the file from one server and transfer it to another!
+
+== Can I use it already? ==
+The API is basically done, but so far not much servers are supported, but you
+are, however, free to use it already! By the way, once you start using it, if
+you develop any new service, please share with me!
