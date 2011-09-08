@@ -41,14 +41,13 @@ import org.junit.Test;
 import com.rogiel.httpchannel.service.AuthenticationService;
 import com.rogiel.httpchannel.service.Credential;
 import com.rogiel.httpchannel.service.DownloadChannel;
-import com.rogiel.httpchannel.service.DownloadListener;
 import com.rogiel.httpchannel.service.DownloadService;
 import com.rogiel.httpchannel.service.Service;
 import com.rogiel.httpchannel.service.UploadChannel;
 import com.rogiel.httpchannel.service.UploadService;
 import com.rogiel.httpchannel.service.UploaderCapability;
-import com.rogiel.httpchannel.service.captcha.Captcha;
 import com.rogiel.httpchannel.service.config.ServiceConfigurationHelper;
+import com.rogiel.httpchannel.service.exception.AuthenticationInvalidCredentialException;
 import com.rogiel.httpchannel.service.impl.HotFileService.HotFileServiceConfiguration;
 
 public class HotFileServiceTest {
@@ -87,19 +86,19 @@ public class HotFileServiceTest {
 	@Test
 	public void testServiceId() {
 		System.out.println("Service: " + service.toString());
-		assertEquals("hotfile", service.getId());
+		assertEquals("hotfile", service.getID());
 	}
 
 	@Test
 	public void testValidAuthenticator() throws IOException {
-		Assert.assertTrue(((AuthenticationService) service).getAuthenticator(
-				new Credential(VALID_USERNAME, VALID_PASSWORD)).login());
+		((AuthenticationService) service).getAuthenticator(
+				new Credential(VALID_USERNAME, VALID_PASSWORD)).login();
 	}
 
-	@Test
+	@Test(expected = AuthenticationInvalidCredentialException.class)
 	public void testInvalidAuthenticator() throws IOException {
-		Assert.assertFalse(((AuthenticationService) service).getAuthenticator(
-				new Credential(INVALID_USERNAME, INVALID_PASSWORD)).login());
+		((AuthenticationService) service).getAuthenticator(
+				new Credential(INVALID_USERNAME, INVALID_PASSWORD)).login();
 	}
 
 	@Test
@@ -130,8 +129,8 @@ public class HotFileServiceTest {
 				((UploadService) service).getUploadCapabilities().has(
 						UploaderCapability.PREMIUM_ACCOUNT_UPLOAD));
 
-		Assert.assertTrue(((AuthenticationService) service).getAuthenticator(
-				new Credential(VALID_USERNAME, VALID_PASSWORD)).login());
+		((AuthenticationService) service).getAuthenticator(
+				new Credential(VALID_USERNAME, VALID_PASSWORD)).login();
 
 		final UploadChannel channel = ((UploadService) service).getUploader(
 				"simulado_2010_1_res_all.zip",
@@ -154,20 +153,7 @@ public class HotFileServiceTest {
 				.getDownloader(
 						new URL(
 								"http://hotfile.com/dl/129251605/9b4faf2/simulado_2010_1_res_all.zip.html"))
-				.download(new DownloadListener() {
-					@Override
-					public boolean timer(long time, TimerWaitReason reason) {
-						System.out.println("Waiting " + time + " in " + reason);
-						// if (reason == TimerWaitReason.DOWNLOAD_TIMER)
-						// return true;
-						return true;
-					}
-
-					@Override
-					public String captcha(Captcha captcha) {
-						return null;
-					}
-				});
+				.download(null);
 		final ByteArrayOutputStream bout = new ByteArrayOutputStream();
 		IOUtils.copy(Channels.newInputStream(channel), bout);
 		System.out.println(bout.size());
@@ -176,28 +162,14 @@ public class HotFileServiceTest {
 	@Test
 	public void testLoggedInDownloader() throws IOException,
 			MalformedURLException {
-		Assert.assertTrue(((AuthenticationService) service).getAuthenticator(
-				new Credential(VALID_USERNAME, VALID_PASSWORD)).login());
+		((AuthenticationService) service).getAuthenticator(
+				new Credential(VALID_USERNAME, VALID_PASSWORD)).login();
 
 		final DownloadChannel channel = ((DownloadService) service)
 				.getDownloader(
 						new URL(
 								"http://hotfile.com/dl/129251605/9b4faf2/simulado_2010_1_res_all.zip.html"))
-				.download(new DownloadListener() {
-					@Override
-					public boolean timer(long time, TimerWaitReason reason) {
-						System.out.println("Waiting " + time + " in " + reason);
-						if (reason == TimerWaitReason.DOWNLOAD_TIMER)
-							return true;
-						return false;
-					}
-
-					@Override
-					public String captcha(Captcha captcha) {
-						// TODO Auto-generated method stub
-						return null;
-					}
-				});
+				.download(null);
 
 		final ByteArrayOutputStream bout = new ByteArrayOutputStream();
 		IOUtils.copy(Channels.newInputStream(channel), bout);

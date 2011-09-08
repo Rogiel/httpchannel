@@ -58,7 +58,7 @@ public class InputStreamDownloadChannel implements DownloadChannel {
 	}
 
 	@Override
-	public long getLength() {
+	public long getFilesize() {
 		return length;
 	}
 

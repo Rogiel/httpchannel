@@ -64,7 +64,7 @@ public class UploadListenerContentBody extends AbstractContentBody {
 
 	@Override
 	public long getContentLength() {
-		return channel.getLength();
+		return channel.getFilesize();
 	}
 
 	@Override

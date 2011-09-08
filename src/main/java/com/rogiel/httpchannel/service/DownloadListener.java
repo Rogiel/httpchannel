@@ -16,8 +16,6 @@
  */
 package com.rogiel.httpchannel.service;
 
-import com.rogiel.httpchannel.service.captcha.Captcha;
-
 /**
  * This listener keeps an track on the progress on an {@link Downloader}
  * service.
@@ -32,39 +30,7 @@ public interface DownloadListener {
 	 * 
 	 * @param time
 	 *            the time in ms in which the service will be be waiting.
-	 * @param reason
-	 *            the reason why this timer is running
 	 * @return true if desires to wait, false otherwise
 	 */
-	boolean timer(long time, TimerWaitReason reason);
-
-	/**
-	 * The reason why an certain timer is being ran.
-	 * 
-	 * @author Rogiel
-	 */
-	public enum TimerWaitReason {
-		/**
-		 * Normal download timer. An annoyance.
-		 */
-		DOWNLOAD_TIMER,
-		/**
-		 * This IP has already download up to the limit, waiting for releasing
-		 * of the block.
-		 */
-		COOLDOWN,
-		/**
-		 * This is an unknown wait time.
-		 */
-		UNKNOWN;
-	}
-
-	/**
-	 * Passes an captcha by parameter and waits for the response of the
-	 * challenge.
-	 * 
-	 * @param captcha
-	 *            the captcha challenge
-	 */
-	String captcha(Captcha captcha);
+	boolean timer(long time);
 }

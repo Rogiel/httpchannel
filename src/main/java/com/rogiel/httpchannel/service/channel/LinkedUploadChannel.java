@@ -67,7 +67,7 @@ public class LinkedUploadChannel implements UploadChannel {
 	}
 
 	@Override
-	public long getLength() {
+	public long getFilesize() {
 		return length;
 	}
 

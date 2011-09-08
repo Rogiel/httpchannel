@@ -24,7 +24,6 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.HttpGet;
@@ -54,6 +53,7 @@ import com.rogiel.httpchannel.service.channel.InputStreamDownloadChannel;
 import com.rogiel.httpchannel.service.channel.LinkedUploadChannel;
 import com.rogiel.httpchannel.service.channel.LinkedUploadChannel.LinkedUploadChannelCloseCallback;
 import com.rogiel.httpchannel.service.config.ServiceConfiguration;
+import com.rogiel.httpchannel.service.exception.AuthenticationInvalidCredentialException;
 import com.rogiel.httpchannel.service.impl.HotFileService.HotFileServiceConfiguration;
 import com.rogiel.httpchannel.util.HttpClientUtils;
 import com.rogiel.httpchannel.util.PatternUtils;
@@ -73,20 +73,35 @@ public class HotFileService extends
 
 	private static final Pattern DOWNLOAD_DIRECT_LINK_PATTERN = Pattern
 			.compile("http://hotfile\\.com/get/([0-9]*)/([A-Za-z0-9]*)/([A-Za-z0-9]*)/([^\"]*)");
-	private static final Pattern DOWNLOAD_TIMER = Pattern
-			.compile("timerend=d\\.getTime\\(\\)\\+([0-9]*);");
+	// private static final Pattern DOWNLOAD_TIMER = Pattern
+	// .compile("timerend=d\\.getTime\\(\\)\\+([0-9]*);");
 	// private static final Pattern DOWNLOAD_FILESIZE = Pattern
 	// .compile("[0-9]*(\\.[0-9]*)? (K|M|G)B");
 
 	private static final Pattern DOWNLOAD_URL_PATTERN = Pattern
 			.compile("http://hotfile\\.com/dl/([0-9]*)/([A-Za-z0-9]*)/([^\"]*)");
 
+	// private static final Pattern FREE_DOWNLOAD_URL_PATTERN = Pattern
+	// .compile("/dl/([0-9]*)/([A-Za-z0-9]*)/([^\"]*)");
+	// private static final Pattern DOWNLOAD_ACTION_PATTERN = Pattern
+	// .compile("name=action value=([A-Za-z0-9]*)");
+	// private static final Pattern DOWNLOAD_TM_PATTERN = Pattern
+	// .compile("name=tm value=([A-Za-z0-9]*)");
+	// private static final Pattern DOWNLOAD_TMHASH_PATTERN = Pattern
+	// .compile("name=tmhash value=([A-Za-z0-9]*)");
+	// private static final Pattern DOWNLOAD_WAIT_PATTERN = Pattern
+	// .compile("name=wait value=([A-Za-z0-9]*)");
+	// private static final Pattern DOWNLOAD_WAITHASH_PATTERN = Pattern
+	// .compile("name=waithash value=([A-Za-z0-9]*)");
+	// private static final Pattern DOWNLOAD_UPIDHASH_PATTERN = Pattern
+	// .compile("name=upidhash value=([A-Za-z0-9]*)");
+
 	public HotFileService(final HotFileServiceConfiguration configuration) {
 		super(configuration);
 	}
 
 	@Override
-	public String getId() {
+	public String getID() {
 		return "hotfile";
 	}
 
@@ -137,8 +152,6 @@ public class HotFileService extends
 	@Override
 	public CapabilityMatrix<DownloaderCapability> getDownloadCapabilities() {
 		return new CapabilityMatrix<DownloaderCapability>(
-				DownloaderCapability.UNAUTHENTICATED_DOWNLOAD,
-				DownloaderCapability.NON_PREMIUM_ACCOUNT_DOWNLOAD,
 				DownloaderCapability.PREMIUM_ACCOUNT_DOWNLOAD);
 	}
 
@@ -167,7 +180,7 @@ public class HotFileService extends
 
 		@Override
 		public UploadChannel upload() throws IOException {
-			final String body = HttpClientUtils.get(client,
+			final String body = HttpClientUtils.getString(client,
 					"http://www.hotfile.com/");
 			final String url = PatternUtils.find(UPLOAD_URL_PATTERN, body);
 
@@ -215,36 +228,75 @@ public class HotFileService extends
 			final String content = IOUtils.toString(response.getEntity()
 					.getContent());
 
-			// try to find timer
-			final String stringTimer = PatternUtils.find(DOWNLOAD_TIMER,
-					content, 2, 1);
-			int timer = 0;
-			if (stringTimer != null && stringTimer.length() > 0) {
-				timer = Integer.parseInt(stringTimer);
-			}
-			if (timer > 0) {
-				cooldown(listener, timer);
-				return download(listener);
-			}
+			// // try to find timer
+			// final String stringTimer = PatternUtils.find(DOWNLOAD_TIMER,
+			// content, 2, 1);
+			// int timer = 0;
+			// if (stringTimer != null && stringTimer.length() > 0) {
+			// timer = Integer.parseInt(stringTimer);
+			// }
+			// if (timer > 0) {
+			// throw new DownloadLimitExceededException("Must wait " + timer
+			// + " milliseconds");
+			// }
 
 			final String downloadUrl = PatternUtils.find(
 					DOWNLOAD_DIRECT_LINK_PATTERN, content, 0);
+			// final String tmHash = PatternUtils.find(DOWNLOAD_TMHASH_PATTERN,
+			// content);F
 			if (downloadUrl != null && downloadUrl.length() > 0) {
 				final HttpGet downloadRequest = new HttpGet(downloadUrl);
 				final HttpResponse downloadResponse = client
 						.execute(downloadRequest);
-				final String filename = FilenameUtils.getName(downloadUrl);
 
-				final Header contentLengthHeader = downloadResponse
-						.getFirstHeader("Content-Length");
-				long contentLength = -1;
-				if (contentLengthHeader != null) {
-					contentLength = Long
-							.valueOf(contentLengthHeader.getValue());
-				}
+				final String filename = FilenameUtils.getName(downloadUrl);
+				long contentLength = getContentLength(downloadResponse);
 
 				return new InputStreamDownloadChannel(downloadResponse
 						.getEntity().getContent(), contentLength, filename);
+				// } else if (tmHash != null) {
+				// String dlUrl = PatternUtils.find(FREE_DOWNLOAD_URL_PATTERN,
+				// content);
+				//
+				// String action = PatternUtils.find(DOWNLOAD_ACTION_PATTERN,
+				// content, 1);
+				// int tm = PatternUtils.findInt(DOWNLOAD_TM_PATTERN, content,
+				// 1);
+				// int wait = PatternUtils.findInt(DOWNLOAD_WAIT_PATTERN,
+				// content,
+				// 1);
+				// String waitHash =
+				// PatternUtils.find(DOWNLOAD_WAITHASH_PATTERN,
+				// content, 1);
+				// String upId = PatternUtils.find(DOWNLOAD_UPIDHASH_PATTERN,
+				// content, 1);
+				//
+				// System.out.println("Wait time: "+wait);
+				//
+				// if (wait > 0)
+				// timer(listener, wait * 1000);
+				//
+				// final HttpPost downloadPost = new
+				// HttpPost("http://www.hotfile.com"+dlUrl);
+				// final List<NameValuePair> pairs = new
+				// ArrayList<NameValuePair>();
+				// pairs.add(new BasicNameValuePair("action", action));
+				// pairs.add(new BasicNameValuePair("tm",
+				// Integer.toString(tm)));
+				// pairs.add(new BasicNameValuePair("tmhash", tmHash));
+				// pairs.add(new BasicNameValuePair("wait",
+				// Integer.toString(wait)));
+				// pairs.add(new BasicNameValuePair("waithash", waitHash));
+				// pairs.add(new BasicNameValuePair("upidhash", upId));
+				//
+				// downloadPost.setEntity(new UrlEncodedFormEntity(pairs));
+				//
+				// final HttpResponse downloadResponse = client
+				// .execute(downloadPost);
+				// System.out.println(IOUtils.toString(downloadResponse.getEntity().getContent()));
+				//
+				// return new InputStreamDownloadChannel(downloadResponse
+				// .getEntity().getContent(), 0, "haha");
 			} else {
 				throw new IOException("Download link not found");
 			}
@@ -259,7 +311,7 @@ public class HotFileService extends
 		}
 
 		@Override
-		public boolean login() throws ClientProtocolException, IOException {
+		public void login() throws ClientProtocolException, IOException {
 			final HttpPost login = new HttpPost(
 					"http://www.hotfile.com/login.php");
 			final MultipartEntity entity = new MultipartEntity();
@@ -272,12 +324,11 @@ public class HotFileService extends
 			String response = HttpClientUtils.execute(client, login);
 			if (response.toLowerCase().contains(
 					credential.getUsername().toLowerCase()))
-				return true;
-			return false;
+				throw new AuthenticationInvalidCredentialException();
 		}
 
 		@Override
-		public boolean logout() throws IOException {
+		public void logout() throws IOException {
 			final HttpPost logout = new HttpPost(
 					"http://www.megaupload.com/?c=account");
 			final MultipartEntity entity = new MultipartEntity();
@@ -287,8 +338,6 @@ public class HotFileService extends
 			HttpClientUtils.execute(client, logout);
 
 			// TODO check logout status
-
-			return true;
 		}
 	}
 

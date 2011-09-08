@@ -28,8 +28,10 @@ public interface UploadService extends Service {
 	 * with the parent {@link Service} instance.<br>
 	 * <b>Note</b>: not all services might support <tt>description</tt>
 	 * 
-	 * @param file
-	 *            the file to be uploaded
+	 * @param filename
+	 *            the name of the file to be uploaded
+	 * @param filesize
+	 *            the size of the file to be uploaded. This must be exact.
 	 * @param description
 	 *            the description of the upload. If supported.
 	 * @return the new {@link Uploader} instance
@@ -38,6 +40,9 @@ public interface UploadService extends Service {
 
 	/**
 	 * Get the maximum upload file size supported by this service.
+	 * <p>
+	 * <b>Please note</b> that the value returned by this method may vary based
+	 * on it's state (i.e. premium or not).
 	 * 
 	 * @return the maximum filesize supported
 	 */
@@ -46,6 +51,9 @@ public interface UploadService extends Service {
 	/**
 	 * Get the list of all supported extensions. Might return <tt>null</tt> if
 	 * there is no restriction.
+	 * <p>
+	 * <b>Please note</b> that the value returned by this method may vary based
+	 * on it's state (i.e. premium or not).
 	 * 
 	 * @return the list of supported file extensions. Can return <tt>null</tt>
 	 *         if there is not restriction

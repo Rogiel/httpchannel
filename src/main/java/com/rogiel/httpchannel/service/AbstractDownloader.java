@@ -16,29 +16,37 @@
  */
 package com.rogiel.httpchannel.service;
 
-import java.io.IOException;
+import org.apache.http.Header;
+import org.apache.http.HttpResponse;
 
-import com.rogiel.httpchannel.service.DownloadListener.TimerWaitReason;
 import com.rogiel.httpchannel.util.ThreadUtils;
-
 
 /**
  * @author rogiel
  */
 public abstract class AbstractDownloader implements Downloader {
-	protected void timer(DownloadListener listener, long timer) {
-		listener.timer(timer, TimerWaitReason.DOWNLOAD_TIMER);
-		ThreadUtils.sleep(timer);
+	protected int parseTimer(String stringTimer) {
+		int timer = 0;
+		if (stringTimer != null && stringTimer.length() > 0) {
+			timer = Integer.parseInt(stringTimer);
+		}
+		return timer;
 	}
 
-	protected boolean cooldown(DownloadListener listener, long cooldown)
-			throws IOException {
-		if (listener.timer(cooldown, TimerWaitReason.COOLDOWN)) {
-			ThreadUtils.sleep(cooldown);
-			return true;
-		} else {
-			throw new IOException("Timer " + TimerWaitReason.COOLDOWN
-					+ " aborted due to listener request");
+	protected long getContentLength(HttpResponse response) {
+		final Header contentLengthHeader = response
+				.getFirstHeader("Content-Length");
+		long contentLength = -1;
+		if (contentLengthHeader != null) {
+			contentLength = Long.valueOf(contentLengthHeader.getValue());
 		}
+		return contentLength;
+	}
+
+	protected void timer(DownloadListener listener, long timer) {
+		if (listener != null) {
+			listener.timer(timer);
+		}
+		ThreadUtils.sleep(timer);
 	}
 }

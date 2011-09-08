@@ -14,23 +14,40 @@
  * You should have received a copy of the GNU General Public License
  * along with seedbox.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.rogiel.httpchannel.service;
+package com.rogiel.httpchannel.service.exception;
 
 import java.io.IOException;
 
 /**
- * This interfaces provides uploading for an service.
+ * @author <a href="http://www.rogiel.com">Rogiel</a>
  * 
- * @author Rogiel
- * @since 1.0
  */
-public interface Uploader {
+public class ChannelServiceException extends IOException {
+	private static final long serialVersionUID = 1L;
+
+	public ChannelServiceException() {
+		super();
+	}
+
 	/**
-	 * Starts the upload process on this service.
-	 * 
-	 * @return the {@link UploadChannel} instance
-	 * @throws IOException
-	 *             if any IO error occur
+	 * @param message
+	 * @param cause
 	 */
-	UploadChannel upload() throws IOException;
+	public ChannelServiceException(String message, Throwable cause) {
+		super(message, cause);
+	}
+
+	/**
+	 * @param message
+	 */
+	public ChannelServiceException(String message) {
+		super(message);
+	}
+
+	/**
+	 * @param cause
+	 */
+	public ChannelServiceException(Throwable cause) {
+		super(cause);
+	}
 }

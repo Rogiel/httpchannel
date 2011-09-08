@@ -16,13 +16,29 @@
  */
 package com.rogiel.httpchannel.service;
 
+import java.nio.channels.Channel;
 import java.nio.channels.ReadableByteChannel;
 
 /**
+ * This is an {@link Channel} for downloads. Any data to be downloaded, must be
+ * Redden from this channel.
+ * <p>
+ * Since this {@link Channel} <tt>implements</tt> {@link ReadableByteChannel}
+ * you can treat it as any other regular IO {@link Channel}.
+ * <p>
+ * <b>Remember</b>: always close the {@link Channel}, if you do otherwise, the
+ * resources will not be freed and will consume machine resources.
+ * 
  * @author <a href="http://www.rogiel.com">Rogiel</a>
  */
 public interface DownloadChannel extends ReadableByteChannel {
-	long getLength();
+	/**
+	 * @return the file size
+	 */
+	long getFilesize();
 
+	/**
+	 * @return the file name
+	 */
 	String getFilename();
 }

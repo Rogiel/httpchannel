@@ -24,6 +24,11 @@ public class PatternUtils {
 		return find(pattern, text, 0);
 	}
 
+	public static int findInt(Pattern pattern, String text, int n) {
+		String found = find(pattern, text, n);
+		return (found != null ? Integer.parseInt(found) : 0);
+	}
+
 	public static String find(Pattern pattern, String text, int n) {
 		final Matcher matcher = pattern.matcher(text);
 		if (matcher.find()) {

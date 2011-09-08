@@ -43,6 +43,9 @@ public interface DownloadService extends Service {
 	/**
 	 * Check if this {@link Service} can download from this URL. Implemtations
 	 * might or might not perform network activity.
+	 * <p>
+	 * <b>Please note</b> that the value returned by this method may vary based
+	 * on it's state (i.e. premium or not).
 	 * 
 	 * @param url
 	 *            the {@link URL} to be tested.

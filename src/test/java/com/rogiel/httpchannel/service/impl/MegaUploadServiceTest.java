@@ -44,8 +44,8 @@ import com.rogiel.httpchannel.service.Service;
 import com.rogiel.httpchannel.service.UploadChannel;
 import com.rogiel.httpchannel.service.UploadService;
 import com.rogiel.httpchannel.service.UploaderCapability;
-import com.rogiel.httpchannel.service.captcha.Captcha;
 import com.rogiel.httpchannel.service.config.ServiceConfigurationHelper;
+import com.rogiel.httpchannel.service.exception.AuthenticationInvalidCredentialException;
 import com.rogiel.httpchannel.service.impl.MegaUploadService.MegaUploadServiceConfiguration;
 
 public class MegaUploadServiceTest {
@@ -84,19 +84,19 @@ public class MegaUploadServiceTest {
 	@Test
 	public void testServiceId() {
 		System.out.println("Service: " + service.toString());
-		assertEquals("megaupload", service.getId());
+		assertEquals("megaupload", service.getID());
 	}
 
 	@Test
 	public void testValidAuthenticator() throws IOException {
-		Assert.assertTrue(((AuthenticationService) service).getAuthenticator(
-				new Credential(VALID_USERNAME, VALID_PASSWORD)).login());
+		((AuthenticationService) service).getAuthenticator(
+				new Credential(VALID_USERNAME, VALID_PASSWORD)).login();
 	}
 
-	@Test
+	@Test(expected = AuthenticationInvalidCredentialException.class)
 	public void testInvalidAuthenticator() throws IOException {
-		Assert.assertFalse(((AuthenticationService) service).getAuthenticator(
-				new Credential(INVALID_USERNAME, INVALID_PASSWORD)).login());
+		((AuthenticationService) service).getAuthenticator(
+				new Credential(INVALID_USERNAME, INVALID_PASSWORD)).login();
 	}
 
 	@Test
@@ -133,8 +133,8 @@ public class MegaUploadServiceTest {
 				((UploadService) service).getUploadCapabilities().has(
 						UploaderCapability.PREMIUM_ACCOUNT_UPLOAD));
 
-		Assert.assertTrue(((AuthenticationService) service).getAuthenticator(
-				new Credential(VALID_USERNAME, VALID_PASSWORD)).login());
+		((AuthenticationService) service).getAuthenticator(
+				new Credential(VALID_USERNAME, VALID_PASSWORD)).login();
 
 		final UploadChannel channel = ((UploadService) service).getUploader(
 				"test.bin", 10, "Upload by httpchannel").upload();
@@ -158,21 +158,36 @@ public class MegaUploadServiceTest {
 	}
 
 	@Test
-	public void testDownloader() throws IOException, MalformedURLException {
+	public void testFreeDownloader() throws IOException, MalformedURLException {
 		final DownloadChannel channel = ((DownloadService) service)
 				.getDownloader(new URL("http://www.megaupload.com/?d=CVQKJ1KM"))
 				.download(new DownloadListener() {
 					@Override
-					public boolean timer(long time, TimerWaitReason reason) {
-						System.out.println("Waiting " + time + " in " + reason);
+					public boolean timer(long time) {
+						System.out.println("Waiting " + time);
 						// if (reason == TimerWaitReason.DOWNLOAD_TIMER)
 						// return true;
 						return true;
 					}
+				});
+		final ByteArrayOutputStream bout = new ByteArrayOutputStream();
+		IOUtils.copy(Channels.newInputStream(channel), bout);
+		System.out.println(bout.size());
+	}
 
+	@Test
+	public void testPremiumDownloader() throws IOException,
+			MalformedURLException {
+		((AuthenticationService) service).getAuthenticator(
+				new Credential(VALID_USERNAME, VALID_PASSWORD)).login();
+
+		final DownloadChannel channel = ((DownloadService) service)
+				.getDownloader(new URL("http://www.megaupload.com/?d=CVQKJ1KM"))
+				.download(new DownloadListener() {
 					@Override
-					public String captcha(Captcha captcha) {
-						return null;
+					public boolean timer(long time) {
+						System.out.println("Waiting " + time);
+						return true;
 					}
 				});
 		final ByteArrayOutputStream bout = new ByteArrayOutputStream();
@@ -187,21 +202,14 @@ public class MegaUploadServiceTest {
 				MegaUploadServiceConfiguration.class, new File(
 						"src/test/resources/megaupload-nowait.properties")));
 
+		@SuppressWarnings("unused")
 		final DownloadChannel channel = ((DownloadService) service)
 				.getDownloader(new URL("http://www.megaupload.com/?d=CVQKJ1KM"))
 				.download(new DownloadListener() {
 					@Override
-					public boolean timer(long time, TimerWaitReason reason) {
-						System.out.println("Waiting " + time + " in " + reason);
-						if (reason == TimerWaitReason.DOWNLOAD_TIMER)
-							return true;
+					public boolean timer(long time) {
+						System.out.println("Waiting " + time);
 						return false;
-					}
-
-					@Override
-					public String captcha(Captcha captcha) {
-						// TODO Auto-generated method stub
-						return null;
 					}
 				});
 	}

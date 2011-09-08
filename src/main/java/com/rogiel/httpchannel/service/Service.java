@@ -36,7 +36,7 @@ public interface Service {
 	 * 
 	 * @return the id of the service
 	 */
-	String getId();
+	String getID();
 
 	/**
 	 * Get Major version of this service

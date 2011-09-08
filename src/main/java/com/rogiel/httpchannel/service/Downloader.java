@@ -18,6 +18,9 @@ package com.rogiel.httpchannel.service;
 
 import java.io.IOException;
 
+import com.rogiel.httpchannel.service.exception.DownloadLimitExceededException;
+import com.rogiel.httpchannel.service.exception.DownloadLinkNotFoundException;
+
 /**
  * This interfaces provides downloading for an service.
  * 
@@ -30,6 +33,17 @@ public interface Downloader {
 	 * 
 	 * @param listener
 	 *            the listener to keep a track on the download progress
+	 * 
+	 * @return the {@link DownloadChannel} instance
+	 * @throws IOException
+	 *             if any IO error occur
+	 * @throws DownloadLinkNotFoundException
+	 *             if the direct download link cannot be found (the file could
+	 *             have been deleted)
+	 * @throws DownloadLimitExceededException
+	 *             if the download limit has been exceed, most times thrown when
+	 *             downloading as a non-premium user
 	 */
-	DownloadChannel download(DownloadListener listener) throws IOException;
+	DownloadChannel download(DownloadListener listener) throws IOException,
+			DownloadLinkNotFoundException, DownloadLimitExceededException;
 }

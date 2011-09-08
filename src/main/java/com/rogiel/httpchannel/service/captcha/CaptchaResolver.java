@@ -14,23 +14,19 @@
  * You should have received a copy of the GNU General Public License
  * along with seedbox.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.rogiel.httpchannel.service;
-
-import java.io.IOException;
+package com.rogiel.httpchannel.service.captcha;
 
 /**
- * This interfaces provides uploading for an service.
- * 
- * @author Rogiel
- * @since 1.0
+ * @author <a href="http://www.rogiel.com">Rogiel</a>
+ *
  */
-public interface Uploader {
+public interface CaptchaResolver {
 	/**
-	 * Starts the upload process on this service.
+	 * Passes an captcha by parameter and waits for the response of the
+	 * challenge.
 	 * 
-	 * @return the {@link UploadChannel} instance
-	 * @throws IOException
-	 *             if any IO error occur
+	 * @param captcha
+	 *            the captcha challenge
 	 */
-	UploadChannel upload() throws IOException;
+	String resolve(Captcha captcha);
 }

@@ -14,28 +14,38 @@
  * You should have received a copy of the GNU General Public License
  * along with seedbox.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.rogiel.httpchannel.service;
-
-import java.io.IOException;
+package com.rogiel.httpchannel.service.exception;
 
 /**
- * Base exception for any {@link Service}.
+ * @author <a href="http://www.rogiel.com">Rogiel</a>
  * 
- * @author Rogiel
- * @since 1.0
  */
-public class ServiceException extends IOException {
+public class AuthenticationServiceException extends ChannelServiceException {
 	private static final long serialVersionUID = 1L;
 
-	public ServiceException(String message) {
+	public AuthenticationServiceException() {
+		super();
+	}
+
+	/**
+	 * @param message
+	 * @param cause
+	 */
+	public AuthenticationServiceException(String message, Throwable cause) {
+		super(message, cause);
+	}
+
+	/**
+	 * @param message
+	 */
+	public AuthenticationServiceException(String message) {
 		super(message);
 	}
 
-	public ServiceException(Throwable t) {
-		super(t);
-	}
-
-	public ServiceException(String message, Throwable t) {
-		super(message, t);
+	/**
+	 * @param cause
+	 */
+	public AuthenticationServiceException(Throwable cause) {
+		super(cause);
 	}
 }

@@ -18,6 +18,8 @@ package com.rogiel.httpchannel.service;
 
 import java.io.IOException;
 
+import com.rogiel.httpchannel.service.exception.AuthenticationInvalidCredentialException;
+
 /**
  * This interfaces provides authentication for an service.
  * 
@@ -31,15 +33,19 @@ public interface Authenticator {
 	 * <b>Note</b>: If you want to logout the user, see
 	 * {@link Authenticator#logout()}
 	 * 
-	 * @return true if login was successful
+	 * @throws IOException
+	 *             if any IO error occur
+	 * @throws AuthenticationInvalidCredentialException
+	 *             if the credentials are not valid or cannot be used
 	 */
-	boolean login() throws IOException;
+	void login() throws IOException, AuthenticationInvalidCredentialException;
 
 	/**
 	 * Logout into the {@link Service}. The session is restored to an not
 	 * logged-in state.
 	 * 
-	 * @return true if logout was successful
+	 * @throws IOException
+	 *             if any IO error occur
 	 */
-	boolean logout() throws IOException;
+	void logout() throws IOException;
 }

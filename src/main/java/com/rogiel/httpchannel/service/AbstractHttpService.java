@@ -19,6 +19,7 @@ package com.rogiel.httpchannel.service;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.DefaultHttpClient;
 
+import com.rogiel.httpchannel.service.captcha.CaptchaResolver;
 import com.rogiel.httpchannel.service.config.ServiceConfiguration;
 import com.rogiel.httpchannel.util.AlwaysRedirectStrategy;
 
@@ -34,6 +35,11 @@ public abstract class AbstractHttpService<T extends ServiceConfiguration>
 	 * The {@link HttpClient} instance for this service
 	 */
 	protected DefaultHttpClient client = new DefaultHttpClient();
+
+	/**
+	 * The captcha resolver
+	 */
+	protected CaptchaResolver captchaResolver;
 
 	protected AbstractHttpService(T configuration) {
 		super(configuration);
