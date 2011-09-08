@@ -37,7 +37,6 @@ import com.rogiel.httpchannel.service.AbstractHttpService;
 import com.rogiel.httpchannel.service.AuthenticationService;
 import com.rogiel.httpchannel.service.Authenticator;
 import com.rogiel.httpchannel.service.AuthenticatorCapability;
-import com.rogiel.httpchannel.service.AuthenticatorListener;
 import com.rogiel.httpchannel.service.CapabilityMatrix;
 import com.rogiel.httpchannel.service.Credential;
 import com.rogiel.httpchannel.service.DownloadChannel;
@@ -47,7 +46,6 @@ import com.rogiel.httpchannel.service.Downloader;
 import com.rogiel.httpchannel.service.DownloaderCapability;
 import com.rogiel.httpchannel.service.Service;
 import com.rogiel.httpchannel.service.UploadChannel;
-import com.rogiel.httpchannel.service.UploadListener;
 import com.rogiel.httpchannel.service.UploadListenerContentBody;
 import com.rogiel.httpchannel.service.UploadService;
 import com.rogiel.httpchannel.service.Uploader;
@@ -104,13 +102,19 @@ public class MegaUploadService extends
 	}
 
 	@Override
-	public Uploader getUploader(String description) {
-		return new MegaUploadUploader(description);
+	public Uploader getUploader(String filename, long filesize,
+			String description) {
+		return new MegaUploadUploader(filename, filesize, description);
 	}
 
 	@Override
 	public long getMaximumFilesize() {
 		return 1 * 1024 * 1024 * 1024;
+	}
+	
+	@Override
+	public String[] getSupportedExtensions() {
+		return null;
 	}
 
 	@Override
@@ -151,17 +155,22 @@ public class MegaUploadService extends
 
 	protected class MegaUploadUploader implements Uploader,
 			LinkedUploadChannelCloseCallback {
+		private final String filename;
+		private final long filesize;
 		private final String description;
 
 		private Future<String> uploadFuture;
 
-		public MegaUploadUploader(String description) {
+		public MegaUploadUploader(String filename, long filesize,
+				String description) {
+			this.filename = filename;
+			this.filesize = filesize;
 			this.description = (description != null ? description
 					: configuration.getDefaultUploadDescription());
 		}
 
 		@Override
-		public UploadChannel upload(UploadListener listener) throws IOException {
+		public UploadChannel upload() throws IOException {
 			final String body = HttpClientUtils.get(client,
 					"http://www.megaupload.com/multiupload/");
 			final String url = PatternUtils.find(UPLOAD_URL_PATTERN, body);
@@ -171,7 +180,7 @@ public class MegaUploadService extends
 			upload.setEntity(entity);
 
 			final LinkedUploadChannel channel = new LinkedUploadChannel(this,
-					listener.getFilesize(), listener.getFilename());
+					filesize, filename);
 
 			entity.addPart("multifile_0",
 					new UploadListenerContentBody(channel));
@@ -265,7 +274,7 @@ public class MegaUploadService extends
 		}
 
 		@Override
-		public boolean login(AuthenticatorListener listener) throws IOException {
+		public boolean login() throws IOException {
 			final HttpPost login = new HttpPost(
 					"http://www.megaupload.com/?c=login");
 			final MultipartEntity entity = new MultipartEntity();
@@ -283,7 +292,7 @@ public class MegaUploadService extends
 		}
 
 		@Override
-		public boolean logout(AuthenticatorListener listener) throws IOException {
+		public boolean logout() throws IOException {
 			final HttpPost logout = new HttpPost(
 					"http://www.megaupload.com/?c=account");
 			final MultipartEntity entity = new MultipartEntity();

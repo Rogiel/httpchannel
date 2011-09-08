@@ -42,7 +42,6 @@ import com.rogiel.httpchannel.service.DownloadListener;
 import com.rogiel.httpchannel.service.DownloadService;
 import com.rogiel.httpchannel.service.Service;
 import com.rogiel.httpchannel.service.UploadChannel;
-import com.rogiel.httpchannel.service.UploadListener;
 import com.rogiel.httpchannel.service.UploadService;
 import com.rogiel.httpchannel.service.UploaderCapability;
 import com.rogiel.httpchannel.service.captcha.Captcha;
@@ -91,13 +90,13 @@ public class MegaUploadServiceTest {
 	@Test
 	public void testValidAuthenticator() throws IOException {
 		Assert.assertTrue(((AuthenticationService) service).getAuthenticator(
-				new Credential(VALID_USERNAME, VALID_PASSWORD)).login(null));
+				new Credential(VALID_USERNAME, VALID_PASSWORD)).login());
 	}
 
 	@Test
 	public void testInvalidAuthenticator() throws IOException {
 		Assert.assertFalse(((AuthenticationService) service).getAuthenticator(
-				new Credential(INVALID_USERNAME, INVALID_PASSWORD)).login(null));
+				new Credential(INVALID_USERNAME, INVALID_PASSWORD)).login());
 	}
 
 	@Test
@@ -107,17 +106,7 @@ public class MegaUploadServiceTest {
 				((UploadService) service).getUploadCapabilities().has(
 						UploaderCapability.NON_PREMIUM_ACCOUNT_UPLOAD));
 		final UploadChannel channel = ((UploadService) service).getUploader(
-				"Upload by httpchannel").upload(new UploadListener() {
-			@Override
-			public long getFilesize() {
-				return 10;
-			}
-
-			@Override
-			public String getFilename() {
-				return "test.bin";
-			}
-		});
+				"test.bin", 10, "Upload by httpchannel").upload();
 		final ByteBuffer buffer = ByteBuffer.allocate(10);
 		buffer.put((byte) 0x00);
 		buffer.put((byte) 0x00);
@@ -145,20 +134,10 @@ public class MegaUploadServiceTest {
 						UploaderCapability.PREMIUM_ACCOUNT_UPLOAD));
 
 		Assert.assertTrue(((AuthenticationService) service).getAuthenticator(
-				new Credential(VALID_USERNAME, VALID_PASSWORD)).login(null));
+				new Credential(VALID_USERNAME, VALID_PASSWORD)).login());
 
 		final UploadChannel channel = ((UploadService) service).getUploader(
-				"Upload by httpchannel").upload(new UploadListener() {
-			@Override
-			public long getFilesize() {
-				return 10;
-			}
-
-			@Override
-			public String getFilename() {
-				return "test.bin";
-			}
-		});
+				"test.bin", 10, "Upload by httpchannel").upload();
 		final ByteBuffer buffer = ByteBuffer.allocate(10);
 		buffer.put((byte) 0x00);
 		buffer.put((byte) 0x00);

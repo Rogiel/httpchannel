@@ -45,13 +45,11 @@ import com.rogiel.httpchannel.service.DownloadListener;
 import com.rogiel.httpchannel.service.DownloadService;
 import com.rogiel.httpchannel.service.Service;
 import com.rogiel.httpchannel.service.UploadChannel;
-import com.rogiel.httpchannel.service.UploadListener;
 import com.rogiel.httpchannel.service.UploadService;
 import com.rogiel.httpchannel.service.UploaderCapability;
 import com.rogiel.httpchannel.service.captcha.Captcha;
 import com.rogiel.httpchannel.service.config.ServiceConfigurationHelper;
 import com.rogiel.httpchannel.service.impl.HotFileService.HotFileServiceConfiguration;
-import com.rogiel.httpchannel.service.impl.MegaUploadService.MegaUploadServiceConfiguration;
 
 public class HotFileServiceTest {
 	private Service service;
@@ -95,13 +93,13 @@ public class HotFileServiceTest {
 	@Test
 	public void testValidAuthenticator() throws IOException {
 		Assert.assertTrue(((AuthenticationService) service).getAuthenticator(
-				new Credential(VALID_USERNAME, VALID_PASSWORD)).login(null));
+				new Credential(VALID_USERNAME, VALID_PASSWORD)).login());
 	}
 
 	@Test
 	public void testInvalidAuthenticator() throws IOException {
 		Assert.assertFalse(((AuthenticationService) service).getAuthenticator(
-				new Credential(INVALID_USERNAME, INVALID_PASSWORD)).login(null));
+				new Credential(INVALID_USERNAME, INVALID_PASSWORD)).login());
 	}
 
 	@Test
@@ -111,17 +109,9 @@ public class HotFileServiceTest {
 				((UploadService) service).getUploadCapabilities().has(
 						UploaderCapability.NON_PREMIUM_ACCOUNT_UPLOAD));
 		final UploadChannel channel = ((UploadService) service).getUploader(
-				"Upload by httpchannel").upload(new UploadListener() {
-			@Override
-			public long getFilesize() {
-				return new File("simulado_2010_1_res_all.zip").length();
-			}
-
-			@Override
-			public String getFilename() {
-				return "simulado_2010_1_res_all.zip";
-			}
-		});
+				"simulado_2010_1_res_all.zip",
+				new File("simulado_2010_1_res_all.zip").length(), null)
+				.upload();
 
 		final FileChannel fileChannel = new FileInputStream(
 				"simulado_2010_1_res_all.zip").getChannel();
@@ -141,20 +131,12 @@ public class HotFileServiceTest {
 						UploaderCapability.PREMIUM_ACCOUNT_UPLOAD));
 
 		Assert.assertTrue(((AuthenticationService) service).getAuthenticator(
-				new Credential(VALID_USERNAME, VALID_PASSWORD)).login(null));
+				new Credential(VALID_USERNAME, VALID_PASSWORD)).login());
 
 		final UploadChannel channel = ((UploadService) service).getUploader(
-				"Upload by httpchannel").upload(new UploadListener() {
-			@Override
-			public long getFilesize() {
-				return new File("simulado_2010_1_res_all.zip").length();
-			}
-
-			@Override
-			public String getFilename() {
-				return "simulado_2010_1_res_all.zip";
-			}
-		});
+				"simulado_2010_1_res_all.zip",
+				new File("simulado_2010_1_res_all.zip").length(), null)
+				.upload();
 
 		final FileChannel fileChannel = new FileInputStream(
 				"simulado_2010_1_res_all.zip").getChannel();
@@ -195,10 +177,12 @@ public class HotFileServiceTest {
 	public void testLoggedInDownloader() throws IOException,
 			MalformedURLException {
 		Assert.assertTrue(((AuthenticationService) service).getAuthenticator(
-				new Credential(VALID_USERNAME, VALID_PASSWORD)).login(null));
+				new Credential(VALID_USERNAME, VALID_PASSWORD)).login());
 
 		final DownloadChannel channel = ((DownloadService) service)
-				.getDownloader(new URL("http://hotfile.com/dl/129251605/9b4faf2/simulado_2010_1_res_all.zip.html"))
+				.getDownloader(
+						new URL(
+								"http://hotfile.com/dl/129251605/9b4faf2/simulado_2010_1_res_all.zip.html"))
 				.download(new DownloadListener() {
 					@Override
 					public boolean timer(long time, TimerWaitReason reason) {
@@ -214,7 +198,7 @@ public class HotFileServiceTest {
 						return null;
 					}
 				});
-		
+
 		final ByteArrayOutputStream bout = new ByteArrayOutputStream();
 		IOUtils.copy(Channels.newInputStream(channel), bout);
 		System.out.println(bout.size());

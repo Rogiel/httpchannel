@@ -31,17 +31,15 @@ public interface Authenticator {
 	 * <b>Note</b>: If you want to logout the user, see
 	 * {@link Authenticator#logout()}
 	 * 
-	 * @param listener
-	 *            the listener do keep a track on the authentication progress
+	 * @return true if login was successful
 	 */
-	boolean login(AuthenticatorListener listener) throws IOException;
+	boolean login() throws IOException;
 
 	/**
 	 * Logout into the {@link Service}. The session is restored to an not
 	 * logged-in state.
 	 * 
-	 * @param listener
-	 *            the listener do keep a track on the logout progress
+	 * @return true if logout was successful
 	 */
-	boolean logout(AuthenticatorListener listener) throws IOException;
+	boolean logout() throws IOException;
 }

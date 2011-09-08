@@ -34,5 +34,5 @@ public interface Uploader {
 	 *             thrown if something went wrong
 	 * @throws IOException
 	 */
-	UploadChannel upload(UploadListener listener) throws IOException;
+	UploadChannel upload() throws IOException;
 }

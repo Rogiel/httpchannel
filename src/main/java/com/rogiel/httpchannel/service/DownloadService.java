@@ -45,7 +45,7 @@ public interface DownloadService extends Service {
 	 * might or might not perform network activity.
 	 * 
 	 * @param url
-	 *            the url to be tested.
+	 *            the {@link URL} to be tested.
 	 * @return true if supported, false otherwise.
 	 */
 	boolean matchURL(URL url);

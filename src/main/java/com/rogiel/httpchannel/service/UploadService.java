@@ -34,7 +34,7 @@ public interface UploadService extends Service {
 	 *            the description of the upload. If supported.
 	 * @return the new {@link Uploader} instance
 	 */
-	Uploader getUploader(String description);
+	Uploader getUploader(String filename, long filesize, String description);
 
 	/**
 	 * Get the maximum upload file size supported by this service.
@@ -42,6 +42,15 @@ public interface UploadService extends Service {
 	 * @return the maximum filesize supported
 	 */
 	long getMaximumFilesize();
+
+	/**
+	 * Get the list of all supported extensions. Might return <tt>null</tt> if
+	 * there is no restriction.
+	 * 
+	 * @return the list of supported file extensions. Can return <tt>null</tt>
+	 *         if there is not restriction
+	 */
+	String[] getSupportedExtensions();
 
 	/**
 	 * Return the matrix of capabilities for this {@link Uploader}.
