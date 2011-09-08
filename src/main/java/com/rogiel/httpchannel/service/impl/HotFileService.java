@@ -26,7 +26,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
+import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.mime.MultipartEntity;
@@ -56,41 +56,40 @@ import com.rogiel.httpchannel.service.channel.InputStreamDownloadChannel;
 import com.rogiel.httpchannel.service.channel.LinkedUploadChannel;
 import com.rogiel.httpchannel.service.channel.LinkedUploadChannel.LinkedUploadChannelCloseCallback;
 import com.rogiel.httpchannel.service.config.ServiceConfiguration;
-import com.rogiel.httpchannel.service.config.ServiceConfigurationProperty;
-import com.rogiel.httpchannel.service.impl.MegaUploadService.MegaUploadServiceConfiguration;
+import com.rogiel.httpchannel.service.impl.HotFileService.HotFileServiceConfiguration;
 import com.rogiel.httpchannel.util.HttpClientUtils;
 import com.rogiel.httpchannel.util.PatternUtils;
 import com.rogiel.httpchannel.util.ThreadUtils;
 
 /**
- * This service handles login, upload and download to MegaUpload.com.
+ * This service handles login, upload and download to HotFile.com.
  * 
  * @author Rogiel
  * @since 1.0
  */
-public class MegaUploadService extends
-		AbstractHttpService<MegaUploadServiceConfiguration> implements Service,
+public class HotFileService extends
+		AbstractHttpService<HotFileServiceConfiguration> implements Service,
 		UploadService, DownloadService, AuthenticationService {
 	private static final Pattern UPLOAD_URL_PATTERN = Pattern
-			.compile("http://www([0-9]*)\\.megaupload\\.com/upload_done\\.php\\?UPLOAD_IDENTIFIER=[0-9]*");
+			.compile("http://u[0-9]*\\.hotfile\\.com/upload\\.cgi\\?[0-9]*");
 
 	private static final Pattern DOWNLOAD_DIRECT_LINK_PATTERN = Pattern
-			.compile("http://www([0-9]*)\\.megaupload\\.com/files/([A-Za-z0-9]*)/([^\"]*)");
+			.compile("http://hotfile\\.com/get/([0-9]*)/([A-Za-z0-9]*)/([A-Za-z0-9]*)/([^\"]*)");
 	private static final Pattern DOWNLOAD_TIMER = Pattern
-			.compile("count=([0-9]*);");
+			.compile("timerend=d\\.getTime\\(\\)\\+([0-9]*);");
 	// private static final Pattern DOWNLOAD_FILESIZE = Pattern
 	// .compile("[0-9]*(\\.[0-9]*)? (K|M|G)B");
 
 	private static final Pattern DOWNLOAD_URL_PATTERN = Pattern
-			.compile("http://www\\.megaupload\\.com/\\?d=([A-Za-z0-9]*)");
+			.compile("http://hotfile\\.com/dl/([0-9]*)/([A-Za-z0-9]*)/([^\"]*)");
 
-	public MegaUploadService(final MegaUploadServiceConfiguration configuration) {
+	public HotFileService(final HotFileServiceConfiguration configuration) {
 		super(configuration);
 	}
 
 	@Override
 	public String getId() {
-		return "megaupload";
+		return "hotfile";
 	}
 
 	@Override
@@ -105,7 +104,7 @@ public class MegaUploadService extends
 
 	@Override
 	public Uploader getUploader(String description) {
-		return new MegaUploadUploader(description);
+		return new HotFileUploader();
 	}
 
 	@Override
@@ -123,7 +122,7 @@ public class MegaUploadService extends
 
 	@Override
 	public Downloader getDownloader(URL url) {
-		return new MegaUploadDownloader(url);
+		return new HotFileDownloader(url);
 	}
 
 	@Override
@@ -141,7 +140,7 @@ public class MegaUploadService extends
 
 	@Override
 	public Authenticator getAuthenticator(Credential credential) {
-		return new MegaUploadAuthenticator(credential);
+		return new HotFileAuthenticator(credential);
 	}
 
 	@Override
@@ -149,21 +148,14 @@ public class MegaUploadService extends
 		return new CapabilityMatrix<AuthenticatorCapability>();
 	}
 
-	protected class MegaUploadUploader implements Uploader,
+	protected class HotFileUploader implements Uploader,
 			LinkedUploadChannelCloseCallback {
-		private final String description;
-
 		private Future<String> uploadFuture;
-
-		public MegaUploadUploader(String description) {
-			this.description = (description != null ? description
-					: configuration.getDefaultUploadDescription());
-		}
 
 		@Override
 		public UploadChannel upload(UploadListener listener) throws IOException {
 			final String body = HttpClientUtils.get(client,
-					"http://www.megaupload.com/multiupload/");
+					"http://www.hotfile.com/");
 			final String url = PatternUtils.find(UPLOAD_URL_PATTERN, body);
 
 			final HttpPost upload = new HttpPost(url);
@@ -173,9 +165,7 @@ public class MegaUploadService extends
 			final LinkedUploadChannel channel = new LinkedUploadChannel(this,
 					listener.getFilesize(), listener.getFilename());
 
-			entity.addPart("multifile_0",
-					new UploadListenerContentBody(channel));
-			entity.addPart("multimessage_0", new StringBody(description));
+			entity.addPart("uploads[]", new UploadListenerContentBody(channel));
 
 			uploadFuture = HttpClientUtils.executeAsync(client, upload);
 			while (!channel.isLinked() && !uploadFuture.isDone()) {
@@ -197,10 +187,10 @@ public class MegaUploadService extends
 		}
 	}
 
-	protected class MegaUploadDownloader extends AbstractDownloader {
+	protected class HotFileDownloader extends AbstractDownloader {
 		private final URL url;
 
-		public MegaUploadDownloader(URL url) {
+		public HotFileDownloader(URL url) {
 			this.url = url;
 		}
 
@@ -214,13 +204,14 @@ public class MegaUploadService extends
 
 			// try to find timer
 			final String stringTimer = PatternUtils.find(DOWNLOAD_TIMER,
-					content, 1);
+					content, 2, 1);
 			int timer = 0;
 			if (stringTimer != null && stringTimer.length() > 0) {
 				timer = Integer.parseInt(stringTimer);
 			}
-			if (timer > 0 && configuration.respectWaitTime()) {
-				timer(listener, timer * 1000);
+			if (timer > 0) {
+				cooldown(listener, timer);
+				return download(listener);
 			}
 
 			final String downloadUrl = PatternUtils.find(
@@ -229,61 +220,53 @@ public class MegaUploadService extends
 				final HttpGet downloadRequest = new HttpGet(downloadUrl);
 				final HttpResponse downloadResponse = client
 						.execute(downloadRequest);
-				if (downloadResponse.getStatusLine().getStatusCode() == HttpStatus.SC_FORBIDDEN
-						|| downloadResponse.getStatusLine().getStatusCode() == HttpStatus.SC_SERVICE_UNAVAILABLE) {
-					downloadResponse.getEntity().getContent().close();
-					if (cooldown(listener, 60 * 1000))
-						return download(listener); // retry download
-				} else {
-					final String filename = FilenameUtils.getName(downloadUrl);
-					// listener.fileName(filename);
+				final String filename = FilenameUtils.getName(downloadUrl);
 
-					final Header contentLengthHeader = downloadResponse
-							.getFirstHeader("Content-Length");
-					long contentLength = -1;
-					if (contentLengthHeader != null) {
-						contentLength = Long.valueOf(contentLengthHeader
-								.getValue());
-						// listener.fileSize(contentLength);
-					}
-
-					return new InputStreamDownloadChannel(downloadResponse
-							.getEntity().getContent(), contentLength, filename);
+				final Header contentLengthHeader = downloadResponse
+						.getFirstHeader("Content-Length");
+				long contentLength = -1;
+				if (contentLengthHeader != null) {
+					contentLength = Long
+							.valueOf(contentLengthHeader.getValue());
 				}
+
+				return new InputStreamDownloadChannel(downloadResponse
+						.getEntity().getContent(), contentLength, filename);
 			} else {
 				throw new IOException("Download link not found");
 			}
-			throw new IOException("Unknown error");
 		}
 	}
 
-	protected class MegaUploadAuthenticator implements Authenticator {
+	protected class HotFileAuthenticator implements Authenticator {
 		private final Credential credential;
 
-		public MegaUploadAuthenticator(Credential credential) {
+		public HotFileAuthenticator(Credential credential) {
 			this.credential = credential;
 		}
 
 		@Override
-		public boolean login(AuthenticatorListener listener) throws IOException {
+		public boolean login(AuthenticatorListener listener)
+				throws ClientProtocolException, IOException {
 			final HttpPost login = new HttpPost(
-					"http://www.megaupload.com/?c=login");
+					"http://www.hotfile.com/login.php");
 			final MultipartEntity entity = new MultipartEntity();
 			login.setEntity(entity);
 
-			entity.addPart("login", new StringBody("1"));
-			entity.addPart("username", new StringBody(credential.getUsername()));
-			entity.addPart("password", new StringBody(credential.getPassword()));
+			entity.addPart("returnto", new StringBody("/index.php"));
+			entity.addPart("user", new StringBody(credential.getUsername()));
+			entity.addPart("pass", new StringBody(credential.getPassword()));
 
-			final String response = HttpClientUtils.execute(client, login);
-			if (response.contains("Username and password do "
-					+ "not match. Please try again!"))
-				return false;
-			return true;
+			String response = HttpClientUtils.execute(client, login);
+			if (response.toLowerCase().contains(
+					credential.getUsername().toLowerCase()))
+				return true;
+			return false;
 		}
 
 		@Override
-		public boolean logout(AuthenticatorListener listener) throws IOException {
+		public boolean logout(AuthenticatorListener listener)
+				throws IOException {
 			final HttpPost logout = new HttpPost(
 					"http://www.megaupload.com/?c=account");
 			final MultipartEntity entity = new MultipartEntity();
@@ -298,16 +281,8 @@ public class MegaUploadService extends
 		}
 	}
 
-	public static interface MegaUploadServiceConfiguration extends
+	public static interface HotFileServiceConfiguration extends
 			ServiceConfiguration {
-		@ServiceConfigurationProperty(key = "megaupload.wait", defaultValue = "true")
-		boolean respectWaitTime();
-
-		@ServiceConfigurationProperty(key = "megaupload.port", defaultValue = "80")
-		int getPreferedDownloadPort();
-
-		@ServiceConfigurationProperty(key = "megaupload.description", defaultValue = "Uploaded by seedbox-httpchannel")
-		String getDefaultUploadDescription();
 	}
 
 	@Override

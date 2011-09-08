@@ -34,7 +34,7 @@ public interface Authenticator {
 	 * @param listener
 	 *            the listener do keep a track on the authentication progress
 	 */
-	void login(AuthenticatorListener listener) throws IOException;
+	boolean login(AuthenticatorListener listener) throws IOException;
 
 	/**
 	 * Logout into the {@link Service}. The session is restored to an not
@@ -43,5 +43,5 @@ public interface Authenticator {
 	 * @param listener
 	 *            the listener do keep a track on the logout progress
 	 */
-	void logout(AuthenticatorListener listener) throws IOException;
+	boolean logout(AuthenticatorListener listener) throws IOException;
 }

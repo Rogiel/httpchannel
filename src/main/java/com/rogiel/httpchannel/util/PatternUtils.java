@@ -31,7 +31,15 @@ public class PatternUtils {
 		}
 		return null;
 	}
-	
+
+	public static String find(Pattern pattern, String text, int index, int n) {
+		final Matcher matcher = pattern.matcher(text);
+		int found = 0;
+		while (matcher.find() && (++found) < index) {
+		}
+		return (found == 0 ? null : matcher.group(n));
+	}
+
 	public static String match(Pattern pattern, String text) {
 		return match(pattern, text, 0);
 	}

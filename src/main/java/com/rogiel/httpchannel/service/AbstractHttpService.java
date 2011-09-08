@@ -16,11 +16,11 @@
  */
 package com.rogiel.httpchannel.service;
 
-
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.DefaultHttpClient;
 
 import com.rogiel.httpchannel.service.config.ServiceConfiguration;
+import com.rogiel.httpchannel.util.AlwaysRedirectStrategy;
 
 /**
  * Abstract base service for HTTP enabled services.
@@ -33,9 +33,14 @@ public abstract class AbstractHttpService<T extends ServiceConfiguration>
 	/**
 	 * The {@link HttpClient} instance for this service
 	 */
-	protected HttpClient client = new DefaultHttpClient();
+	protected DefaultHttpClient client = new DefaultHttpClient();
 
 	protected AbstractHttpService(T configuration) {
 		super(configuration);
+		client.setRedirectStrategy(new AlwaysRedirectStrategy());
+		// client.getParams().setBooleanParameter(ClientPNames.HANDLE_REDIRECTS,
+		// true);
+		// client.getParams().setIntParameter(ClientPNames.MAX_REDIRECTS, 10);
+		// client.setRedirectStrategy(new DefaultRedirectStrategy());
 	}
 }

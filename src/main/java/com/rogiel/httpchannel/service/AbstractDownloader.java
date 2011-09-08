@@ -24,7 +24,6 @@ import com.rogiel.httpchannel.util.ThreadUtils;
 
 /**
  * @author rogiel
- * 
  */
 public abstract class AbstractDownloader implements Downloader {
 	protected void timer(DownloadListener listener, long timer) {

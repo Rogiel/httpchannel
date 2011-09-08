@@ -27,6 +27,9 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
+import java.nio.channels.FileChannel;
+import java.nio.channels.ReadableByteChannel;
+import java.nio.channels.WritableByteChannel;
 import java.util.Properties;
 
 import junit.framework.Assert;
@@ -47,19 +50,20 @@ import com.rogiel.httpchannel.service.UploadService;
 import com.rogiel.httpchannel.service.UploaderCapability;
 import com.rogiel.httpchannel.service.captcha.Captcha;
 import com.rogiel.httpchannel.service.config.ServiceConfigurationHelper;
+import com.rogiel.httpchannel.service.impl.HotFileService.HotFileServiceConfiguration;
 import com.rogiel.httpchannel.service.impl.MegaUploadService.MegaUploadServiceConfiguration;
 
-public class MegaUploadServiceTest {
+public class HotFileServiceTest {
 	private Service service;
 
 	/**
-	 * See <b>src/test/resources/config/megaupload.properties</b>
+	 * See <b>src/test/resources/config/hotfile.properties</b>
 	 * <p>
 	 * Key: username
 	 */
 	private String VALID_USERNAME;
 	/**
-	 * See <b>src/test/resources/config/megaupload.properties</b>
+	 * See <b>src/test/resources/config/hotfile.properties</b>
 	 * <p>
 	 * Key: password
 	 */
@@ -71,13 +75,13 @@ public class MegaUploadServiceTest {
 	@Before
 	public void setUp() throws Exception {
 		// MegaUploadServiceConfiguration.class;
-		service = new MegaUploadService(
+		service = new HotFileService(
 				ServiceConfigurationHelper
-						.defaultConfiguration(MegaUploadServiceConfiguration.class));
+						.defaultConfiguration(HotFileServiceConfiguration.class));
 
 		final Properties properties = new Properties();
 		properties.load(new FileInputStream(
-				"src/test/resources/config/megaupload.properties"));
+				"src/test/resources/config/hotfile.properties"));
 		VALID_USERNAME = properties.getProperty("username");
 		VALID_PASSWORD = properties.getProperty("password");
 	}
@@ -85,7 +89,7 @@ public class MegaUploadServiceTest {
 	@Test
 	public void testServiceId() {
 		System.out.println("Service: " + service.toString());
-		assertEquals("megaupload", service.getId());
+		assertEquals("hotfile", service.getId());
 	}
 
 	@Test
@@ -110,30 +114,22 @@ public class MegaUploadServiceTest {
 				"Upload by httpchannel").upload(new UploadListener() {
 			@Override
 			public long getFilesize() {
-				return 10;
+				return new File("simulado_2010_1_res_all.zip").length();
 			}
 
 			@Override
 			public String getFilename() {
-				return "test.bin";
+				return "simulado_2010_1_res_all.zip";
 			}
 		});
-		final ByteBuffer buffer = ByteBuffer.allocate(10);
-		buffer.put((byte) 0x00);
-		buffer.put((byte) 0x00);
-		buffer.put((byte) 0x00);
-		buffer.put((byte) 0x00);
-		buffer.put((byte) 0x00);
-		buffer.put((byte) 0x00);
-		buffer.put((byte) 0x00);
-		buffer.put((byte) 0x00);
-		buffer.put((byte) 0x00);
-		buffer.put((byte) 0x00);
 
-		buffer.flip();
+		final FileChannel fileChannel = new FileInputStream(
+				"simulado_2010_1_res_all.zip").getChannel();
 
-		channel.write(buffer);
+		copy(fileChannel, channel);
 		channel.close();
+
+		System.out.println(channel.getDownloadLink());
 		Assert.assertNotNull(channel.getDownloadLink());
 	}
 
@@ -151,37 +147,31 @@ public class MegaUploadServiceTest {
 				"Upload by httpchannel").upload(new UploadListener() {
 			@Override
 			public long getFilesize() {
-				return 10;
+				return new File("simulado_2010_1_res_all.zip").length();
 			}
 
 			@Override
 			public String getFilename() {
-				return "test.bin";
+				return "simulado_2010_1_res_all.zip";
 			}
 		});
-		final ByteBuffer buffer = ByteBuffer.allocate(10);
-		buffer.put((byte) 0x00);
-		buffer.put((byte) 0x00);
-		buffer.put((byte) 0x00);
-		buffer.put((byte) 0x00);
-		buffer.put((byte) 0x00);
-		buffer.put((byte) 0x00);
-		buffer.put((byte) 0x00);
-		buffer.put((byte) 0x00);
-		buffer.put((byte) 0x00);
-		buffer.put((byte) 0x00);
 
-		buffer.flip();
+		final FileChannel fileChannel = new FileInputStream(
+				"simulado_2010_1_res_all.zip").getChannel();
 
-		channel.write(buffer);
+		copy(fileChannel, channel);
 		channel.close();
+
+		System.out.println(channel.getDownloadLink());
 		Assert.assertNotNull(channel.getDownloadLink());
 	}
 
 	@Test
 	public void testDownloader() throws IOException, MalformedURLException {
 		final DownloadChannel channel = ((DownloadService) service)
-				.getDownloader(new URL("http://www.megaupload.com/?d=CVQKJ1KM"))
+				.getDownloader(
+						new URL(
+								"http://hotfile.com/dl/129251605/9b4faf2/simulado_2010_1_res_all.zip.html"))
 				.download(new DownloadListener() {
 					@Override
 					public boolean timer(long time, TimerWaitReason reason) {
@@ -202,14 +192,13 @@ public class MegaUploadServiceTest {
 	}
 
 	@Test
-	public void testNoWaitDownloader() throws IOException,
+	public void testLoggedInDownloader() throws IOException,
 			MalformedURLException {
-		service = new MegaUploadService(ServiceConfigurationHelper.file(
-				MegaUploadServiceConfiguration.class, new File(
-						"src/test/resources/megaupload-nowait.properties")));
+		Assert.assertTrue(((AuthenticationService) service).getAuthenticator(
+				new Credential(VALID_USERNAME, VALID_PASSWORD)).login(null));
 
 		final DownloadChannel channel = ((DownloadService) service)
-				.getDownloader(new URL("http://www.megaupload.com/?d=CVQKJ1KM"))
+				.getDownloader(new URL("http://hotfile.com/dl/129251605/9b4faf2/simulado_2010_1_res_all.zip.html"))
 				.download(new DownloadListener() {
 					@Override
 					public boolean timer(long time, TimerWaitReason reason) {
@@ -225,5 +214,32 @@ public class MegaUploadServiceTest {
 						return null;
 					}
 				});
+		
+		final ByteArrayOutputStream bout = new ByteArrayOutputStream();
+		IOUtils.copy(Channels.newInputStream(channel), bout);
+		System.out.println(bout.size());
+	}
+
+	public static void copy(ReadableByteChannel in, WritableByteChannel out)
+			throws IOException {
+		// First, we need a buffer to hold blocks of copied bytes.
+		ByteBuffer buffer = ByteBuffer.allocateDirect(32 * 1024);
+
+		// Now loop until no more bytes to read and the buffer is empty
+		while (in.read(buffer) != -1 || buffer.position() > 0) {
+			// The read() call leaves the buffer in "fill mode". To prepare
+			// to write bytes from the bufferwe have to put it in "drain mode"
+			// by flipping it: setting limit to position and position to zero
+			buffer.flip();
+
+			// Now write some or all of the bytes out to the output channel
+			out.write(buffer);
+
+			// Compact the buffer by discarding bytes that were written,
+			// and shifting any remaining bytes. This method also
+			// prepares the buffer for the next call to read() by setting the
+			// position to the limit and the limit to the buffer capacity.
+			buffer.compact();
+		}
 	}
 }

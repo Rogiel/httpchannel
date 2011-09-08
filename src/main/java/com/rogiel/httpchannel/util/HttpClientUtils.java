@@ -52,6 +52,17 @@ public class HttpClientUtils {
 		});
 	}
 
+	public static Future<HttpResponse> executeAsyncHttpResponse(
+			final HttpClient client, final HttpUriRequest request)
+			throws IOException {
+		return threadPool.submit(new Callable<HttpResponse>() {
+			@Override
+			public HttpResponse call() throws Exception {
+				return client.execute(request);
+			}
+		});
+	}
+
 	public static String toString(HttpResponse response) throws IOException {
 		final InputStream in = response.getEntity().getContent();
 		try {
