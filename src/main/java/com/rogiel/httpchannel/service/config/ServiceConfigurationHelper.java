@@ -25,7 +25,8 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.Properties;
 
-import net.sf.f2s.util.transformer.TransformerFactory;
+import com.rogiel.httpchannel.util.transformer.TransformerFactory;
+
 
 /**
  * Helper class for {@link ServiceConfiguration} system.

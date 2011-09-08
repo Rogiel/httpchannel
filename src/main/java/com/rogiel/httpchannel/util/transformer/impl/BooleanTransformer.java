@@ -14,42 +14,17 @@
  * You should have received a copy of the GNU General Public License
  * along with seedbox.  If not, see <http://www.gnu.org/licenses/>.
  */
-package net.sf.f2s.util.transformer;
+package com.rogiel.httpchannel.util.transformer.impl;
+
+import com.rogiel.httpchannel.util.transformer.Transformer;
 
 /**
- * @author Rogiel
- * @since 1.0
+ * @author rogiel
+ *
  */
-public class TransformationException extends Exception {
-	private static final long serialVersionUID = 1L;
-
-	public TransformationException() {
+public class BooleanTransformer implements Transformer<Boolean> {
+	@Override
+	public Boolean transform(String data) {
+		return Boolean.parseBoolean(data);
 	}
-
-	/**
-	 * @param message
-	 *            the message
-	 */
-	public TransformationException(String message) {
-		super(message);
-	}
-
-	/**
-	 * @param cause
-	 *            the cause
-	 */
-	public TransformationException(Throwable cause) {
-		super(cause);
-	}
-
-	/**
-	 * @param message
-	 *            the message
-	 * @param cause
-	 *            the cause
-	 */
-	public TransformationException(String message, Throwable cause) {
-		super(message, cause);
-	}
-
 }

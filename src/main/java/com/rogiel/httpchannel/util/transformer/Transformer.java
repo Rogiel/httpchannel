@@ -14,25 +14,12 @@
  * You should have received a copy of the GNU General Public License
  * along with seedbox.  If not, see <http://www.gnu.org/licenses/>.
  */
-package net.sf.f2s.util.transformer.impl;
-
-import java.net.MalformedURLException;
-import java.net.URL;
-
-import net.sf.f2s.util.transformer.TransformationException;
-import net.sf.f2s.util.transformer.Transformer;
+package com.rogiel.httpchannel.util.transformer;
 
 /**
  * @author rogiel
- * 
+ *
  */
-public class URLTransformer implements Transformer<URL> {
-	@Override
-	public URL transform(String data) throws TransformationException {
-		try {
-			return new URL(data);
-		} catch (MalformedURLException e) {
-			throw new TransformationException(e);
-		}
-	}
+public interface Transformer<O> {
+	O transform(String data) throws TransformationException;
 }

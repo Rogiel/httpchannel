@@ -18,7 +18,8 @@ package com.rogiel.httpchannel.service.config;
 
 import java.lang.reflect.Proxy;
 
-import net.sf.f2s.util.transformer.Transformer;
+import com.rogiel.httpchannel.util.transformer.Transformer;
+
 
 /**
  * This is an flag interface to indicate that an certain Interface is the

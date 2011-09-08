@@ -14,33 +14,42 @@
  * You should have received a copy of the GNU General Public License
  * along with seedbox.  If not, see <http://www.gnu.org/licenses/>.
  */
-package net.sf.f2s.util;
+package com.rogiel.httpchannel.util.transformer;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+/**
+ * @author Rogiel
+ * @since 1.0
+ */
+public class TransformationException extends Exception {
+	private static final long serialVersionUID = 1L;
 
-public class PatternUtils {
-	public static String find(Pattern pattern, String text) {
-		return find(pattern, text, 0);
+	public TransformationException() {
 	}
 
-	public static String find(Pattern pattern, String text, int n) {
-		final Matcher matcher = pattern.matcher(text);
-		if (matcher.find()) {
-			return matcher.group(n);
-		}
-		return null;
-	}
-	
-	public static String match(Pattern pattern, String text) {
-		return match(pattern, text, 0);
+	/**
+	 * @param message
+	 *            the message
+	 */
+	public TransformationException(String message) {
+		super(message);
 	}
 
-	public static String match(Pattern pattern, String text, int n) {
-		final Matcher matcher = pattern.matcher(text);
-		if (matcher.matches()) {
-			return matcher.group(n);
-		}
-		return null;
+	/**
+	 * @param cause
+	 *            the cause
+	 */
+	public TransformationException(Throwable cause) {
+		super(cause);
 	}
+
+	/**
+	 * @param message
+	 *            the message
+	 * @param cause
+	 *            the cause
+	 */
+	public TransformationException(String message, Throwable cause) {
+		super(message, cause);
+	}
+
 }

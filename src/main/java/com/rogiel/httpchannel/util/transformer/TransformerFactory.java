@@ -14,15 +14,16 @@
  * You should have received a copy of the GNU General Public License
  * along with seedbox.  If not, see <http://www.gnu.org/licenses/>.
  */
-package net.sf.f2s.util.transformer;
+package com.rogiel.httpchannel.util.transformer;
 
 import java.net.URL;
 
-import net.sf.f2s.util.transformer.impl.BooleanTransformer;
-import net.sf.f2s.util.transformer.impl.IntegerTransformer;
-import net.sf.f2s.util.transformer.impl.LongTransformer;
-import net.sf.f2s.util.transformer.impl.StringTransformer;
-import net.sf.f2s.util.transformer.impl.URLTransformer;
+import com.rogiel.httpchannel.util.transformer.impl.BooleanTransformer;
+import com.rogiel.httpchannel.util.transformer.impl.IntegerTransformer;
+import com.rogiel.httpchannel.util.transformer.impl.LongTransformer;
+import com.rogiel.httpchannel.util.transformer.impl.StringTransformer;
+import com.rogiel.httpchannel.util.transformer.impl.URLTransformer;
+
 
 /**
  * @author Rogiel

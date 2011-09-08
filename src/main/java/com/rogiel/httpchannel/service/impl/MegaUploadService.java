@@ -22,9 +22,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.regex.Pattern;
 
-import net.sf.f2s.util.HttpClientUtils;
-import net.sf.f2s.util.PatternUtils;
-import net.sf.f2s.util.ThreadUtils;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
@@ -62,6 +59,9 @@ import com.rogiel.httpchannel.service.channel.LinkedUploadChannel.LinkedUploadCh
 import com.rogiel.httpchannel.service.config.ServiceConfiguration;
 import com.rogiel.httpchannel.service.config.ServiceConfigurationProperty;
 import com.rogiel.httpchannel.service.impl.MegaUploadService.MegaUploadServiceConfiguration;
+import com.rogiel.httpchannel.util.HttpClientUtils;
+import com.rogiel.httpchannel.util.PatternUtils;
+import com.rogiel.httpchannel.util.ThreadUtils;
 
 /**
  * This service handles login, upload and download to MegaUpload.com.

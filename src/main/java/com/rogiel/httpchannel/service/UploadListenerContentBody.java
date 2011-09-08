@@ -21,12 +21,12 @@ import java.io.OutputStream;
 import java.nio.channels.Channels;
 import java.nio.channels.WritableByteChannel;
 
-import net.sf.f2s.util.ThreadUtils;
 
 import org.apache.http.entity.mime.content.AbstractContentBody;
 import org.apache.http.entity.mime.content.ContentBody;
 
 import com.rogiel.httpchannel.service.channel.LinkedUploadChannel;
+import com.rogiel.httpchannel.util.ThreadUtils;
 
 /**
  * {@link ContentBody} used to upload files in {@link Uploader} implementations.

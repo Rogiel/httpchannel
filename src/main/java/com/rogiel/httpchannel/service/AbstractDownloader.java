@@ -19,8 +19,8 @@ package com.rogiel.httpchannel.service;
 import java.io.IOException;
 
 import com.rogiel.httpchannel.service.DownloadListener.TimerWaitReason;
+import com.rogiel.httpchannel.util.ThreadUtils;
 
-import net.sf.f2s.util.ThreadUtils;
 
 /**
  * @author rogiel

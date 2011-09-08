@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with seedbox.  If not, see <http://www.gnu.org/licenses/>.
  */
-package net.sf.f2s.util;
+package com.rogiel.httpchannel.util;
 
 import java.io.IOException;
 import java.io.InputStream;

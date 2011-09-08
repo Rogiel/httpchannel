@@ -14,17 +14,17 @@
  * You should have received a copy of the GNU General Public License
  * along with seedbox.  If not, see <http://www.gnu.org/licenses/>.
  */
-package net.sf.f2s.util.transformer.impl;
+package com.rogiel.httpchannel.util.transformer.impl;
 
-import net.sf.f2s.util.transformer.Transformer;
+import com.rogiel.httpchannel.util.transformer.Transformer;
 
 /**
  * @author rogiel
  *
  */
-public class IntegerTransformer implements Transformer<Integer> {
+public class StringTransformer implements Transformer<String> {
 	@Override
-	public Integer transform(String data) {
-		return Integer.parseInt(data);
+	public String transform(String data) {
+		return data;
 	}
 }

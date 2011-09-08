@@ -14,17 +14,17 @@
  * You should have received a copy of the GNU General Public License
  * along with seedbox.  If not, see <http://www.gnu.org/licenses/>.
  */
-package net.sf.f2s.util.transformer.impl;
-
-import net.sf.f2s.util.transformer.Transformer;
+package com.rogiel.httpchannel.util;
 
 /**
- * @author rogiel
- * 
+ * @author Rogiel
+ * @since 1.0
  */
-public class LongTransformer implements Transformer<Long> {
-	@Override
-	public Long transform(String data) {
-		return Long.parseLong(data);
+public class ThreadUtils {
+	public static void sleep(long time) {
+		try {
+			Thread.sleep(time);
+		} catch (InterruptedException e) {
+		}
 	}
 }
