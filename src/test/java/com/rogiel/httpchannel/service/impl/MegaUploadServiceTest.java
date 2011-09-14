@@ -25,8 +25,11 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
+import java.nio.channels.SeekableByteChannel;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Properties;
 
 import junit.framework.Assert;
@@ -41,15 +44,18 @@ import com.rogiel.httpchannel.service.DownloadChannel;
 import com.rogiel.httpchannel.service.DownloadListener;
 import com.rogiel.httpchannel.service.DownloadService;
 import com.rogiel.httpchannel.service.Service;
+import com.rogiel.httpchannel.service.ServiceHelper;
 import com.rogiel.httpchannel.service.UploadChannel;
 import com.rogiel.httpchannel.service.UploadService;
 import com.rogiel.httpchannel.service.UploaderCapability;
 import com.rogiel.httpchannel.service.config.ServiceConfigurationHelper;
 import com.rogiel.httpchannel.service.exception.AuthenticationInvalidCredentialException;
 import com.rogiel.httpchannel.service.impl.MegaUploadService.MegaUploadServiceConfiguration;
+import com.rogiel.httpchannel.util.ChannelUtils;
 
 public class MegaUploadServiceTest {
 	private Service service;
+	private ServiceHelper helper;
 
 	/**
 	 * See <b>src/test/resources/config/megaupload.properties</b>
@@ -73,6 +79,7 @@ public class MegaUploadServiceTest {
 		service = new MegaUploadService(
 				ServiceConfigurationHelper
 						.defaultConfiguration(MegaUploadServiceConfiguration.class));
+		helper = new ServiceHelper(service);
 
 		final Properties properties = new Properties();
 		properties.load(new FileInputStream(
@@ -105,24 +112,19 @@ public class MegaUploadServiceTest {
 				"This service does not have the capability UploadCapability.FREE_UPLOAD",
 				((UploadService) service).getUploadCapabilities().has(
 						UploaderCapability.NON_PREMIUM_ACCOUNT_UPLOAD));
-		final UploadChannel channel = ((UploadService) service).getUploader(
-				"test.bin", 10, "Upload by httpchannel").upload();
-		final ByteBuffer buffer = ByteBuffer.allocate(10);
-		buffer.put((byte) 0x00);
-		buffer.put((byte) 0x00);
-		buffer.put((byte) 0x00);
-		buffer.put((byte) 0x00);
-		buffer.put((byte) 0x00);
-		buffer.put((byte) 0x00);
-		buffer.put((byte) 0x00);
-		buffer.put((byte) 0x00);
-		buffer.put((byte) 0x00);
-		buffer.put((byte) 0x00);
-
-		buffer.flip();
-
-		channel.write(buffer);
-		channel.close();
+		final Path path = Paths.get("src/test/resources/upload-test-file.txt");
+		final UploadChannel channel = helper.upload(path,
+				"httpchannel test upload");
+		final SeekableByteChannel inChannel = Files.newByteChannel(path);
+		
+		try {
+			ChannelUtils.copy(inChannel, channel);
+		} finally {
+			inChannel.close();
+			channel.close();
+		}
+		
+		System.out.println(channel.getDownloadLink());
 		Assert.assertNotNull(channel.getDownloadLink());
 	}
 
@@ -136,24 +138,19 @@ public class MegaUploadServiceTest {
 		((AuthenticationService) service).getAuthenticator(
 				new Credential(VALID_USERNAME, VALID_PASSWORD)).login();
 
-		final UploadChannel channel = ((UploadService) service).getUploader(
-				"test.bin", 10, "Upload by httpchannel").upload();
-		final ByteBuffer buffer = ByteBuffer.allocate(10);
-		buffer.put((byte) 0x00);
-		buffer.put((byte) 0x00);
-		buffer.put((byte) 0x00);
-		buffer.put((byte) 0x00);
-		buffer.put((byte) 0x00);
-		buffer.put((byte) 0x00);
-		buffer.put((byte) 0x00);
-		buffer.put((byte) 0x00);
-		buffer.put((byte) 0x00);
-		buffer.put((byte) 0x00);
-
-		buffer.flip();
-
-		channel.write(buffer);
-		channel.close();
+		final Path path = Paths.get("src/test/resources/upload-test-file.txt");
+		final UploadChannel channel = helper.upload(path,
+				"httpchannel test upload");
+		final SeekableByteChannel inChannel = Files.newByteChannel(path);
+		
+		try {
+			ChannelUtils.copy(inChannel, channel);
+		} finally {
+			inChannel.close();
+			channel.close();
+		}
+		
+		System.out.println(channel.getDownloadLink());
 		Assert.assertNotNull(channel.getDownloadLink());
 	}
 

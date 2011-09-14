@@ -20,16 +20,16 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
-import java.nio.channels.FileChannel;
-import java.nio.channels.ReadableByteChannel;
-import java.nio.channels.WritableByteChannel;
+import java.nio.channels.SeekableByteChannel;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Properties;
 
 import junit.framework.Assert;
@@ -43,15 +43,18 @@ import com.rogiel.httpchannel.service.Credential;
 import com.rogiel.httpchannel.service.DownloadChannel;
 import com.rogiel.httpchannel.service.DownloadService;
 import com.rogiel.httpchannel.service.Service;
+import com.rogiel.httpchannel.service.ServiceHelper;
 import com.rogiel.httpchannel.service.UploadChannel;
 import com.rogiel.httpchannel.service.UploadService;
 import com.rogiel.httpchannel.service.UploaderCapability;
 import com.rogiel.httpchannel.service.config.ServiceConfigurationHelper;
 import com.rogiel.httpchannel.service.exception.AuthenticationInvalidCredentialException;
 import com.rogiel.httpchannel.service.impl.HotFileService.HotFileServiceConfiguration;
+import com.rogiel.httpchannel.util.ChannelUtils;
 
 public class HotFileServiceTest {
 	private Service service;
+	private ServiceHelper helper;
 
 	/**
 	 * See <b>src/test/resources/config/hotfile.properties</b>
@@ -75,6 +78,7 @@ public class HotFileServiceTest {
 		service = new HotFileService(
 				ServiceConfigurationHelper
 						.defaultConfiguration(HotFileServiceConfiguration.class));
+		helper = new ServiceHelper(service);
 
 		final Properties properties = new Properties();
 		properties.load(new FileInputStream(
@@ -102,21 +106,24 @@ public class HotFileServiceTest {
 	}
 
 	@Test
-	public void testNonLoguedInUploader() throws IOException {
+	public void testNonLoguedInUploader() throws IOException,
+			URISyntaxException {
 		assertTrue(
 				"This service does not have the capability UploadCapability.FREE_UPLOAD",
 				((UploadService) service).getUploadCapabilities().has(
 						UploaderCapability.NON_PREMIUM_ACCOUNT_UPLOAD));
-		final UploadChannel channel = ((UploadService) service).getUploader(
-				"simulado_2010_1_res_all.zip",
-				new File("simulado_2010_1_res_all.zip").length(), null)
-				.upload();
 
-		final FileChannel fileChannel = new FileInputStream(
-				"simulado_2010_1_res_all.zip").getChannel();
+		final Path path = Paths.get("src/test/resources/upload-test-file.txt");
+		final UploadChannel channel = helper.upload(path,
+				"httpchannel test upload");
+		final SeekableByteChannel inChannel = Files.newByteChannel(path);
 
-		copy(fileChannel, channel);
-		channel.close();
+		try {
+			ChannelUtils.copy(inChannel, channel);
+		} finally {
+			inChannel.close();
+			channel.close();
+		}
 
 		System.out.println(channel.getDownloadLink());
 		Assert.assertNotNull(channel.getDownloadLink());
@@ -132,16 +139,17 @@ public class HotFileServiceTest {
 		((AuthenticationService) service).getAuthenticator(
 				new Credential(VALID_USERNAME, VALID_PASSWORD)).login();
 
-		final UploadChannel channel = ((UploadService) service).getUploader(
-				"simulado_2010_1_res_all.zip",
-				new File("simulado_2010_1_res_all.zip").length(), null)
-				.upload();
+		final Path path = Paths.get("src/test/resources/upload-test-file.txt");
+		final UploadChannel channel = helper.upload(path,
+				"httpchannel test upload");
+		final SeekableByteChannel inChannel = Files.newByteChannel(path);
 
-		final FileChannel fileChannel = new FileInputStream(
-				"simulado_2010_1_res_all.zip").getChannel();
-
-		copy(fileChannel, channel);
-		channel.close();
+		try {
+			ChannelUtils.copy(inChannel, channel);
+		} finally {
+			inChannel.close();
+			channel.close();
+		}
 
 		System.out.println(channel.getDownloadLink());
 		Assert.assertNotNull(channel.getDownloadLink());
@@ -174,28 +182,5 @@ public class HotFileServiceTest {
 		final ByteArrayOutputStream bout = new ByteArrayOutputStream();
 		IOUtils.copy(Channels.newInputStream(channel), bout);
 		System.out.println(bout.size());
-	}
-
-	public static void copy(ReadableByteChannel in, WritableByteChannel out)
-			throws IOException {
-		// First, we need a buffer to hold blocks of copied bytes.
-		ByteBuffer buffer = ByteBuffer.allocateDirect(32 * 1024);
-
-		// Now loop until no more bytes to read and the buffer is empty
-		while (in.read(buffer) != -1 || buffer.position() > 0) {
-			// The read() call leaves the buffer in "fill mode". To prepare
-			// to write bytes from the bufferwe have to put it in "drain mode"
-			// by flipping it: setting limit to position and position to zero
-			buffer.flip();
-
-			// Now write some or all of the bytes out to the output channel
-			out.write(buffer);
-
-			// Compact the buffer by discarding bytes that were written,
-			// and shifting any remaining bytes. This method also
-			// prepares the buffer for the next call to read() by setting the
-			// position to the limit and the limit to the buffer capacity.
-			buffer.compact();
-		}
 	}
 }

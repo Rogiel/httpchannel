@@ -29,6 +29,8 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpUriRequest;
 
+import com.rogiel.httpchannel.util.htmlparser.HTMLPage;
+
 public class HttpClientUtils {
 	private static final ExecutorService threadPool = Executors
 			.newCachedThreadPool();
@@ -76,5 +78,9 @@ public class HttpClientUtils {
 		} finally {
 			in.close();
 		}
+	}
+
+	public static HTMLPage toPage(HttpResponse response) throws IOException {
+		return HTMLPage.parse(toString(response));
 	}
 }

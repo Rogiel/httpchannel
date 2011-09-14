@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with seedbox.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.rogiel.httpchannel.service;
+package com.rogiel.httpchannel.service.channel;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -25,7 +25,7 @@ import java.nio.channels.WritableByteChannel;
 import org.apache.http.entity.mime.content.AbstractContentBody;
 import org.apache.http.entity.mime.content.ContentBody;
 
-import com.rogiel.httpchannel.service.channel.LinkedUploadChannel;
+import com.rogiel.httpchannel.service.Uploader;
 import com.rogiel.httpchannel.util.ThreadUtils;
 
 /**
@@ -34,10 +34,10 @@ import com.rogiel.httpchannel.util.ThreadUtils;
  * @author Rogiel
  * @since 1.0
  */
-public class UploadListenerContentBody extends AbstractContentBody {
+public class LinkedUploadChannelContentBody extends AbstractContentBody {
 	private final LinkedUploadChannel channel;
 
-	public UploadListenerContentBody(LinkedUploadChannel channel) {
+	public LinkedUploadChannelContentBody(LinkedUploadChannel channel) {
 		super("application/octet-stream");
 		this.channel = channel;
 	}

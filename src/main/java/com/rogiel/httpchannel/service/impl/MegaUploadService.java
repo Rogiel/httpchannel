@@ -25,13 +25,10 @@ import java.util.concurrent.Future;
 import java.util.regex.Pattern;
 
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.mime.MultipartEntity;
 import org.apache.http.entity.mime.content.StringBody;
 import org.apache.http.message.BasicNameValuePair;
@@ -50,13 +47,13 @@ import com.rogiel.httpchannel.service.Downloader;
 import com.rogiel.httpchannel.service.DownloaderCapability;
 import com.rogiel.httpchannel.service.Service;
 import com.rogiel.httpchannel.service.UploadChannel;
-import com.rogiel.httpchannel.service.UploadListenerContentBody;
 import com.rogiel.httpchannel.service.UploadService;
 import com.rogiel.httpchannel.service.Uploader;
 import com.rogiel.httpchannel.service.UploaderCapability;
 import com.rogiel.httpchannel.service.channel.InputStreamDownloadChannel;
 import com.rogiel.httpchannel.service.channel.LinkedUploadChannel;
 import com.rogiel.httpchannel.service.channel.LinkedUploadChannel.LinkedUploadChannelCloseCallback;
+import com.rogiel.httpchannel.service.channel.LinkedUploadChannelContentBody;
 import com.rogiel.httpchannel.service.config.ServiceConfiguration;
 import com.rogiel.httpchannel.service.config.ServiceConfigurationProperty;
 import com.rogiel.httpchannel.service.exception.AuthenticationInvalidCredentialException;
@@ -67,6 +64,7 @@ import com.rogiel.httpchannel.service.impl.MegaUploadService.MegaUploadServiceCo
 import com.rogiel.httpchannel.util.HttpClientUtils;
 import com.rogiel.httpchannel.util.PatternUtils;
 import com.rogiel.httpchannel.util.ThreadUtils;
+import com.rogiel.httpchannel.util.htmlparser.HTMLPage;
 
 /**
  * This service handles login, upload and download to MegaUpload.com.
@@ -81,7 +79,7 @@ public class MegaUploadService extends
 			.compile("http://www([0-9]*)\\.megaupload\\.com/upload_done\\.php\\?UPLOAD_IDENTIFIER=[0-9]*");
 
 	private static final Pattern DOWNLOAD_DIRECT_LINK_PATTERN = Pattern
-			.compile("http://www([0-9]*)\\.megaupload\\.com/files/([A-Za-z0-9]*)/([^\"]*)");
+			.compile("http://www([0-9]*)\\.megaupload\\.com/files/([A-Za-z0-9]*)/(.*)");
 	private static final Pattern DOWNLOAD_TIMER = Pattern
 			.compile("count=([0-9]*);");
 	// private static final Pattern DOWNLOAD_FILESIZE = Pattern
@@ -89,6 +87,9 @@ public class MegaUploadService extends
 
 	private static final Pattern DOWNLOAD_URL_PATTERN = Pattern
 			.compile("http://www\\.megaupload\\.com/\\?d=([A-Za-z0-9]*)");
+
+	private static final Pattern LOGIN_USERNAME_PATTERN = Pattern
+			.compile("flashvars\\.username = \"(.*)\";");
 
 	public MegaUploadService(final MegaUploadServiceConfiguration configuration) {
 		super(configuration);
@@ -140,7 +141,7 @@ public class MegaUploadService extends
 
 	@Override
 	public boolean matchURL(URL url) {
-		return false;
+		return DOWNLOAD_URL_PATTERN.matcher(url.toString()).matches();
 	}
 
 	@Override
@@ -179,22 +180,18 @@ public class MegaUploadService extends
 
 		@Override
 		public UploadChannel upload() throws IOException {
-			final String body = HttpClientUtils.getString(client,
-					"http://www.megaupload.com/multiupload/");
-			final String url = PatternUtils.find(UPLOAD_URL_PATTERN, body);
-
-			final HttpPost upload = new HttpPost(url);
-			final MultipartEntity entity = new MultipartEntity();
-			upload.setEntity(entity);
+			final HTMLPage page = getAsPage("http://www.megaupload.com/multiupload/");
+			final String url = page.getFormAction(UPLOAD_URL_PATTERN);
 
 			final LinkedUploadChannel channel = new LinkedUploadChannel(this,
 					filesize, filename);
+			final MultipartEntity entity = new MultipartEntity();
 
-			entity.addPart("multifile_0",
-					new UploadListenerContentBody(channel));
+			entity.addPart("multifile_0", new LinkedUploadChannelContentBody(
+					channel));
 			entity.addPart("multimessage_0", new StringBody(description));
 
-			uploadFuture = HttpClientUtils.executeAsync(client, upload);
+			uploadFuture = postAsStringAsync(url, entity);
 			while (!channel.isLinked() && !uploadFuture.isDone()) {
 				ThreadUtils.sleep(100);
 			}
@@ -227,42 +224,38 @@ public class MegaUploadService extends
 		@Override
 		public DownloadChannel download(DownloadListener listener)
 				throws IOException {
-			HttpResponse response = HttpClientUtils.get(client, url.toString());
+			HttpResponse response = get(url.toString());
 
 			// disable direct downloads, we don't support them!
 			if (response.getEntity().getContentType().getValue()
 					.equals("application/octet-stream")) {
-				final HttpPost updateAutoDownload = new HttpPost(
-						"http://www.megaupload.com/?c=account");
+				// close connection
+				response.getEntity().getContent().close();
+
 				final List<NameValuePair> pairs = new ArrayList<NameValuePair>();
 				pairs.add(new BasicNameValuePair("do", "directdownloads"));
 				pairs.add(new BasicNameValuePair("accountupdate", "1"));
 				pairs.add(new BasicNameValuePair("set_ddl", "0"));
-				updateAutoDownload.setEntity(new UrlEncodedFormEntity(pairs));
 
-				// close connection
-				response.getEntity().getContent().close();
+				// execute update
+				postAsString("http://www.megaupload.com/?c=account",
+						new UrlEncodedFormEntity(pairs));
 
 				// execute and re-request download
-				response = HttpClientUtils.get(client, url.toString());
+				response = get(url.toString());
 			}
 
-			final String content = IOUtils.toString(response.getEntity()
-					.getContent());
+			final HTMLPage page = HttpClientUtils.toPage(response);
 
 			// try to find timer
-			int timer = parseTimer(PatternUtils
-					.find(DOWNLOAD_TIMER, content, 1));
+			int timer = page.findIntegerInScript(DOWNLOAD_TIMER, 1);
 			if (timer > 0 && configuration.respectWaitTime()) {
 				timer(listener, timer * 1000);
 			}
-
-			final String downloadUrl = PatternUtils.find(
-					DOWNLOAD_DIRECT_LINK_PATTERN, content, 0);
+			final String downloadUrl = page
+					.getLink(DOWNLOAD_DIRECT_LINK_PATTERN);
 			if (downloadUrl != null && downloadUrl.length() > 0) {
-				final HttpGet downloadRequest = new HttpGet(downloadUrl);
-				final HttpResponse downloadResponse = client
-						.execute(downloadRequest);
+				final HttpResponse downloadResponse = get(downloadUrl);
 				if (downloadResponse.getStatusLine().getStatusCode() == HttpStatus.SC_FORBIDDEN
 						|| downloadResponse.getStatusLine().getStatusCode() == HttpStatus.SC_SERVICE_UNAVAILABLE) {
 					downloadResponse.getEntity().getContent().close();
@@ -291,31 +284,26 @@ public class MegaUploadService extends
 
 		@Override
 		public void login() throws IOException {
-			final HttpPost login = new HttpPost(
-					"http://www.megaupload.com/?c=login");
 			final MultipartEntity entity = new MultipartEntity();
-			login.setEntity(entity);
 
 			entity.addPart("login", new StringBody("1"));
 			entity.addPart("username", new StringBody(credential.getUsername()));
 			entity.addPart("password", new StringBody(credential.getPassword()));
 
-			final String response = HttpClientUtils.execute(client, login);
-			if (response.contains("Username and password do "
-					+ "not match. Please try again!"))
+			final HTMLPage page = postAsPage(
+					"http://www.megaupload.com/?c=login", entity);
+			String username = page.findInScript(LOGIN_USERNAME_PATTERN, 1);
+
+			if (username == null)
 				throw new AuthenticationInvalidCredentialException();
 		}
 
 		@Override
 		public void logout() throws IOException {
-			final HttpPost logout = new HttpPost(
-					"http://www.megaupload.com/?c=account");
 			final MultipartEntity entity = new MultipartEntity();
-			logout.setEntity(entity);
-
 			entity.addPart("logout", new StringBody("1"));
-			HttpClientUtils.execute(client, logout);
 
+			postAsString("http://www.megaupload.com/?c=account", entity);
 			// TODO check logout status
 		}
 	}

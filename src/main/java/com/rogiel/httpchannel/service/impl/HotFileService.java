@@ -23,13 +23,11 @@ import java.util.concurrent.Future;
 import java.util.regex.Pattern;
 
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.mime.MultipartEntity;
 import org.apache.http.entity.mime.content.StringBody;
+import org.htmlparser.Tag;
 
 import com.rogiel.httpchannel.service.AbstractDownloader;
 import com.rogiel.httpchannel.service.AbstractHttpService;
@@ -45,19 +43,18 @@ import com.rogiel.httpchannel.service.Downloader;
 import com.rogiel.httpchannel.service.DownloaderCapability;
 import com.rogiel.httpchannel.service.Service;
 import com.rogiel.httpchannel.service.UploadChannel;
-import com.rogiel.httpchannel.service.UploadListenerContentBody;
 import com.rogiel.httpchannel.service.UploadService;
 import com.rogiel.httpchannel.service.Uploader;
 import com.rogiel.httpchannel.service.UploaderCapability;
 import com.rogiel.httpchannel.service.channel.InputStreamDownloadChannel;
 import com.rogiel.httpchannel.service.channel.LinkedUploadChannel;
+import com.rogiel.httpchannel.service.channel.LinkedUploadChannelContentBody;
 import com.rogiel.httpchannel.service.channel.LinkedUploadChannel.LinkedUploadChannelCloseCallback;
 import com.rogiel.httpchannel.service.config.ServiceConfiguration;
 import com.rogiel.httpchannel.service.exception.AuthenticationInvalidCredentialException;
 import com.rogiel.httpchannel.service.impl.HotFileService.HotFileServiceConfiguration;
-import com.rogiel.httpchannel.util.HttpClientUtils;
-import com.rogiel.httpchannel.util.PatternUtils;
 import com.rogiel.httpchannel.util.ThreadUtils;
+import com.rogiel.httpchannel.util.htmlparser.HTMLPage;
 
 /**
  * This service handles login, upload and download to HotFile.com.
@@ -72,29 +69,14 @@ public class HotFileService extends
 			.compile("http://u[0-9]*\\.hotfile\\.com/upload\\.cgi\\?[0-9]*");
 
 	private static final Pattern DOWNLOAD_DIRECT_LINK_PATTERN = Pattern
-			.compile("http://hotfile\\.com/get/([0-9]*)/([A-Za-z0-9]*)/([A-Za-z0-9]*)/([^\"]*)");
+			.compile("http://hotfile\\.com/get/([0-9]*)/([A-Za-z0-9]*)/([A-Za-z0-9]*)/(.*)");
 	// private static final Pattern DOWNLOAD_TIMER = Pattern
 	// .compile("timerend=d\\.getTime\\(\\)\\+([0-9]*);");
 	// private static final Pattern DOWNLOAD_FILESIZE = Pattern
 	// .compile("[0-9]*(\\.[0-9]*)? (K|M|G)B");
 
 	private static final Pattern DOWNLOAD_URL_PATTERN = Pattern
-			.compile("http://hotfile\\.com/dl/([0-9]*)/([A-Za-z0-9]*)/([^\"]*)");
-
-	// private static final Pattern FREE_DOWNLOAD_URL_PATTERN = Pattern
-	// .compile("/dl/([0-9]*)/([A-Za-z0-9]*)/([^\"]*)");
-	// private static final Pattern DOWNLOAD_ACTION_PATTERN = Pattern
-	// .compile("name=action value=([A-Za-z0-9]*)");
-	// private static final Pattern DOWNLOAD_TM_PATTERN = Pattern
-	// .compile("name=tm value=([A-Za-z0-9]*)");
-	// private static final Pattern DOWNLOAD_TMHASH_PATTERN = Pattern
-	// .compile("name=tmhash value=([A-Za-z0-9]*)");
-	// private static final Pattern DOWNLOAD_WAIT_PATTERN = Pattern
-	// .compile("name=wait value=([A-Za-z0-9]*)");
-	// private static final Pattern DOWNLOAD_WAITHASH_PATTERN = Pattern
-	// .compile("name=waithash value=([A-Za-z0-9]*)");
-	// private static final Pattern DOWNLOAD_UPIDHASH_PATTERN = Pattern
-	// .compile("name=upidhash value=([A-Za-z0-9]*)");
+			.compile("http://hotfile\\.com/dl/([0-9]*)/([A-Za-z0-9]*)/(.*)");
 
 	public HotFileService(final HotFileServiceConfiguration configuration) {
 		super(configuration);
@@ -146,7 +128,7 @@ public class HotFileService extends
 
 	@Override
 	public boolean matchURL(URL url) {
-		return false;
+		return DOWNLOAD_URL_PATTERN.matcher(url.toString()).matches();
 	}
 
 	@Override
@@ -170,7 +152,7 @@ public class HotFileService extends
 		private final String filename;
 		private final long filesize;
 
-		private Future<String> uploadFuture;
+		private Future<HTMLPage> uploadFuture;
 
 		public HotFileUploader(String filename, long filesize) {
 			super();
@@ -180,20 +162,16 @@ public class HotFileService extends
 
 		@Override
 		public UploadChannel upload() throws IOException {
-			final String body = HttpClientUtils.getString(client,
-					"http://www.hotfile.com/");
-			final String url = PatternUtils.find(UPLOAD_URL_PATTERN, body);
-
-			final HttpPost upload = new HttpPost(url);
-			final MultipartEntity entity = new MultipartEntity();
-			upload.setEntity(entity);
+			final HTMLPage page = getAsPage("http://www.hotfile.com/");
+			final String action = page.getFormAction(UPLOAD_URL_PATTERN);
 
 			final LinkedUploadChannel channel = new LinkedUploadChannel(this,
 					filesize, filename);
+			final MultipartEntity entity = new MultipartEntity();
 
-			entity.addPart("uploads[]", new UploadListenerContentBody(channel));
+			entity.addPart("uploads[]", new LinkedUploadChannelContentBody(channel));
 
-			uploadFuture = HttpClientUtils.executeAsync(client, upload);
+			uploadFuture = postAsPageAsync(action, entity);
 			while (!channel.isLinked() && !uploadFuture.isDone()) {
 				ThreadUtils.sleep(100);
 			}
@@ -203,8 +181,7 @@ public class HotFileService extends
 		@Override
 		public String finish() throws IOException {
 			try {
-				return PatternUtils.find(DOWNLOAD_URL_PATTERN,
-						uploadFuture.get());
+				return uploadFuture.get().getInputValue(DOWNLOAD_URL_PATTERN);
 			} catch (InterruptedException e) {
 				return null;
 			} catch (ExecutionException e) {
@@ -223,10 +200,7 @@ public class HotFileService extends
 		@Override
 		public DownloadChannel download(DownloadListener listener)
 				throws IOException {
-			final HttpGet request = new HttpGet(url.toString());
-			final HttpResponse response = client.execute(request);
-			final String content = IOUtils.toString(response.getEntity()
-					.getContent());
+			final HTMLPage page = getAsPage(url.toString());
 
 			// // try to find timer
 			// final String stringTimer = PatternUtils.find(DOWNLOAD_TIMER,
@@ -240,14 +214,12 @@ public class HotFileService extends
 			// + " milliseconds");
 			// }
 
-			final String downloadUrl = PatternUtils.find(
-					DOWNLOAD_DIRECT_LINK_PATTERN, content, 0);
+			final String downloadUrl = page
+					.getLink(DOWNLOAD_DIRECT_LINK_PATTERN);
 			// final String tmHash = PatternUtils.find(DOWNLOAD_TMHASH_PATTERN,
 			// content);F
 			if (downloadUrl != null && downloadUrl.length() > 0) {
-				final HttpGet downloadRequest = new HttpGet(downloadUrl);
-				final HttpResponse downloadResponse = client
-						.execute(downloadRequest);
+				final HttpResponse downloadResponse = get(downloadUrl);
 
 				final String filename = FilenameUtils.getName(downloadUrl);
 				long contentLength = getContentLength(downloadResponse);
@@ -312,31 +284,25 @@ public class HotFileService extends
 
 		@Override
 		public void login() throws ClientProtocolException, IOException {
-			final HttpPost login = new HttpPost(
-					"http://www.hotfile.com/login.php");
 			final MultipartEntity entity = new MultipartEntity();
-			login.setEntity(entity);
 
 			entity.addPart("returnto", new StringBody("/index.php"));
 			entity.addPart("user", new StringBody(credential.getUsername()));
 			entity.addPart("pass", new StringBody(credential.getPassword()));
 
-			String response = HttpClientUtils.execute(client, login);
-			if (response.toLowerCase().contains(
-					credential.getUsername().toLowerCase()))
+			HTMLPage page = postAsPage("http://www.hotfile.com/login.php",
+					entity);
+			final Tag accountTag = page.getTagByID("account");
+			if (accountTag == null)
 				throw new AuthenticationInvalidCredentialException();
 		}
 
 		@Override
 		public void logout() throws IOException {
-			final HttpPost logout = new HttpPost(
-					"http://www.megaupload.com/?c=account");
 			final MultipartEntity entity = new MultipartEntity();
-			logout.setEntity(entity);
-
 			entity.addPart("logout", new StringBody("1"));
-			HttpClientUtils.execute(client, logout);
 
+			postAsString("http://www.megaupload.com/?c=account", entity);
 			// TODO check logout status
 		}
 	}
