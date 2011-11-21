@@ -46,6 +46,7 @@ import com.rogiel.httpchannel.service.DownloadService;
 import com.rogiel.httpchannel.service.Downloader;
 import com.rogiel.httpchannel.service.DownloaderCapability;
 import com.rogiel.httpchannel.service.Service;
+import com.rogiel.httpchannel.service.ServiceID;
 import com.rogiel.httpchannel.service.UploadChannel;
 import com.rogiel.httpchannel.service.UploadService;
 import com.rogiel.httpchannel.service.Uploader;
@@ -55,6 +56,7 @@ import com.rogiel.httpchannel.service.channel.LinkedUploadChannel;
 import com.rogiel.httpchannel.service.channel.LinkedUploadChannel.LinkedUploadChannelCloseCallback;
 import com.rogiel.httpchannel.service.channel.LinkedUploadChannelContentBody;
 import com.rogiel.httpchannel.service.config.ServiceConfiguration;
+import com.rogiel.httpchannel.service.config.ServiceConfigurationHelper;
 import com.rogiel.httpchannel.service.config.ServiceConfigurationProperty;
 import com.rogiel.httpchannel.service.exception.AuthenticationInvalidCredentialException;
 import com.rogiel.httpchannel.service.exception.DownloadLimitExceededException;
@@ -75,6 +77,11 @@ import com.rogiel.httpchannel.util.htmlparser.HTMLPage;
 public class MegaUploadService extends
 		AbstractHttpService<MegaUploadServiceConfiguration> implements Service,
 		UploadService, DownloadService, AuthenticationService {
+	/**
+	 * This service ID
+	 */
+	public static final ServiceID SERVICE_ID = ServiceID.create("megaupload");
+	
 	private static final Pattern UPLOAD_URL_PATTERN = Pattern
 			.compile("http://www([0-9]*)\\.megaupload\\.com/upload_done\\.php\\?UPLOAD_IDENTIFIER=[0-9]*");
 
@@ -91,13 +98,14 @@ public class MegaUploadService extends
 	private static final Pattern LOGIN_USERNAME_PATTERN = Pattern
 			.compile("flashvars\\.username = \"(.*)\";");
 
-	public MegaUploadService(final MegaUploadServiceConfiguration configuration) {
-		super(configuration);
+	public MegaUploadService() {
+		super(ServiceConfigurationHelper
+				.defaultConfiguration(MegaUploadServiceConfiguration.class));
 	}
 
 	@Override
-	public String getID() {
-		return "megaupload";
+	public ServiceID getID() {
+		return SERVICE_ID;
 	}
 
 	@Override

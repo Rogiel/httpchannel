@@ -45,6 +45,7 @@ import com.rogiel.httpchannel.service.DownloadListener;
 import com.rogiel.httpchannel.service.DownloadService;
 import com.rogiel.httpchannel.service.Service;
 import com.rogiel.httpchannel.service.ServiceHelper;
+import com.rogiel.httpchannel.service.ServiceID;
 import com.rogiel.httpchannel.service.UploadChannel;
 import com.rogiel.httpchannel.service.UploadService;
 import com.rogiel.httpchannel.service.UploaderCapability;
@@ -76,9 +77,7 @@ public class MegaUploadServiceTest {
 	@Before
 	public void setUp() throws Exception {
 		// MegaUploadServiceConfiguration.class;
-		service = new MegaUploadService(
-				ServiceConfigurationHelper
-						.defaultConfiguration(MegaUploadServiceConfiguration.class));
+		service = new MegaUploadService();
 		helper = new ServiceHelper(service);
 
 		final Properties properties = new Properties();
@@ -91,7 +90,7 @@ public class MegaUploadServiceTest {
 	@Test
 	public void testServiceId() {
 		System.out.println("Service: " + service.toString());
-		assertEquals("megaupload", service.getID());
+		assertEquals(ServiceID.create("megaupload"), service.getID());
 	}
 
 	@Test
@@ -116,14 +115,14 @@ public class MegaUploadServiceTest {
 		final UploadChannel channel = helper.upload(path,
 				"httpchannel test upload");
 		final SeekableByteChannel inChannel = Files.newByteChannel(path);
-		
+
 		try {
 			ChannelUtils.copy(inChannel, channel);
 		} finally {
 			inChannel.close();
 			channel.close();
 		}
-		
+
 		System.out.println(channel.getDownloadLink());
 		Assert.assertNotNull(channel.getDownloadLink());
 	}
@@ -142,14 +141,14 @@ public class MegaUploadServiceTest {
 		final UploadChannel channel = helper.upload(path,
 				"httpchannel test upload");
 		final SeekableByteChannel inChannel = Files.newByteChannel(path);
-		
+
 		try {
 			ChannelUtils.copy(inChannel, channel);
 		} finally {
 			inChannel.close();
 			channel.close();
 		}
-		
+
 		System.out.println(channel.getDownloadLink());
 		Assert.assertNotNull(channel.getDownloadLink());
 	}
@@ -195,7 +194,8 @@ public class MegaUploadServiceTest {
 	@Test
 	public void testNoWaitDownloader() throws IOException,
 			MalformedURLException {
-		service = new MegaUploadService(ServiceConfigurationHelper.file(
+		service = new MegaUploadService();
+		service.setServiceConfiguration(ServiceConfigurationHelper.file(
 				MegaUploadServiceConfiguration.class, new File(
 						"src/test/resources/megaupload-nowait.properties")));
 

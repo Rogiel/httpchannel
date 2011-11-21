@@ -44,12 +44,12 @@ import com.rogiel.httpchannel.service.DownloadChannel;
 import com.rogiel.httpchannel.service.DownloadService;
 import com.rogiel.httpchannel.service.Service;
 import com.rogiel.httpchannel.service.ServiceHelper;
+import com.rogiel.httpchannel.service.ServiceID;
+import com.rogiel.httpchannel.service.Services;
 import com.rogiel.httpchannel.service.UploadChannel;
 import com.rogiel.httpchannel.service.UploadService;
 import com.rogiel.httpchannel.service.UploaderCapability;
-import com.rogiel.httpchannel.service.config.ServiceConfigurationHelper;
 import com.rogiel.httpchannel.service.exception.AuthenticationInvalidCredentialException;
-import com.rogiel.httpchannel.service.impl.HotFileService.HotFileServiceConfiguration;
 import com.rogiel.httpchannel.util.ChannelUtils;
 
 public class HotFileServiceTest {
@@ -75,9 +75,7 @@ public class HotFileServiceTest {
 	@Before
 	public void setUp() throws Exception {
 		// MegaUploadServiceConfiguration.class;
-		service = new HotFileService(
-				ServiceConfigurationHelper
-						.defaultConfiguration(HotFileServiceConfiguration.class));
+		service = new HotFileService();
 		helper = new ServiceHelper(service);
 
 		final Properties properties = new Properties();
@@ -90,7 +88,7 @@ public class HotFileServiceTest {
 	@Test
 	public void testServiceId() {
 		System.out.println("Service: " + service.toString());
-		assertEquals("hotfile", service.getID());
+		assertEquals(ServiceID.create("hotfile"), service.getID());
 	}
 
 	@Test
@@ -157,10 +155,12 @@ public class HotFileServiceTest {
 
 	@Test
 	public void testDownloader() throws IOException, MalformedURLException {
-		final DownloadChannel channel = ((DownloadService) service)
-				.getDownloader(
-						new URL(
-								"http://hotfile.com/dl/129251605/9b4faf2/simulado_2010_1_res_all.zip.html"))
+		final URL downloadUrl = new URL(
+				"http://hotfile.com/dl/129251605/9b4faf2/simulado_2010_1_res_all.zip.htm");
+
+		final DownloadService service = Services.matchURL(downloadUrl);
+
+		final DownloadChannel channel = service.getDownloader(downloadUrl)
 				.download(null, 0);
 		final ByteArrayOutputStream bout = new ByteArrayOutputStream();
 		IOUtils.copy(Channels.newInputStream(channel), bout);

@@ -30,13 +30,13 @@ import com.rogiel.httpchannel.service.config.ServiceConfiguration;
  * @author Rogiel
  * @since 1.0
  */
-public interface Service {
+public interface Service extends Cloneable {
 	/**
-	 * Get the ServiceID.
+	 * Get the {@link ServiceID}.
 	 * 
 	 * @return the id of the service
 	 */
-	String getID();
+	ServiceID getID();
 
 	/**
 	 * Get Major version of this service
@@ -58,4 +58,17 @@ public interface Service {
 	 * @return the {@link ServiceConfiguration} instance
 	 */
 	ServiceConfiguration getServiceConfiguration();
+
+	/**
+	 * Sets this {@link ServiceConfiguration} instance
+	 * 
+	 * @param configuration
+	 *            the {@link ServiceConfiguration} instance
+	 */
+	void setServiceConfiguration(ServiceConfiguration configuration);
+
+	/**
+	 * @return a cloned version of this service
+	 */
+	Service clone();
 }

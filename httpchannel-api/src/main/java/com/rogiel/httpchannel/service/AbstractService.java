@@ -26,11 +26,12 @@ import com.rogiel.httpchannel.service.config.ServiceConfiguration;
  * @param <T>
  *            The {@link ServiceConfiguration} <b>interface</b> type used by the
  *            {@link Service}. Note that this <b>must</b> be an interface!s
- * @see ServiceConfiguration ServiceConfiguration for details on the configuration interface.
+ * @see ServiceConfiguration ServiceConfiguration for details on the
+ *      configuration interface.
  */
 public abstract class AbstractService<T extends ServiceConfiguration>
 		implements Service {
-	protected final T configuration;
+	protected T configuration;
 
 	protected AbstractService(T configuration) {
 		this.configuration = configuration;
@@ -39,5 +40,20 @@ public abstract class AbstractService<T extends ServiceConfiguration>
 	@Override
 	public T getServiceConfiguration() {
 		return configuration;
+	}
+
+	@Override
+	@SuppressWarnings("unchecked")
+	public void setServiceConfiguration(ServiceConfiguration configuration) {
+		this.configuration = (T) configuration;
+	}
+
+	@Override
+	public Service clone() {
+		try {
+			return (Service) super.clone();
+		} catch (CloneNotSupportedException e) {
+			return null;
+		}
 	}
 }

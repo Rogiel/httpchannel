@@ -26,7 +26,20 @@ import java.io.IOException;
  */
 public interface Uploader {
 	/**
-	 * Starts the upload process on this service.
+	 * Opens a new {@link UploadChannel} that will be immediately ready to
+	 * receive data to be sent to the upload stream.
+	 * <p>
+	 * Whether an channel is returned or any exception is thrown it is <b><span
+	 * style="color:red">NOT</span></b> possible to reuse the same instance for
+	 * more than one upload!
+	 * <p>
+	 * Please remember to close the channel before calling
+	 * {@link UploadChannel#getDownloadLink()} or aborting the upload. The
+	 * {@link UploadChannel#close()} method will finish upload (may take some
+	 * time) and release any of the resources (such as network connections and
+	 * file handlers) that could continue open for the whole runtime or until
+	 * they time out, which could never occur. Note that you should close the
+	 * channel even when an exception is thrown.
 	 * 
 	 * @return the {@link UploadChannel} instance
 	 * @throws IOException

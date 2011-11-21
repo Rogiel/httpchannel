@@ -42,6 +42,7 @@ import com.rogiel.httpchannel.service.DownloadService;
 import com.rogiel.httpchannel.service.Downloader;
 import com.rogiel.httpchannel.service.DownloaderCapability;
 import com.rogiel.httpchannel.service.Service;
+import com.rogiel.httpchannel.service.ServiceID;
 import com.rogiel.httpchannel.service.UploadChannel;
 import com.rogiel.httpchannel.service.UploadService;
 import com.rogiel.httpchannel.service.Uploader;
@@ -51,6 +52,7 @@ import com.rogiel.httpchannel.service.channel.LinkedUploadChannel;
 import com.rogiel.httpchannel.service.channel.LinkedUploadChannel.LinkedUploadChannelCloseCallback;
 import com.rogiel.httpchannel.service.channel.LinkedUploadChannelContentBody;
 import com.rogiel.httpchannel.service.config.ServiceConfiguration;
+import com.rogiel.httpchannel.service.config.ServiceConfigurationHelper;
 import com.rogiel.httpchannel.service.exception.AuthenticationInvalidCredentialException;
 import com.rogiel.httpchannel.service.impl.HotFileService.HotFileServiceConfiguration;
 import com.rogiel.httpchannel.util.ThreadUtils;
@@ -65,6 +67,11 @@ import com.rogiel.httpchannel.util.htmlparser.HTMLPage;
 public class HotFileService extends
 		AbstractHttpService<HotFileServiceConfiguration> implements Service,
 		UploadService, DownloadService, AuthenticationService {
+	/**
+	 * This service ID
+	 */
+	public static final ServiceID SERVICE_ID = ServiceID.create("hotfile");
+	
 	private static final Pattern UPLOAD_URL_PATTERN = Pattern
 			.compile("http://u[0-9]*\\.hotfile\\.com/upload\\.cgi\\?[0-9]*");
 
@@ -78,13 +85,14 @@ public class HotFileService extends
 	private static final Pattern DOWNLOAD_URL_PATTERN = Pattern
 			.compile("http://hotfile\\.com/dl/([0-9]*)/([A-Za-z0-9]*)/(.*)");
 
-	public HotFileService(final HotFileServiceConfiguration configuration) {
-		super(configuration);
+	public HotFileService() {
+		super(ServiceConfigurationHelper
+				.defaultConfiguration(HotFileServiceConfiguration.class));
 	}
 
 	@Override
-	public String getID() {
-		return "hotfile";
+	public ServiceID getID() {
+		return SERVICE_ID;
 	}
 
 	@Override
@@ -169,7 +177,8 @@ public class HotFileService extends
 					filesize, filename);
 			final MultipartEntity entity = new MultipartEntity();
 
-			entity.addPart("uploads[]", new LinkedUploadChannelContentBody(channel));
+			entity.addPart("uploads[]", new LinkedUploadChannelContentBody(
+					channel));
 
 			uploadFuture = postAsPageAsync(action, entity);
 			while (!channel.isLinked() && !uploadFuture.isDone()) {
