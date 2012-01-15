@@ -106,7 +106,7 @@ public class MegaUploadService extends AbstractHttpService implements Service,
 	public Uploader<MegaUploadUploaderConfiguration> getUploader(
 			String filename, long filesize,
 			MegaUploadUploaderConfiguration configuration) {
-		return new MegaUploadUploader(filename, filesize, configuration);
+		return new UploaderImpl(filename, filesize, configuration);
 	}
 
 	@Override
@@ -141,7 +141,7 @@ public class MegaUploadService extends AbstractHttpService implements Service,
 	@Override
 	public Downloader<MegaUploadDownloaderConfiguration> getDownloader(URL url,
 			MegaUploadDownloaderConfiguration configuration) {
-		return new MegaUploadDownloader(url, configuration);
+		return new DownloaderImpl(url, configuration);
 	}
 
 	@Override
@@ -173,7 +173,7 @@ public class MegaUploadService extends AbstractHttpService implements Service,
 	@Override
 	public Authenticator<NullAuthenticatorConfiguration> getAuthenticator(
 			Credential credential, NullAuthenticatorConfiguration configuration) {
-		return new MegaUploadAuthenticator(credential, configuration);
+		return new AuthenticatorImpl(credential, configuration);
 	}
 
 	@Override
@@ -192,13 +192,13 @@ public class MegaUploadService extends AbstractHttpService implements Service,
 		return new CapabilityMatrix<AuthenticatorCapability>();
 	}
 
-	protected class MegaUploadUploader extends
+	protected class UploaderImpl extends
 			AbstractUploader<MegaUploadUploaderConfiguration> implements
 			Uploader<MegaUploadUploaderConfiguration>,
 			LinkedUploadChannelCloseCallback {
 		private Future<String> uploadFuture;
 
-		public MegaUploadUploader(String filename, long filesize,
+		public UploaderImpl(String filename, long filesize,
 				MegaUploadUploaderConfiguration configuration) {
 			super(filename, filesize, configuration);
 		}
@@ -229,10 +229,10 @@ public class MegaUploadService extends AbstractHttpService implements Service,
 		}
 	}
 
-	protected class MegaUploadDownloader extends
+	protected class DownloaderImpl extends
 			AbstractHttpDownloader<MegaUploadDownloaderConfiguration> implements
 			Downloader<MegaUploadDownloaderConfiguration> {
-		public MegaUploadDownloader(URL url,
+		public DownloaderImpl(URL url,
 				MegaUploadDownloaderConfiguration configuration) {
 			super(url, configuration);
 		}
@@ -289,10 +289,10 @@ public class MegaUploadService extends AbstractHttpService implements Service,
 		}
 	}
 
-	protected class MegaUploadAuthenticator extends
+	protected class AuthenticatorImpl extends
 			AbstractAuthenticator<NullAuthenticatorConfiguration> implements
 			Authenticator<NullAuthenticatorConfiguration> {
-		public MegaUploadAuthenticator(Credential credential,
+		public AuthenticatorImpl(Credential credential,
 				NullAuthenticatorConfiguration configuration) {
 			super(credential, configuration);
 		}

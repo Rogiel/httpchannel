@@ -1,23 +1,19 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <artifactId>httpchannel</artifactId>
+    <artifactId>httpchannel-service</artifactId>
     <groupId>com.rogiel.httpchannel</groupId>
     <version>1.0.0</version>
     <relativePath>..</relativePath>
   </parent>
-  <artifactId>httpchannel-tests</artifactId>
-  <name>HttpChannel/Tests</name>
-  <description>This module contains several test utilities</description>
+  <artifactId>httpchannel-service-uploadhere</artifactId>
+  <groupId>com.rogiel.httpchannel.services</groupId>
+  <name>HttpChannel/Service/UploadHere</name>
+  <description>Provides upload access to uploadhere.com</description>
   <dependencies>
   	<dependency>
   		<groupId>com.rogiel.httpchannel</groupId>
-  		<artifactId>httpchannel-api</artifactId>
-  		<version>1.0.0</version>
-  	</dependency>
-  	<dependency>
-  		<groupId>com.rogiel.httpchannel</groupId>
-  		<artifactId>httpchannel-util</artifactId>
+  		<artifactId>httpchannel-captcha-recaptcha</artifactId>
   		<version>1.0.0</version>
   	</dependency>
   </dependencies>

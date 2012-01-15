@@ -15,7 +15,7 @@
 		<module>httpchannel-service</module>
 		<module>httpchannel-util</module>
 		<module>httpchannel-channelcopy</module>
-		<module>httpchannel-tests</module>
+		
 		<module>httpchannel-capcha</module>
 	</modules>
 

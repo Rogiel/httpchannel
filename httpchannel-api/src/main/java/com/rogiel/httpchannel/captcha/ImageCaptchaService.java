@@ -3,6 +3,7 @@
  */
 package com.rogiel.httpchannel.captcha;
 
+import java.net.MalformedURLException;
 import java.net.URL;
 
 /**
@@ -17,8 +18,10 @@ public interface ImageCaptchaService<C extends ImageCaptcha> extends
 	 * @param image
 	 *            the image {@link URL}
 	 * @return a new captcha
+	 * @throws MalformedURLException
+	 *             if any error occur while creating the Image {@link URL}
 	 */
-	C create(String html);
+	C create(String html) throws MalformedURLException;
 
 	/**
 	 * Tries to automatically resolve the captcha

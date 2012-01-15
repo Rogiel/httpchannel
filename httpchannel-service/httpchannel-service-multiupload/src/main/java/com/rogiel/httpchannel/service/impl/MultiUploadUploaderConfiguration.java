@@ -4,10 +4,10 @@ import java.util.EnumSet;
 
 import com.rogiel.httpchannel.service.Uploader.DescriptionableUploaderConfiguration;
 import com.rogiel.httpchannel.service.Uploader.UploaderConfiguration;
-import com.rogiel.httpchannel.service.impl.MultiUploadService.MultiUploadUploader;
+import com.rogiel.httpchannel.service.impl.MultiUploadService.UploaderImpl;
 
 /**
- * Describes an configuration for an {@link MultiUploadUploader}
+ * Describes an configuration for an {@link UploaderImpl}
  * 
  * @author <a href="http://www.rogiel.com">Rogiel</a>
  */

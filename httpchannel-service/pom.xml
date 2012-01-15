@@ -10,6 +10,9 @@
 	<artifactId>httpchannel-service</artifactId>
 	<packaging>pom</packaging>
 
+	<name>HttpChannel/Service</name>
+	<description>Parent module that all service implementations should inherit</description>
+
 	<modules>
 		<module>httpchannel-service-megaupload</module>
 		<module>httpchannel-service-hotfile</module>
@@ -28,6 +31,4 @@
 			<version>1.0.0</version>
 		</dependency>
 	</dependencies>
-	<name>HttpChannel/Service</name>
-	<description>Parent module that all service implementations should inherit</description>
 </project>

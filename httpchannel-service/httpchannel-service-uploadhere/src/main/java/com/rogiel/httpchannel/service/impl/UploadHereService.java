@@ -6,7 +6,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.regex.Pattern;
 
-import com.rogiel.httpchannel.http.PostMultipartRequest;
+import com.rogiel.httpchannel.captcha.impl.AjaxReCaptchaService;
+import com.rogiel.httpchannel.captcha.impl.ReCaptcha;
 import com.rogiel.httpchannel.service.AbstractAuthenticator;
 import com.rogiel.httpchannel.service.AbstractHttpDownloader;
 import com.rogiel.httpchannel.service.AbstractHttpService;
@@ -31,39 +32,42 @@ import com.rogiel.httpchannel.service.channel.LinkedUploadChannel;
 import com.rogiel.httpchannel.service.channel.LinkedUploadChannel.LinkedUploadChannelCloseCallback;
 import com.rogiel.httpchannel.service.config.NullAuthenticatorConfiguration;
 import com.rogiel.httpchannel.service.config.NullDownloaderConfiguration;
+import com.rogiel.httpchannel.service.config.NullUploaderConfiguration;
 import com.rogiel.httpchannel.service.exception.AuthenticationInvalidCredentialException;
-import com.rogiel.httpchannel.service.exception.DownloadLimitExceededException;
 import com.rogiel.httpchannel.service.exception.DownloadLinkNotFoundException;
-import com.rogiel.httpchannel.service.exception.DownloadNotAuthorizedException;
-import com.rogiel.httpchannel.service.exception.DownloadNotResumableException;
-import com.rogiel.httpchannel.service.impl.MultiUploadUploaderConfiguration.MultiUploadMirrorService;
+import com.rogiel.httpchannel.service.exception.InvalidCaptchaException;
 import com.rogiel.httpchannel.util.PatternUtils;
 import com.rogiel.httpchannel.util.htmlparser.HTMLPage;
 
 /**
- * This service handles uploads to MultiUpload.com.
+ * This service handles uploads to UploadKing.com.
  * 
  * @author <a href="http://www.rogiel.com/">Rogiel</a>
  * @since 1.0
  */
-public class MultiUploadService extends AbstractHttpService implements Service,
-		UploadService<MultiUploadUploaderConfiguration>,
+public class UploadHereService extends AbstractHttpService implements Service,
+		UploadService<NullUploaderConfiguration>,
 		DownloadService<NullDownloaderConfiguration>,
 		AuthenticationService<NullAuthenticatorConfiguration> {
 	/**
 	 * This service ID
 	 */
-	public static final ServiceID SERVICE_ID = ServiceID.create("multiupload");
+	public static final ServiceID SERVICE_ID = ServiceID.create("uploadhere");
 
-	// http://www52.multiupload.com/upload/?UPLOAD_IDENTIFIER=73132658610746
 	private static final Pattern UPLOAD_URL_PATTERN = Pattern
-			.compile("http://www([0-9]*)\\.multiupload\\.com/upload/\\?UPLOAD_IDENTIFIER=[0-9]*");
+			.compile("http://www([0-9]*)\\.uploadhere\\.com/upload/\\?UPLOAD_IDENTIFIER=[0-9]*");
 	private static final Pattern DOWNLOAD_ID_PATTERN = Pattern
 			.compile("\"downloadid\":\"([0-9a-zA-Z]*)\"");
-	private static final Pattern DOWNLOAD_LINK_PATTERN = Pattern
-			.compile("http://(www\\.)?multiupload\\.com/([0-9a-zA-Z]*)");
-	private static final Pattern DIRECT_DOWNLOAD_LINK_PATTERN = Pattern
-			.compile("http://www[0-9]*\\.multiupload\\.com(:[0-9]*)?/files/([0-9a-zA-Z]*)/(.*)");
+	private static final Pattern DOWNLOAD_URL_PATTERN = Pattern
+			.compile("http://(www\\.)?uploadhere.\\com/[0-9A-z]*");
+	private static final Pattern TIMER_PATTERN = Pattern.compile(
+			"count = ([0-9]*);", Pattern.COMMENTS);
+	private static final Pattern DIERCT_DOWNLOAD_URL_PATTERN = Pattern
+			.compile("(http:\\\\/\\\\/www[0-9]*\\.uploadhere\\.com(:[0-9]*)?\\\\/files\\\\/([0-9A-z]*)\\\\/(.*))\"");
+
+	private static final String INVALID_LOGIN_STRING = "Incorrect username and/or password. Please try again!";
+
+	private final AjaxReCaptchaService captchaService = new AjaxReCaptchaService();
 
 	@Override
 	public ServiceID getID() {
@@ -81,23 +85,20 @@ public class MultiUploadService extends AbstractHttpService implements Service,
 	}
 
 	@Override
-	public Uploader<MultiUploadUploaderConfiguration> getUploader(
-			String filename, long filesize,
-			MultiUploadUploaderConfiguration configuration) {
-		if (configuration == null)
-			configuration = new MultiUploadUploaderConfiguration();
+	public Uploader<NullUploaderConfiguration> getUploader(String filename,
+			long filesize, NullUploaderConfiguration configuration) {
 		return new UploaderImpl(filename, filesize, configuration);
 	}
 
 	@Override
-	public Uploader<MultiUploadUploaderConfiguration> getUploader(
-			String filename, long filesize) {
+	public Uploader<NullUploaderConfiguration> getUploader(String filename,
+			long filesize) {
 		return getUploader(filename, filesize, newUploaderConfiguration());
 	}
 
 	@Override
-	public MultiUploadUploaderConfiguration newUploaderConfiguration() {
-		return new MultiUploadUploaderConfiguration();
+	public NullUploaderConfiguration newUploaderConfiguration() {
+		return NullUploaderConfiguration.SHARED_INSTANCE;
 	}
 
 	@Override
@@ -136,12 +137,12 @@ public class MultiUploadService extends AbstractHttpService implements Service,
 
 	@Override
 	public boolean matchURL(URL url) {
-		return DOWNLOAD_LINK_PATTERN.matcher(url.toString()).matches();
+		return DOWNLOAD_URL_PATTERN.matcher(url.toString()).matches();
 	}
 
 	@Override
 	public CapabilityMatrix<DownloaderCapability> getDownloadCapabilities() {
-		return new CapabilityMatrix<>(
+		return new CapabilityMatrix<DownloaderCapability>(
 				DownloaderCapability.UNAUTHENTICATED_DOWNLOAD,
 				DownloaderCapability.UNAUTHENTICATED_RESUME,
 				DownloaderCapability.NON_PREMIUM_ACCOUNT_DOWNLOAD,
@@ -171,31 +172,28 @@ public class MultiUploadService extends AbstractHttpService implements Service,
 	}
 
 	protected class UploaderImpl extends
-			AbstractUploader<MultiUploadUploaderConfiguration> implements
-			Uploader<MultiUploadUploaderConfiguration>,
+			AbstractUploader<NullUploaderConfiguration> implements
+			Uploader<NullUploaderConfiguration>,
 			LinkedUploadChannelCloseCallback {
 		private Future<String> uploadFuture;
 
 		public UploaderImpl(String filename, long filesize,
-				MultiUploadUploaderConfiguration configuration) {
+				NullUploaderConfiguration configuration) {
 			super(filename, filesize, configuration);
 		}
 
 		@Override
 		public UploadChannel openChannel() throws IOException {
-			final String url = get("http://www.multiupload.com/").asPage()
-					.findFormAction(UPLOAD_URL_PATTERN);
+			final HTMLPage page = get("http://www.uploadhere.com/").asPage();
+
+			final String userCookie = page.getInputValueById("usercookie");
+			final String url = page.findFormAction(UPLOAD_URL_PATTERN);
+			final String uploadID = page.getInputValue("UPLOAD_IDENTIFIER");
+
 			final LinkedUploadChannel channel = createLinkedChannel(this);
-
-			PostMultipartRequest request = multipartPost(url).parameter(
-					"description_0", configuration.description()).parameter(
-					"file_0", channel);
-			for (final MultiUploadMirrorService mirror : configuration
-					.uploadServices()) {
-				request.parameter("service_" + mirror.id, 1);
-			}
-
-			uploadFuture = request.asStringAsync();
+			uploadFuture = multipartPost(url).parameter("file_0", channel)
+					.parameter("u", userCookie)
+					.parameter("UPLOAD_IDENTIFIER", uploadID).asStringAsync();
 			return waitChannelLink(channel, uploadFuture);
 		}
 
@@ -206,12 +204,15 @@ public class MultiUploadService extends AbstractHttpService implements Service,
 						uploadFuture.get(), 1);
 				if (linkId == null)
 					return null;
-				return new StringBuilder("http://www.multiupload.com/").append(
+				return new StringBuilder("http://www.uploadhere.com/").append(
 						linkId).toString();
 			} catch (InterruptedException e) {
 				return null;
 			} catch (ExecutionException e) {
-				throw (IOException) e.getCause();
+				if (e.getCause() instanceof IOException)
+					throw (IOException) e.getCause();
+				else
+					throw new IOException(e.getCause());
 			}
 		}
 	}
@@ -219,21 +220,39 @@ public class MultiUploadService extends AbstractHttpService implements Service,
 	protected class DownloaderImpl extends
 			AbstractHttpDownloader<NullDownloaderConfiguration> implements
 			Downloader<NullDownloaderConfiguration> {
-		protected DownloaderImpl(URL url,
-				NullDownloaderConfiguration configuration) {
+		public DownloaderImpl(URL url, NullDownloaderConfiguration configuration) {
 			super(url, configuration);
 		}
 
 		@Override
 		public DownloadChannel openChannel(DownloadListener listener,
-				long position) throws IOException,
-				DownloadLinkNotFoundException, DownloadLimitExceededException,
-				DownloadNotAuthorizedException, DownloadNotResumableException {
-			final HTMLPage page = get(url).asPage();
-			final String link = page.findLink(DIRECT_DOWNLOAD_LINK_PATTERN);
-			if (link == null)
-				throw new DownloadLinkNotFoundException();
-			return download(get(link).position(position));
+				long position) throws IOException {
+			HTMLPage page = get(url).asPage();
+
+			final int waitTime = page.findScriptAsInt(TIMER_PATTERN, 1) * 1000;
+
+			final ReCaptcha captcha = captchaService.create(page.toString());
+			if (captcha != null) {
+				final long start = System.currentTimeMillis();
+				resolveCaptcha(captcha);
+
+				final long delta = System.currentTimeMillis() - start;
+				if (delta < waitTime)
+					timer(listener, waitTime - delta);
+
+				String content = post(url)
+						.parameter("recaptcha_challenge_field", captcha.getID())
+						.parameter("recaptcha_response_field",
+								captcha.getAnswer()).asString();
+				String downloadLink = PatternUtils.find(
+						DIERCT_DOWNLOAD_URL_PATTERN, content, 1);
+				if (downloadLink == null)
+					throw new InvalidCaptchaException();
+				downloadLink = downloadLink.replaceAll(Pattern.quote("\\/"),
+						"/");
+				return download(get(downloadLink).position(position));
+			}
+			throw new DownloadLinkNotFoundException();
 		}
 	}
 
@@ -247,17 +266,17 @@ public class MultiUploadService extends AbstractHttpService implements Service,
 
 		@Override
 		public void login() throws IOException {
-			final HTMLPage page = post("http://www.multiupload.com/login")
+			final HTMLPage page = post("http://www.uploadhere.com/login")
+					.parameter("do", "login")
 					.parameter("username", credential.getUsername())
 					.parameter("password", credential.getPassword()).asPage();
-
-			if (!page.containsIgnoreCase(credential.getUsername()))
+			if (page.contains(INVALID_LOGIN_STRING))
 				throw new AuthenticationInvalidCredentialException();
 		}
 
 		@Override
 		public void logout() throws IOException {
-			post("http://www.multiupload.com/login").parameter("do", "logout")
+			post("http://www.uploadking.com/login").parameter("do", "logout")
 					.request();
 			// TODO check logout status
 		}

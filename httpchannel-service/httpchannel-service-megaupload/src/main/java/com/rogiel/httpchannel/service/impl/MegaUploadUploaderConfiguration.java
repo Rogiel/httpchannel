@@ -2,10 +2,10 @@ package com.rogiel.httpchannel.service.impl;
 
 import com.rogiel.httpchannel.service.Uploader.DescriptionableUploaderConfiguration;
 import com.rogiel.httpchannel.service.Uploader.UploaderConfiguration;
-import com.rogiel.httpchannel.service.impl.MegaUploadService.MegaUploadUploader;
+import com.rogiel.httpchannel.service.impl.MegaUploadService.UploaderImpl;
 
 /**
- * Describes an configuration for an {@link MegaUploadUploader}
+ * Describes an configuration for an {@link UploaderImpl}
  * 
  * @author <a href="http://www.rogiel.com">Rogiel</a>
  */

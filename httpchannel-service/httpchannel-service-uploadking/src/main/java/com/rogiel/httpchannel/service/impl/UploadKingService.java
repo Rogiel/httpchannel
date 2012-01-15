@@ -1,11 +1,15 @@
 package com.rogiel.httpchannel.service.impl;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.regex.Pattern;
 
+import com.rogiel.httpchannel.captcha.impl.AjaxReCaptchaService;
+import com.rogiel.httpchannel.captcha.impl.ReCaptcha;
 import com.rogiel.httpchannel.service.AbstractAuthenticator;
+import com.rogiel.httpchannel.service.AbstractHttpDownloader;
 import com.rogiel.httpchannel.service.AbstractHttpService;
 import com.rogiel.httpchannel.service.AbstractUploader;
 import com.rogiel.httpchannel.service.AuthenticationService;
@@ -13,6 +17,11 @@ import com.rogiel.httpchannel.service.Authenticator;
 import com.rogiel.httpchannel.service.AuthenticatorCapability;
 import com.rogiel.httpchannel.service.CapabilityMatrix;
 import com.rogiel.httpchannel.service.Credential;
+import com.rogiel.httpchannel.service.DownloadChannel;
+import com.rogiel.httpchannel.service.DownloadListener;
+import com.rogiel.httpchannel.service.DownloadService;
+import com.rogiel.httpchannel.service.Downloader;
+import com.rogiel.httpchannel.service.DownloaderCapability;
 import com.rogiel.httpchannel.service.Service;
 import com.rogiel.httpchannel.service.ServiceID;
 import com.rogiel.httpchannel.service.UploadChannel;
@@ -22,8 +31,11 @@ import com.rogiel.httpchannel.service.UploaderCapability;
 import com.rogiel.httpchannel.service.channel.LinkedUploadChannel;
 import com.rogiel.httpchannel.service.channel.LinkedUploadChannel.LinkedUploadChannelCloseCallback;
 import com.rogiel.httpchannel.service.config.NullAuthenticatorConfiguration;
+import com.rogiel.httpchannel.service.config.NullDownloaderConfiguration;
 import com.rogiel.httpchannel.service.config.NullUploaderConfiguration;
 import com.rogiel.httpchannel.service.exception.AuthenticationInvalidCredentialException;
+import com.rogiel.httpchannel.service.exception.DownloadLinkNotFoundException;
+import com.rogiel.httpchannel.service.exception.InvalidCaptchaException;
 import com.rogiel.httpchannel.util.PatternUtils;
 import com.rogiel.httpchannel.util.htmlparser.HTMLPage;
 
@@ -35,6 +47,7 @@ import com.rogiel.httpchannel.util.htmlparser.HTMLPage;
  */
 public class UploadKingService extends AbstractHttpService implements Service,
 		UploadService<NullUploaderConfiguration>,
+		DownloadService<NullDownloaderConfiguration>,
 		AuthenticationService<NullAuthenticatorConfiguration> {
 	/**
 	 * This service ID
@@ -45,8 +58,16 @@ public class UploadKingService extends AbstractHttpService implements Service,
 			.compile("http://www([0-9]*)\\.uploadking\\.com/upload/\\?UPLOAD_IDENTIFIER=[0-9]*");
 	private static final Pattern DOWNLOAD_ID_PATTERN = Pattern
 			.compile("\"downloadid\":\"([0-9a-zA-Z]*)\"");
+	private static final Pattern DOWNLOAD_URL_PATTERN = Pattern
+			.compile("http://(www\\.)?uploadking.\\com/[0-9A-z]*");
+	private static final Pattern TIMER_PATTERN = Pattern.compile(
+			"count = ([0-9]*);", Pattern.COMMENTS);
+	private static final Pattern DIERCT_DOWNLOAD_URL_PATTERN = Pattern
+			.compile("(http:\\\\/\\\\/www[0-9]*\\.uploadking\\.com(:[0-9]*)?\\\\/files\\\\/([0-9A-z]*)\\\\/(.*))\"");
 
 	private static final String INVALID_LOGIN_STRING = "Incorrect username and/or password. Please try again!";
+
+	private final AjaxReCaptchaService captchaService = new AjaxReCaptchaService();
 
 	@Override
 	public ServiceID getID() {
@@ -66,7 +87,7 @@ public class UploadKingService extends AbstractHttpService implements Service,
 	@Override
 	public Uploader<NullUploaderConfiguration> getUploader(String filename,
 			long filesize, NullUploaderConfiguration configuration) {
-		return new UploadKingUploader(filename, filesize, configuration);
+		return new UploaderImpl(filename, filesize, configuration);
 	}
 
 	@Override
@@ -99,9 +120,39 @@ public class UploadKingService extends AbstractHttpService implements Service,
 	}
 
 	@Override
+	public Downloader<NullDownloaderConfiguration> getDownloader(URL url,
+			NullDownloaderConfiguration configuration) {
+		return new DownloaderImpl(url, configuration);
+	}
+
+	@Override
+	public Downloader<NullDownloaderConfiguration> getDownloader(URL url) {
+		return getDownloader(url, newDownloaderConfiguration());
+	}
+
+	@Override
+	public NullDownloaderConfiguration newDownloaderConfiguration() {
+		return NullDownloaderConfiguration.SHARED_INSTANCE;
+	}
+
+	@Override
+	public boolean matchURL(URL url) {
+		return DOWNLOAD_URL_PATTERN.matcher(url.toString()).matches();
+	}
+
+	@Override
+	public CapabilityMatrix<DownloaderCapability> getDownloadCapabilities() {
+		return new CapabilityMatrix<DownloaderCapability>(
+				DownloaderCapability.UNAUTHENTICATED_DOWNLOAD,
+				DownloaderCapability.UNAUTHENTICATED_RESUME,
+				DownloaderCapability.NON_PREMIUM_ACCOUNT_DOWNLOAD,
+				DownloaderCapability.NON_PREMIUM_ACCOUNT_RESUME);
+	}
+
+	@Override
 	public Authenticator<NullAuthenticatorConfiguration> getAuthenticator(
 			Credential credential, NullAuthenticatorConfiguration configuration) {
-		return new UploadKingAuthenticator(credential, configuration);
+		return new AuthenticatorImpl(credential, configuration);
 	}
 
 	@Override
@@ -120,13 +171,13 @@ public class UploadKingService extends AbstractHttpService implements Service,
 		return new CapabilityMatrix<AuthenticatorCapability>();
 	}
 
-	protected class UploadKingUploader extends
+	protected class UploaderImpl extends
 			AbstractUploader<NullUploaderConfiguration> implements
 			Uploader<NullUploaderConfiguration>,
 			LinkedUploadChannelCloseCallback {
 		private Future<String> uploadFuture;
 
-		public UploadKingUploader(String filename, long filesize,
+		public UploaderImpl(String filename, long filesize,
 				NullUploaderConfiguration configuration) {
 			super(filename, filesize, configuration);
 		}
@@ -163,10 +214,50 @@ public class UploadKingService extends AbstractHttpService implements Service,
 		}
 	}
 
-	protected class UploadKingAuthenticator extends
+	protected class DownloaderImpl extends
+			AbstractHttpDownloader<NullDownloaderConfiguration> implements
+			Downloader<NullDownloaderConfiguration> {
+		public DownloaderImpl(URL url, NullDownloaderConfiguration configuration) {
+			super(url, configuration);
+		}
+
+		@Override
+		public DownloadChannel openChannel(DownloadListener listener,
+				long position) throws IOException {
+			HTMLPage page = get(url).asPage();
+
+			final int waitTime = page.findScriptAsInt(TIMER_PATTERN, 1) * 1000;
+
+			final ReCaptcha captcha = captchaService.create(page.toString());
+			if (captcha != null) {
+				final long start = System.currentTimeMillis();
+
+				resolveCaptcha(captcha);
+
+				final long delta = System.currentTimeMillis() - start;
+				if (delta < waitTime)
+					timer(listener, waitTime - delta);
+
+				String content = post(url)
+						.parameter("recaptcha_challenge_field", captcha.getID())
+						.parameter("recaptcha_response_field",
+								captcha.getAnswer()).asString();
+				String downloadLink = PatternUtils.find(
+						DIERCT_DOWNLOAD_URL_PATTERN, content, 1);
+				if (downloadLink == null)
+					throw new InvalidCaptchaException();
+				downloadLink = downloadLink.replaceAll(Pattern.quote("\\/"),
+						"/");
+				return download(get(downloadLink).position(position));
+			}
+			throw new DownloadLinkNotFoundException();
+		}
+	}
+
+	protected class AuthenticatorImpl extends
 			AbstractAuthenticator<NullAuthenticatorConfiguration> implements
 			Authenticator<NullAuthenticatorConfiguration> {
-		public UploadKingAuthenticator(Credential credential,
+		public AuthenticatorImpl(Credential credential,
 				NullAuthenticatorConfiguration configuration) {
 			super(credential, configuration);
 		}

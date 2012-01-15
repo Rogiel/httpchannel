@@ -43,7 +43,7 @@ public abstract class AbstractService implements Service {
 		this.captchaResolver = captchaResolver;
 	}
 
-	protected boolean resolveCaptcha(Captcha captcha)
+	protected void resolveCaptcha(Captcha captcha)
 			throws UnresolvedCaptchaException {
 		if (captchaResolver == null)
 			throw new UnresolvedCaptchaException();
@@ -51,6 +51,5 @@ public abstract class AbstractService implements Service {
 			throw new UnresolvedCaptchaException();
 		if (captcha.getAnswer() == null)
 			throw new UnresolvedCaptchaException();
-		return true;
 	}
 }

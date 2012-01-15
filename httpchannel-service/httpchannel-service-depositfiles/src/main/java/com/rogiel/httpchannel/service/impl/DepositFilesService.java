@@ -5,8 +5,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.regex.Pattern;
 
+import com.rogiel.httpchannel.captcha.impl.EmbeddedReCaptchaService;
 import com.rogiel.httpchannel.captcha.impl.ReCaptcha;
-import com.rogiel.httpchannel.captcha.impl.ReCaptchaService;
 import com.rogiel.httpchannel.service.AbstractAuthenticator;
 import com.rogiel.httpchannel.service.AbstractHttpService;
 import com.rogiel.httpchannel.service.AbstractUploader;
@@ -26,7 +26,6 @@ import com.rogiel.httpchannel.service.channel.LinkedUploadChannel.LinkedUploadCh
 import com.rogiel.httpchannel.service.config.NullAuthenticatorConfiguration;
 import com.rogiel.httpchannel.service.config.NullUploaderConfiguration;
 import com.rogiel.httpchannel.service.exception.AuthenticationInvalidCredentialException;
-import com.rogiel.httpchannel.service.exception.UnresolvedCaptchaException;
 import com.rogiel.httpchannel.util.htmlparser.HTMLPage;
 
 /**
@@ -51,7 +50,7 @@ public class DepositFilesService extends AbstractHttpService implements
 	private static final Pattern VALID_LOGIN_REDIRECT = Pattern
 			.compile("window.location.href");
 
-	private final ReCaptchaService captchaService = new ReCaptchaService();
+	private final EmbeddedReCaptchaService captchaService = new EmbeddedReCaptchaService();
 
 	@Override
 	public ServiceID getID() {
@@ -71,7 +70,7 @@ public class DepositFilesService extends AbstractHttpService implements
 	@Override
 	public Uploader<NullUploaderConfiguration> getUploader(String filename,
 			long filesize, NullUploaderConfiguration configuration) {
-		return new UploadKingUploader(filename, filesize, configuration);
+		return new UploaderImpl(filename, filesize, configuration);
 	}
 
 	@Override
@@ -106,7 +105,7 @@ public class DepositFilesService extends AbstractHttpService implements
 	@Override
 	public Authenticator<NullAuthenticatorConfiguration> getAuthenticator(
 			Credential credential, NullAuthenticatorConfiguration configuration) {
-		return new UploadKingAuthenticator(credential, configuration);
+		return new AuthenticatorImpl(credential, configuration);
 	}
 
 	@Override
@@ -125,13 +124,13 @@ public class DepositFilesService extends AbstractHttpService implements
 		return new CapabilityMatrix<AuthenticatorCapability>();
 	}
 
-	protected class UploadKingUploader extends
+	protected class UploaderImpl extends
 			AbstractUploader<NullUploaderConfiguration> implements
 			Uploader<NullUploaderConfiguration>,
 			LinkedUploadChannelCloseCallback {
 		private Future<HTMLPage> uploadFuture;
 
-		public UploadKingUploader(String filename, long filesize,
+		public UploaderImpl(String filename, long filesize,
 				NullUploaderConfiguration configuration) {
 			super(filename, filesize, configuration);
 		}
@@ -169,10 +168,10 @@ public class DepositFilesService extends AbstractHttpService implements
 		}
 	}
 
-	protected class UploadKingAuthenticator extends
+	protected class AuthenticatorImpl extends
 			AbstractAuthenticator<NullAuthenticatorConfiguration> implements
 			Authenticator<NullAuthenticatorConfiguration> {
-		public UploadKingAuthenticator(Credential credential,
+		public AuthenticatorImpl(Credential credential,
 				NullAuthenticatorConfiguration configuration) {
 			super(credential, configuration);
 		}
@@ -186,8 +185,7 @@ public class DepositFilesService extends AbstractHttpService implements
 
 			final ReCaptcha captcha = captchaService.create(page);
 			if (captcha != null) {
-				if (!resolveCaptcha(captcha))
-					throw new UnresolvedCaptchaException();
+				resolveCaptcha(captcha);
 				page = post("http://depositfiles.com/login.php?return=%2F")
 						.parameter("go", true)
 						.parameter("login", credential.getUsername())

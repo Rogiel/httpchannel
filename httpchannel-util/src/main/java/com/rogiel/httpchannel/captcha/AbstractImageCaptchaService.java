@@ -3,14 +3,12 @@
  */
 package com.rogiel.httpchannel.captcha;
 
-import java.io.IOException;
 import java.net.URL;
 
 import com.rogiel.httpchannel.http.GetRequest;
 import com.rogiel.httpchannel.http.HttpContext;
 import com.rogiel.httpchannel.http.PostMultipartRequest;
 import com.rogiel.httpchannel.http.PostRequest;
-import com.rogiel.httpchannel.util.htmlparser.HTMLPage;
 
 /**
  * @author <a href="http://www.rogiel.com">Rogiel</a>
@@ -19,17 +17,6 @@ import com.rogiel.httpchannel.util.htmlparser.HTMLPage;
 public abstract class AbstractImageCaptchaService<C extends AbstractImageCaptcha>
 		implements ImageCaptchaService<C> {
 	protected final HttpContext http = new HttpContext();
-
-	@Override
-	public final C create(String html) {
-		try {
-			return create(HTMLPage.parse(html));
-		} catch (IOException e) {
-			return null;
-		}
-	}
-
-	public abstract C create(HTMLPage page) throws IOException;
 
 	@Override
 	public boolean resolve(C captcha) {

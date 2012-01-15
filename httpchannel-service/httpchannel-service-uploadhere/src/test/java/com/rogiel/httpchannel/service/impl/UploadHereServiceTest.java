@@ -15,12 +15,12 @@ import org.junit.Test;
 import com.rogiel.httpchannel.service.UploaderCapability;
 import com.rogiel.httpchannel.util.ChannelUtils;
 
-public class UploadKingServiceTest {
-	private UploadKingService service;
+public class UploadHereServiceTest {
+	private UploadHereService service;
 
 	@Before
 	public void setUp() throws Exception {
-		service = new UploadKingService();
+		service = new UploadHereService();
 	}
 
 	@Test
@@ -56,7 +56,7 @@ public class UploadKingServiceTest {
 	// });
 	//
 	// final DownloadChannel channel = service.getDownloader(
-	// new URL("http://www.uploadking.com/WM3PHD9JAY")).openChannel(512);
+	// new URL("http://www.uploadhere.com/9WCEQF1Q07")).openChannel();
 	// System.out.println(new String(ChannelUtils.toByteArray(channel)));
 	// }
 }

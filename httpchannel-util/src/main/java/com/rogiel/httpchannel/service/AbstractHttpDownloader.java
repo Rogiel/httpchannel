@@ -22,10 +22,12 @@ import java.net.URL;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
 
 import com.rogiel.httpchannel.http.Request;
 import com.rogiel.httpchannel.service.Downloader.DownloaderConfiguration;
 import com.rogiel.httpchannel.service.channel.InputStreamDownloadChannel;
+import com.rogiel.httpchannel.service.exception.DownloadLinkNotFoundException;
 import com.rogiel.httpchannel.util.ThreadUtils;
 
 /**
@@ -58,6 +60,11 @@ public abstract class AbstractHttpDownloader<C extends DownloaderConfiguration>
 	protected InputStreamDownloadChannel download(Request request)
 			throws IOException {
 		final HttpResponse response = request.request();
+		if (!(response.getStatusLine().getStatusCode() == HttpStatus.SC_OK
+				|| response.getStatusLine().getStatusCode() == HttpStatus.SC_NOT_MODIFIED || response
+				.getStatusLine().getStatusCode() == HttpStatus.SC_PARTIAL_CONTENT))
+			throw new DownloadLinkNotFoundException();
+
 		final String filename = FilenameUtils.getName(request.getURL());
 		final long contentLength = getContentLength(response);
 		return createInputStreamChannel(response.getEntity().getContent(),

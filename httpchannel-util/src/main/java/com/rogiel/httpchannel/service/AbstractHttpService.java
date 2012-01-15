@@ -56,6 +56,10 @@ public abstract class AbstractHttpService extends AbstractService implements
 		return http.post(url);
 	}
 
+	public PostRequest post(URL url) {
+		return post(url.toString());
+	}
+
 	public PostMultipartRequest multipartPost(String url) {
 		return http.multipartPost(url);
 	}

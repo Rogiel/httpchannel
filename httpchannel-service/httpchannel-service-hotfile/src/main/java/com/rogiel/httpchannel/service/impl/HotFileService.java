@@ -102,7 +102,7 @@ public class HotFileService extends AbstractHttpService implements Service,
 	@Override
 	public Uploader<NullUploaderConfiguration> getUploader(String filename,
 			long filesize, NullUploaderConfiguration configuration) {
-		return new HotFileUploader(filename, filesize, configuration);
+		return new UploaderImpl(filename, filesize, configuration);
 	}
 
 	@Override
@@ -137,7 +137,7 @@ public class HotFileService extends AbstractHttpService implements Service,
 	@Override
 	public Downloader<NullDownloaderConfiguration> getDownloader(URL url,
 			NullDownloaderConfiguration configuration) {
-		return new HotFileDownloader(url, configuration);
+		return new DownloaderImpl(url, configuration);
 	}
 
 	@Override
@@ -164,7 +164,7 @@ public class HotFileService extends AbstractHttpService implements Service,
 	@Override
 	public Authenticator<NullAuthenticatorConfiguration> getAuthenticator(
 			Credential credential, NullAuthenticatorConfiguration configuration) {
-		return new HotFileAuthenticator(credential, configuration);
+		return new AuthenticatorImpl(credential, configuration);
 	}
 
 	@Override
@@ -183,13 +183,13 @@ public class HotFileService extends AbstractHttpService implements Service,
 		return new CapabilityMatrix<AuthenticatorCapability>();
 	}
 
-	protected class HotFileUploader extends
+	protected class UploaderImpl extends
 			AbstractUploader<NullUploaderConfiguration> implements
 			Uploader<NullUploaderConfiguration>,
 			LinkedUploadChannelCloseCallback {
 		private Future<HTMLPage> uploadFuture;
 
-		public HotFileUploader(String filename, long filesize,
+		public UploaderImpl(String filename, long filesize,
 				NullUploaderConfiguration configuration) {
 			super(filename, filesize, configuration);
 		}
@@ -218,9 +218,9 @@ public class HotFileService extends AbstractHttpService implements Service,
 		}
 	}
 
-	protected class HotFileDownloader extends
+	protected class DownloaderImpl extends
 			AbstractHttpDownloader<NullDownloaderConfiguration> {
-		public HotFileDownloader(URL url,
+		public DownloaderImpl(URL url,
 				NullDownloaderConfiguration configuration) {
 			super(url, configuration);
 		}
@@ -304,10 +304,10 @@ public class HotFileService extends AbstractHttpService implements Service,
 		}
 	}
 
-	protected class HotFileAuthenticator extends
+	protected class AuthenticatorImpl extends
 			AbstractAuthenticator<NullAuthenticatorConfiguration> implements
 			Authenticator<NullAuthenticatorConfiguration> {
-		public HotFileAuthenticator(Credential credential,
+		public AuthenticatorImpl(Credential credential,
 				NullAuthenticatorConfiguration configuration) {
 			super(credential, configuration);
 		}
