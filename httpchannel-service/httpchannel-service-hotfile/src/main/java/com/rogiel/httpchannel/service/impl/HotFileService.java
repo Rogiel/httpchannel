@@ -25,12 +25,12 @@ import java.util.regex.Pattern;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
-import org.apache.http.entity.mime.MultipartEntity;
-import org.apache.http.entity.mime.content.StringBody;
 import org.htmlparser.Tag;
 
-import com.rogiel.httpchannel.service.AbstractDownloader;
+import com.rogiel.httpchannel.service.AbstractAuthenticator;
+import com.rogiel.httpchannel.service.AbstractHttpDownloader;
 import com.rogiel.httpchannel.service.AbstractHttpService;
+import com.rogiel.httpchannel.service.AbstractUploader;
 import com.rogiel.httpchannel.service.AuthenticationService;
 import com.rogiel.httpchannel.service.Authenticator;
 import com.rogiel.httpchannel.service.AuthenticatorCapability;
@@ -50,28 +50,27 @@ import com.rogiel.httpchannel.service.UploaderCapability;
 import com.rogiel.httpchannel.service.channel.InputStreamDownloadChannel;
 import com.rogiel.httpchannel.service.channel.LinkedUploadChannel;
 import com.rogiel.httpchannel.service.channel.LinkedUploadChannel.LinkedUploadChannelCloseCallback;
-import com.rogiel.httpchannel.service.channel.LinkedUploadChannelContentBody;
-import com.rogiel.httpchannel.service.config.ServiceConfiguration;
-import com.rogiel.httpchannel.service.config.ServiceConfigurationHelper;
+import com.rogiel.httpchannel.service.config.NullAuthenticatorConfiguration;
+import com.rogiel.httpchannel.service.config.NullDownloaderConfiguration;
+import com.rogiel.httpchannel.service.config.NullUploaderConfiguration;
 import com.rogiel.httpchannel.service.exception.AuthenticationInvalidCredentialException;
-import com.rogiel.httpchannel.service.impl.HotFileService.HotFileServiceConfiguration;
-import com.rogiel.httpchannel.util.ThreadUtils;
 import com.rogiel.httpchannel.util.htmlparser.HTMLPage;
 
 /**
  * This service handles login, upload and download to HotFile.com.
  * 
- * @author Rogiel
+ * @author <a href="http://www.rogiel.com">Rogiel</a>
  * @since 1.0
  */
-public class HotFileService extends
-		AbstractHttpService<HotFileServiceConfiguration> implements Service,
-		UploadService, DownloadService, AuthenticationService {
+public class HotFileService extends AbstractHttpService implements Service,
+		UploadService<NullUploaderConfiguration>,
+		DownloadService<NullDownloaderConfiguration>,
+		AuthenticationService<NullAuthenticatorConfiguration> {
 	/**
 	 * This service ID
 	 */
 	public static final ServiceID SERVICE_ID = ServiceID.create("hotfile");
-	
+
 	private static final Pattern UPLOAD_URL_PATTERN = Pattern
 			.compile("http://u[0-9]*\\.hotfile\\.com/upload\\.cgi\\?[0-9]*");
 
@@ -84,11 +83,6 @@ public class HotFileService extends
 
 	private static final Pattern DOWNLOAD_URL_PATTERN = Pattern
 			.compile("http://hotfile\\.com/dl/([0-9]*)/([A-Za-z0-9]*)/(.*)");
-
-	public HotFileService() {
-		super(ServiceConfigurationHelper
-				.defaultConfiguration(HotFileServiceConfiguration.class));
-	}
 
 	@Override
 	public ServiceID getID() {
@@ -106,9 +100,20 @@ public class HotFileService extends
 	}
 
 	@Override
-	public Uploader getUploader(String filename, long filesize,
-			String description) {
-		return new HotFileUploader(filename, filesize);
+	public Uploader<NullUploaderConfiguration> getUploader(String filename,
+			long filesize, NullUploaderConfiguration configuration) {
+		return new HotFileUploader(filename, filesize, configuration);
+	}
+
+	@Override
+	public Uploader<NullUploaderConfiguration> getUploader(String filename,
+			long filesize) {
+		return getUploader(filename, filesize, newUploaderConfiguration());
+	}
+
+	@Override
+	public NullUploaderConfiguration newUploaderConfiguration() {
+		return NullUploaderConfiguration.SHARED_INSTANCE;
 	}
 
 	@Override
@@ -130,8 +135,19 @@ public class HotFileService extends
 	}
 
 	@Override
-	public Downloader getDownloader(URL url) {
-		return new HotFileDownloader(url);
+	public Downloader<NullDownloaderConfiguration> getDownloader(URL url,
+			NullDownloaderConfiguration configuration) {
+		return new HotFileDownloader(url, configuration);
+	}
+
+	@Override
+	public Downloader<NullDownloaderConfiguration> getDownloader(URL url) {
+		return getDownloader(url, newDownloaderConfiguration());
+	}
+
+	@Override
+	public NullDownloaderConfiguration newDownloaderConfiguration() {
+		return NullDownloaderConfiguration.SHARED_INSTANCE;
 	}
 
 	@Override
@@ -146,8 +162,20 @@ public class HotFileService extends
 	}
 
 	@Override
-	public Authenticator getAuthenticator(Credential credential) {
-		return new HotFileAuthenticator(credential);
+	public Authenticator<NullAuthenticatorConfiguration> getAuthenticator(
+			Credential credential, NullAuthenticatorConfiguration configuration) {
+		return new HotFileAuthenticator(credential, configuration);
+	}
+
+	@Override
+	public Authenticator<NullAuthenticatorConfiguration> getAuthenticator(
+			Credential credential) {
+		return getAuthenticator(credential, newAuthenticatorConfiguration());
+	}
+
+	@Override
+	public NullAuthenticatorConfiguration newAuthenticatorConfiguration() {
+		return NullAuthenticatorConfiguration.SHARED_INSTANCE;
 	}
 
 	@Override
@@ -155,36 +183,27 @@ public class HotFileService extends
 		return new CapabilityMatrix<AuthenticatorCapability>();
 	}
 
-	protected class HotFileUploader implements Uploader,
+	protected class HotFileUploader extends
+			AbstractUploader<NullUploaderConfiguration> implements
+			Uploader<NullUploaderConfiguration>,
 			LinkedUploadChannelCloseCallback {
-		private final String filename;
-		private final long filesize;
-
 		private Future<HTMLPage> uploadFuture;
 
-		public HotFileUploader(String filename, long filesize) {
-			super();
-			this.filename = filename;
-			this.filesize = filesize;
+		public HotFileUploader(String filename, long filesize,
+				NullUploaderConfiguration configuration) {
+			super(filename, filesize, configuration);
 		}
 
 		@Override
-		public UploadChannel upload() throws IOException {
-			final HTMLPage page = getAsPage("http://www.hotfile.com/");
-			final String action = page.getFormAction(UPLOAD_URL_PATTERN);
+		public UploadChannel openChannel() throws IOException {
+			final HTMLPage page = get("http://www.hotfile.com/").asPage();
+			final String action = page.findFormAction(UPLOAD_URL_PATTERN);
 
-			final LinkedUploadChannel channel = new LinkedUploadChannel(this,
-					filesize, filename);
-			final MultipartEntity entity = new MultipartEntity();
+			final LinkedUploadChannel channel = createLinkedChannel(this);
 
-			entity.addPart("uploads[]", new LinkedUploadChannelContentBody(
-					channel));
-
-			uploadFuture = postAsPageAsync(action, entity);
-			while (!channel.isLinked() && !uploadFuture.isDone()) {
-				ThreadUtils.sleep(100);
-			}
-			return channel;
+			uploadFuture = multipartPost(action)
+					.parameter("uploads[]", channel).asPageAsync();
+			return waitChannelLink(channel, uploadFuture);
 		}
 
 		@Override
@@ -199,17 +218,17 @@ public class HotFileService extends
 		}
 	}
 
-	protected class HotFileDownloader extends AbstractDownloader {
-		private final URL url;
-
-		public HotFileDownloader(URL url) {
-			this.url = url;
+	protected class HotFileDownloader extends
+			AbstractHttpDownloader<NullDownloaderConfiguration> {
+		public HotFileDownloader(URL url,
+				NullDownloaderConfiguration configuration) {
+			super(url, configuration);
 		}
 
 		@Override
-		public DownloadChannel download(DownloadListener listener, long position)
-				throws IOException {
-			final HTMLPage page = getAsPage(url.toString());
+		public DownloadChannel openChannel(DownloadListener listener,
+				long position) throws IOException {
+			final HTMLPage page = get(url).asPage();
 
 			// // try to find timer
 			// final String stringTimer = PatternUtils.find(DOWNLOAD_TIMER,
@@ -224,11 +243,12 @@ public class HotFileService extends
 			// }
 
 			final String downloadUrl = page
-					.getLink(DOWNLOAD_DIRECT_LINK_PATTERN);
+					.findLink(DOWNLOAD_DIRECT_LINK_PATTERN);
 			// final String tmHash = PatternUtils.find(DOWNLOAD_TMHASH_PATTERN,
 			// content);F
 			if (downloadUrl != null && downloadUrl.length() > 0) {
-				final HttpResponse downloadResponse = get(downloadUrl);
+				final HttpResponse downloadResponse = get(downloadUrl)
+						.request();
 
 				final String filename = FilenameUtils.getName(downloadUrl);
 				long contentLength = getContentLength(downloadResponse);
@@ -284,23 +304,21 @@ public class HotFileService extends
 		}
 	}
 
-	protected class HotFileAuthenticator implements Authenticator {
-		private final Credential credential;
-
-		public HotFileAuthenticator(Credential credential) {
-			this.credential = credential;
+	protected class HotFileAuthenticator extends
+			AbstractAuthenticator<NullAuthenticatorConfiguration> implements
+			Authenticator<NullAuthenticatorConfiguration> {
+		public HotFileAuthenticator(Credential credential,
+				NullAuthenticatorConfiguration configuration) {
+			super(credential, configuration);
 		}
 
 		@Override
 		public void login() throws ClientProtocolException, IOException {
-			final MultipartEntity entity = new MultipartEntity();
+			HTMLPage page = post("http://www.hotfile.com/login.php")
+					.parameter("returnto", "/index.php")
+					.parameter("user", credential.getUsername())
+					.parameter("pass", credential.getPassword()).asPage();
 
-			entity.addPart("returnto", new StringBody("/index.php"));
-			entity.addPart("user", new StringBody(credential.getUsername()));
-			entity.addPart("pass", new StringBody(credential.getPassword()));
-
-			HTMLPage page = postAsPage("http://www.hotfile.com/login.php",
-					entity);
 			final Tag accountTag = page.getTagByID("account");
 			if (accountTag == null)
 				throw new AuthenticationInvalidCredentialException();
@@ -308,16 +326,10 @@ public class HotFileService extends
 
 		@Override
 		public void logout() throws IOException {
-			final MultipartEntity entity = new MultipartEntity();
-			entity.addPart("logout", new StringBody("1"));
-
-			postAsString("http://www.megaupload.com/?c=account", entity);
+			post("http://www.megaupload.com/?c=account").parameter("logout",
+					true).request();
 			// TODO check logout status
 		}
-	}
-
-	public static interface HotFileServiceConfiguration extends
-			ServiceConfiguration {
 	}
 
 	@Override

@@ -16,14 +16,23 @@
  */
 package com.rogiel.httpchannel.util;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.net.URL;
 import java.nio.ByteBuffer;
+import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
+
+import com.rogiel.httpchannel.service.UploadChannel;
+import com.rogiel.httpchannel.service.UploadService;
+import com.rogiel.httpchannel.service.helper.UploadServices;
 
 /**
  * @author <a href="http://www.rogiel.com">Rogiel</a>
- * 
  */
 public class ChannelUtils {
 	public static void copy(ReadableByteChannel in, WritableByteChannel out)
@@ -47,5 +56,25 @@ public class ChannelUtils {
 			// position to the limit and the limit to the buffer capacity.
 			buffer.compact();
 		}
+	}
+
+	public static byte[] toByteArray(ReadableByteChannel channel)
+			throws IOException {
+		final ByteArrayOutputStream out = new ByteArrayOutputStream();
+		copy(channel, Channels.newChannel(out));
+		return out.toByteArray();
+	}
+
+	public static URL upload(UploadService<?> service, Path path)
+			throws IOException {
+		final UploadChannel uploadChannel = UploadServices
+				.upload(service, path).openChannel();
+		try {
+			copy(Files.newByteChannel(path, StandardOpenOption.READ),
+					uploadChannel);
+		} finally {
+			uploadChannel.close();
+		}
+		return uploadChannel.getDownloadLink();
 	}
 }

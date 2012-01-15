@@ -16,37 +16,18 @@
  */
 package com.rogiel.httpchannel.service;
 
-import com.rogiel.httpchannel.service.config.ServiceConfiguration;
+import com.rogiel.httpchannel.captcha.Captcha;
+import com.rogiel.httpchannel.captcha.CaptchaResolver;
+import com.rogiel.httpchannel.service.exception.UnresolvedCaptchaException;
 
 /**
  * This is an abstract {@link Service} implementation.
  * 
- * @author Rogiel
+ * @author <a href="http://www.rogiel.com">Rogiel</a>
  * @version 1.0
- * @param <T>
- *            The {@link ServiceConfiguration} <b>interface</b> type used by the
- *            {@link Service}. Note that this <b>must</b> be an interface!s
- * @see ServiceConfiguration ServiceConfiguration for details on the
- *      configuration interface.
  */
-public abstract class AbstractService<T extends ServiceConfiguration>
-		implements Service {
-	protected T configuration;
-
-	protected AbstractService(T configuration) {
-		this.configuration = configuration;
-	}
-
-	@Override
-	public T getServiceConfiguration() {
-		return configuration;
-	}
-
-	@Override
-	@SuppressWarnings("unchecked")
-	public void setServiceConfiguration(ServiceConfiguration configuration) {
-		this.configuration = (T) configuration;
-	}
+public abstract class AbstractService implements Service {
+	protected CaptchaResolver captchaResolver;
 
 	@Override
 	public Service clone() {
@@ -55,5 +36,21 @@ public abstract class AbstractService<T extends ServiceConfiguration>
 		} catch (CloneNotSupportedException e) {
 			return null;
 		}
+	}
+
+	@Override
+	public void setCaptchaResolver(CaptchaResolver captchaResolver) {
+		this.captchaResolver = captchaResolver;
+	}
+
+	protected boolean resolveCaptcha(Captcha captcha)
+			throws UnresolvedCaptchaException {
+		if (captchaResolver == null)
+			throw new UnresolvedCaptchaException();
+		if (!captchaResolver.resolve(captcha))
+			throw new UnresolvedCaptchaException();
+		if (captcha.getAnswer() == null)
+			throw new UnresolvedCaptchaException();
+		return true;
 	}
 }

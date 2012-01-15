@@ -20,7 +20,7 @@ package com.rogiel.httpchannel.service;
  * This listener keeps an track on the progress on an {@link Downloader}
  * service.
  * 
- * @author Rogiel
+ * @author <a href="http://www.rogiel.com">Rogiel</a>
  * @since 1.0
  */
 public interface DownloadListener {

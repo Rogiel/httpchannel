@@ -18,6 +18,8 @@ package com.rogiel.httpchannel.service;
 
 import java.io.Serializable;
 
+import com.rogiel.httpchannel.service.helper.Services;
+
 /**
  * An ID used to represent the given service
  * 
@@ -27,7 +29,7 @@ public class ServiceID implements Serializable, Cloneable {
 	/**
 	 * This class serialization version UID
 	 */
-	private static final long serialVersionUID = -1078456596792552200L;
+	private static final long serialVersionUID = 1L;
 
 	/**
 	 * The raw ID

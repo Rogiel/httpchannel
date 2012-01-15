@@ -18,15 +18,18 @@ package com.rogiel.httpchannel.service;
 
 import java.io.IOException;
 
+import com.rogiel.httpchannel.captcha.CaptchaResolver;
+import com.rogiel.httpchannel.service.Authenticator.AuthenticatorConfiguration;
 import com.rogiel.httpchannel.service.exception.AuthenticationInvalidCredentialException;
+import com.rogiel.httpchannel.service.exception.UnresolvedCaptchaException;
 
 /**
  * This interfaces provides authentication for an service.
  * 
- * @author Rogiel
+ * @author <a href="http://www.rogiel.com">Rogiel</a>
  * @since 1.0
  */
-public interface Authenticator {
+public interface Authenticator<C extends AuthenticatorConfiguration> {
 	/**
 	 * Login into the {@link Service}. Once the authentication is done, it is
 	 * persistent for the entire service's operation.<br>
@@ -37,8 +40,13 @@ public interface Authenticator {
 	 *             if any IO error occur
 	 * @throws AuthenticationInvalidCredentialException
 	 *             if the credentials are not valid or cannot be used
+	 * @throws UnresolvedCaptchaException
+	 *             if the service required captcha resolving but no
+	 *             {@link CaptchaResolver} was available or the resolver did not
+	 *             solve the challenge
 	 */
-	void login() throws IOException, AuthenticationInvalidCredentialException;
+	void login() throws IOException, AuthenticationInvalidCredentialException,
+			UnresolvedCaptchaException;
 
 	/**
 	 * Logout into the {@link Service}. The session is restored to an not
@@ -48,4 +56,26 @@ public interface Authenticator {
 	 *             if any IO error occur
 	 */
 	void logout() throws IOException;
+
+	/**
+	 * Returns this {@link Authenticator} configuration.
+	 * <p>
+	 * <b>IMPORTANT NOTE</b>: You should not modify any configuration within
+	 * this configuration object once while the account is authenticated.
+	 * Depending on the service, changing any setting could result in an state
+	 * where the service cannot be logged out.
+	 * 
+	 * @return this {@link Authenticator} configuration
+	 */
+	C getConfiguration();
+
+	/**
+	 * This interface must be implemented in order to allow authentication
+	 * configuration.
+	 * 
+	 * @author <a href="http://www.rogiel.com">Rogiel</a>
+	 */
+	public interface AuthenticatorConfiguration {
+
+	}
 }

@@ -19,7 +19,7 @@ package com.rogiel.httpchannel.service;
 /**
  * This is an utility class to help manage Capabilities of all the services.
  * 
- * @author Rogiel
+ * @author <a href="http://www.rogiel.com">Rogiel</a>
  * @param <T>
  *            the capability enumeration
  * @since 1.0

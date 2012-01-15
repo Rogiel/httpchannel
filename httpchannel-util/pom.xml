@@ -59,8 +59,8 @@
 			<groupId>org.htmlparser</groupId>
 			<artifactId>htmlparser</artifactId>
 			<version>2.1</version>
-			<type>jar</type>
-			<scope>compile</scope>
 		</dependency>
 	</dependencies>
+	<name>HttpChannel/Service/Utilities</name>
+	<description>Module providing several utilities to service implementations. Though this module is not required to implement services, it contains several shortcuts that can help implementing services.</description>
 </project>

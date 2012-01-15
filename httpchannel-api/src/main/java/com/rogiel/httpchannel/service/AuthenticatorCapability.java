@@ -19,7 +19,7 @@ package com.rogiel.httpchannel.service;
 /**
  * Capability an certain {@link Authenticator} can have.
  * 
- * @author Rogiel
+ * @author <a href="http://www.rogiel.com">Rogiel</a>
  * @since 1.0
  */
 public enum AuthenticatorCapability {

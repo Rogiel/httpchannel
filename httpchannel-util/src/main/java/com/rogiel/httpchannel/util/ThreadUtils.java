@@ -18,7 +18,7 @@
 package com.rogiel.httpchannel.util;
 
 /**
- * @author Rogiel
+ * @author <a href="http://www.rogiel.com">Rogiel</a>
  * @since 1.0
  */
 public class ThreadUtils {

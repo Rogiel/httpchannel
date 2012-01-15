@@ -20,13 +20,17 @@ import java.net.URL;
 
 import javax.tools.FileObject;
 
+import com.rogiel.httpchannel.service.Downloader.DownloaderConfiguration;
+import com.rogiel.httpchannel.service.config.NullDownloaderConfiguration;
+
 /**
  * Implements an service capable of downloading a file.
  * 
- * @author Rogiel
+ * @author <a href="http://www.rogiel.com">Rogiel</a>
  * @since 1.0
  */
-public interface DownloadService extends Service {
+public interface DownloadService<C extends DownloaderConfiguration> extends
+		Service {
 	/**
 	 * Creates a new instance of the {@link Downloader}. This instance will be
 	 * attached to the {@link URL}, {@link FileObject} provided through the the
@@ -34,14 +38,34 @@ public interface DownloadService extends Service {
 	 * 
 	 * @param url
 	 *            the url to be downloaded
-	 * @param file
-	 *            the destination file
+	 * @param configuration
+	 *            the downloader configurationf
 	 * @return an new instance of {@link Downloader}
 	 */
-	Downloader getDownloader(URL url);
+	Downloader<C> getDownloader(URL url, C configuration);
 
 	/**
-	 * Check if this {@link Service} can download from this URL. Implemtations
+	 * Creates a new instance of the {@link Downloader}. This instance will be
+	 * attached to the {@link URL}, {@link FileObject} provided through the the
+	 * arguments and the parent {@link Service} instance.
+	 * 
+	 * @param url
+	 *            the url to be downloaded
+	 * @return an new instance of {@link Downloader}
+	 */
+	Downloader<C> getDownloader(URL url);
+
+	/**
+	 * Creates a new configuration object. If a service does not support or
+	 * require configuration, {@link NullDownloaderConfiguration} should be
+	 * returned.
+	 * 
+	 * @return a new configuration object or {@link NullDownloaderConfiguration}
+	 */
+	C newDownloaderConfiguration();
+
+	/**
+	 * Check if this {@link Service} can download from this URL. Implementations
 	 * might or might not perform network activity.
 	 * <p>
 	 * <b>Please note</b> that the value returned by this method may vary based

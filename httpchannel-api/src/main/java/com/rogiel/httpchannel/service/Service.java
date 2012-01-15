@@ -16,7 +16,7 @@
  */
 package com.rogiel.httpchannel.service;
 
-import com.rogiel.httpchannel.service.config.ServiceConfiguration;
+import com.rogiel.httpchannel.captcha.CaptchaResolver;
 
 /**
  * Base interface for all the services. Whenever the operation suported by the
@@ -27,7 +27,7 @@ import com.rogiel.httpchannel.service.config.ServiceConfiguration;
  * </li>
  * </ul>
  * 
- * @author Rogiel
+ * @author <a href="http://www.rogiel.com">Rogiel</a>
  * @since 1.0
  */
 public interface Service extends Cloneable {
@@ -53,19 +53,13 @@ public interface Service extends Cloneable {
 	int getMinorVersion();
 
 	/**
-	 * Returns this {@link ServiceConfiguration} instance
+	 * Sets this service captcha resolver. Resolvers are safe to be switched
+	 * even after an transfer has begun.
 	 * 
-	 * @return the {@link ServiceConfiguration} instance
+	 * @param resolver
+	 *            the captcha resolver
 	 */
-	ServiceConfiguration getServiceConfiguration();
-
-	/**
-	 * Sets this {@link ServiceConfiguration} instance
-	 * 
-	 * @param configuration
-	 *            the {@link ServiceConfiguration} instance
-	 */
-	void setServiceConfiguration(ServiceConfiguration configuration);
+	void setCaptchaResolver(CaptchaResolver resolver);
 
 	/**
 	 * @return a cloned version of this service

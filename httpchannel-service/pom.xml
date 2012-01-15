@@ -13,6 +13,7 @@
 	<modules>
 		<module>httpchannel-service-megaupload</module>
 		<module>httpchannel-service-hotfile</module>
+		<module>httpchannel-service-multiupload</module>
 	</modules>
 
 	<dependencies>
@@ -27,4 +28,6 @@
 			<version>1.0.0</version>
 		</dependency>
 	</dependencies>
+	<name>HttpChannel/Service</name>
+	<description>Parent module that all service implementations should inherit</description>
 </project>

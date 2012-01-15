@@ -19,7 +19,7 @@ package com.rogiel.httpchannel.service;
 /**
  * Capability an certain {@link Downloader} can have.
  * 
- * @author Rogiel
+ * @author <a href="http://www.rogiel.com">Rogiel</a>
  * @since 1.0
  */
 public enum DownloaderCapability {
@@ -35,10 +35,21 @@ public enum DownloaderCapability {
 	 * Can download files while authenticated with premium account
 	 */
 	PREMIUM_ACCOUNT_DOWNLOAD,
+
 	/**
-	 * Resume interrupted downloads are possible and supported.
+	 * Can resume interrupted downloads even without authenticating
 	 */
-	RESUME,
+	UNAUTHENTICATED_RESUME,
+	/**
+	 * Can resume interrupted downloads but require to be logged with any
+	 * account
+	 */
+	NON_PREMIUM_ACCOUNT_RESUME,
+	/**
+	 * Can resume interrupted downloads but requires an premium account
+	 */
+	PREMIUM_ACCOUNT_RESUME,
+
 	/**
 	 * Can check the status of the given link before starting download.
 	 */

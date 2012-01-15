@@ -17,11 +17,12 @@
 package com.rogiel.httpchannel.service.channel;
 
 import java.io.IOException;
+import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.channels.WritableByteChannel;
 
 import com.rogiel.httpchannel.service.UploadChannel;
-
+import com.rogiel.httpchannel.service.exception.UploadLinkNotFoundException;
 
 /**
  * @author <a href="http://www.rogiel.com">Rogiel</a>
@@ -33,7 +34,7 @@ public class LinkedUploadChannel implements UploadChannel {
 
 	private final long length;
 	private final String filename;
-	private String downloadLink;
+	private URL downloadLink;
 
 	private boolean open = true;
 
@@ -59,7 +60,10 @@ public class LinkedUploadChannel implements UploadChannel {
 	@Override
 	public void close() throws IOException {
 		open = false;
-		downloadLink = closeCallback.finish();
+		final String downloadLink = closeCallback.finish();
+		if (downloadLink == null)
+			throw new UploadLinkNotFoundException();
+		this.downloadLink = new URL(downloadLink);
 	}
 
 	public interface LinkedUploadChannelCloseCallback {
@@ -77,12 +81,12 @@ public class LinkedUploadChannel implements UploadChannel {
 	}
 
 	@Override
-	public String getDownloadLink() {
+	public URL getDownloadLink() {
 		return downloadLink;
 	}
 
 	public void linkChannel(WritableByteChannel channel) throws IOException {
-		if(this.channel != null)
+		if (this.channel != null)
 			throw new IOException("This channel is already linked.");
 		this.channel = channel;
 	}

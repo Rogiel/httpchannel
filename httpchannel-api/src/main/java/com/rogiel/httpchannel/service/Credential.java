@@ -19,7 +19,7 @@ package com.rogiel.httpchannel.service;
 /**
  * Pair of username-password used for authenticating into services.
  * 
- * @author Rogiel
+ * @author <a href="http://www.rogiel.com">Rogiel</a>
  * @since 1.0
  */
 public class Credential {

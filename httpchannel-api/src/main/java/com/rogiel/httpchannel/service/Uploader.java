@@ -18,13 +18,17 @@ package com.rogiel.httpchannel.service;
 
 import java.io.IOException;
 
+import com.rogiel.httpchannel.captcha.CaptchaResolver;
+import com.rogiel.httpchannel.service.Uploader.UploaderConfiguration;
+import com.rogiel.httpchannel.service.exception.UnresolvedCaptchaException;
+
 /**
  * This interfaces provides uploading for an service.
  * 
- * @author Rogiel
+ * @author <a href="http://www.rogiel.com">Rogiel</a>
  * @since 1.0
  */
-public interface Uploader {
+public interface Uploader<C extends UploaderConfiguration> {
 	/**
 	 * Opens a new {@link UploadChannel} that will be immediately ready to
 	 * receive data to be sent to the upload stream.
@@ -44,6 +48,52 @@ public interface Uploader {
 	 * @return the {@link UploadChannel} instance
 	 * @throws IOException
 	 *             if any IO error occur
+	 * @throws UnresolvedCaptchaException
+	 *             if the service required captcha resolving but no
+	 *             {@link CaptchaResolver} was available or the resolver did not
+	 *             solve the challenge
 	 */
-	UploadChannel upload() throws IOException;
+	UploadChannel openChannel() throws IOException, UnresolvedCaptchaException;
+
+	/**
+	 * Returns this {@link Uploader} configuration.
+	 * <p>
+	 * <b>IMPORTANT NOTE</b>: You should not modify any configuration within
+	 * this configuration object once the upload has started. Doing so, could
+	 * result in a error.
+	 * 
+	 * @return this {@link Uploader} configuration
+	 */
+	C getConfiguration();
+
+	/**
+	 * This interface must be implemented in order to allow upload
+	 * configuration.
+	 * 
+	 * @author <a href="http://www.rogiel.com">Rogiel</a>
+	 */
+	public interface UploaderConfiguration {
+	}
+
+	/**
+	 * Defines an {@link UploaderConfiguration} that can allow <b>at least</b>
+	 * an description field
+	 * 
+	 * @author <a href="http://www.rogiel.com">Rogiel</a>
+	 */
+	public interface DescriptionableUploaderConfiguration extends
+			UploaderConfiguration {
+		public static final String DEFAULT_DESCRIPTION = "Uploaded by httpchannel";
+
+		/**
+		 * @return the upload description
+		 */
+		String description();
+
+		/**
+		 * @param description
+		 *            the upload description
+		 */
+		DescriptionableUploaderConfiguration description(String description);
+	}
 }

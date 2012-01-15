@@ -22,8 +22,6 @@ import static org.junit.Assert.assertTrue;
 import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.SeekableByteChannel;
@@ -38,23 +36,19 @@ import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.rogiel.httpchannel.service.AuthenticationService;
 import com.rogiel.httpchannel.service.Credential;
 import com.rogiel.httpchannel.service.DownloadChannel;
 import com.rogiel.httpchannel.service.DownloadService;
-import com.rogiel.httpchannel.service.Service;
-import com.rogiel.httpchannel.service.ServiceHelper;
 import com.rogiel.httpchannel.service.ServiceID;
-import com.rogiel.httpchannel.service.Services;
 import com.rogiel.httpchannel.service.UploadChannel;
-import com.rogiel.httpchannel.service.UploadService;
 import com.rogiel.httpchannel.service.UploaderCapability;
 import com.rogiel.httpchannel.service.exception.AuthenticationInvalidCredentialException;
+import com.rogiel.httpchannel.service.helper.Services;
+import com.rogiel.httpchannel.service.helper.UploadServices;
 import com.rogiel.httpchannel.util.ChannelUtils;
 
 public class HotFileServiceTest {
-	private Service service;
-	private ServiceHelper helper;
+	private HotFileService service;
 
 	/**
 	 * See <b>src/test/resources/config/hotfile.properties</b>
@@ -76,7 +70,6 @@ public class HotFileServiceTest {
 	public void setUp() throws Exception {
 		// MegaUploadServiceConfiguration.class;
 		service = new HotFileService();
-		helper = new ServiceHelper(service);
 
 		final Properties properties = new Properties();
 		properties.load(new FileInputStream(
@@ -87,33 +80,31 @@ public class HotFileServiceTest {
 
 	@Test
 	public void testServiceId() {
-		System.out.println("Service: " + service.toString());
 		assertEquals(ServiceID.create("hotfile"), service.getID());
 	}
 
 	@Test
 	public void testValidAuthenticator() throws IOException {
-		((AuthenticationService) service).getAuthenticator(
-				new Credential(VALID_USERNAME, VALID_PASSWORD)).login();
+		service.getAuthenticator(new Credential(VALID_USERNAME, VALID_PASSWORD))
+				.login();
 	}
 
 	@Test(expected = AuthenticationInvalidCredentialException.class)
 	public void testInvalidAuthenticator() throws IOException {
-		((AuthenticationService) service).getAuthenticator(
+		service.getAuthenticator(
 				new Credential(INVALID_USERNAME, INVALID_PASSWORD)).login();
 	}
 
 	@Test
-	public void testNonLoguedInUploader() throws IOException,
-			URISyntaxException {
+	public void testNonLoguedInUploader() throws IOException {
 		assertTrue(
 				"This service does not have the capability UploadCapability.FREE_UPLOAD",
-				((UploadService) service).getUploadCapabilities().has(
+				service.getUploadCapabilities().has(
 						UploaderCapability.NON_PREMIUM_ACCOUNT_UPLOAD));
 
 		final Path path = Paths.get("src/test/resources/upload-test-file.txt");
-		final UploadChannel channel = helper.upload(path,
-				"httpchannel test upload");
+		final UploadChannel channel = UploadServices.upload(service, path)
+				.openChannel();
 		final SeekableByteChannel inChannel = Files.newByteChannel(path);
 
 		try {
@@ -131,15 +122,15 @@ public class HotFileServiceTest {
 	public void testLoguedInUploader() throws IOException {
 		assertTrue(
 				"This service does not have the capability UploadCapability.PREMIUM_UPLOAD",
-				((UploadService) service).getUploadCapabilities().has(
+				service.getUploadCapabilities().has(
 						UploaderCapability.PREMIUM_ACCOUNT_UPLOAD));
 
-		((AuthenticationService) service).getAuthenticator(
-				new Credential(VALID_USERNAME, VALID_PASSWORD)).login();
+		service.getAuthenticator(new Credential(VALID_USERNAME, VALID_PASSWORD))
+				.login();
 
 		final Path path = Paths.get("src/test/resources/upload-test-file.txt");
-		final UploadChannel channel = helper.upload(path,
-				"httpchannel test upload");
+		final UploadChannel channel = UploadServices.upload(service, path)
+				.openChannel();
 		final SeekableByteChannel inChannel = Files.newByteChannel(path);
 
 		try {
@@ -154,30 +145,29 @@ public class HotFileServiceTest {
 	}
 
 	@Test
-	public void testDownloader() throws IOException, MalformedURLException {
+	public void testDownloader() throws IOException {
 		final URL downloadUrl = new URL(
 				"http://hotfile.com/dl/129251605/9b4faf2/simulado_2010_1_res_all.zip.htm");
 
-		final DownloadService service = Services.matchURL(downloadUrl);
+		final DownloadService<?> service = Services.matchURL(downloadUrl);
 
 		final DownloadChannel channel = service.getDownloader(downloadUrl)
-				.download(null, 0);
+				.openChannel(null, 0);
 		final ByteArrayOutputStream bout = new ByteArrayOutputStream();
 		IOUtils.copy(Channels.newInputStream(channel), bout);
 		System.out.println(bout.size());
 	}
 
 	@Test
-	public void testLoggedInDownloader() throws IOException,
-			MalformedURLException {
-		((AuthenticationService) service).getAuthenticator(
-				new Credential(VALID_USERNAME, VALID_PASSWORD)).login();
+	public void testLoggedInDownloader() throws IOException {
+		service.getAuthenticator(new Credential(VALID_USERNAME, VALID_PASSWORD))
+				.login();
 
-		final DownloadChannel channel = ((DownloadService) service)
+		final DownloadChannel channel = service
 				.getDownloader(
 						new URL(
 								"http://hotfile.com/dl/129251605/9b4faf2/simulado_2010_1_res_all.zip.html"))
-				.download(null, 0);
+				.openChannel(null, 0);
 
 		final ByteArrayOutputStream bout = new ByteArrayOutputStream();
 		IOUtils.copy(Channels.newInputStream(channel), bout);

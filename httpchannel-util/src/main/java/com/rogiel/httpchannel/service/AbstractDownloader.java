@@ -1,52 +1,79 @@
-/*
- * This file is part of seedbox <github.com/seedbox>.
- *
- * seedbox is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * seedbox is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with seedbox.  If not, see <http://www.gnu.org/licenses/>.
- */
 package com.rogiel.httpchannel.service;
 
-import org.apache.http.Header;
-import org.apache.http.HttpResponse;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
 
-import com.rogiel.httpchannel.util.ThreadUtils;
+import com.rogiel.httpchannel.service.Downloader.DownloaderConfiguration;
+import com.rogiel.httpchannel.service.channel.InputStreamDownloadChannel;
+import com.rogiel.httpchannel.service.exception.DownloadLimitExceededException;
+import com.rogiel.httpchannel.service.exception.DownloadLinkNotFoundException;
+import com.rogiel.httpchannel.service.exception.DownloadNotAuthorizedException;
+import com.rogiel.httpchannel.service.exception.DownloadNotResumableException;
 
 /**
- * @author rogiel
+ * An abstract {@link Downloader} that implements most of the general-purpose
+ * methods
+ * 
+ * @author <a href="http://www.rogiel.com">Rogiel</a>
+ * 
+ * @param <C>
+ *            the {@link Downloader} configuration object type
  */
-public abstract class AbstractDownloader implements Downloader {
-	protected int parseTimer(String stringTimer) {
-		int timer = 0;
-		if (stringTimer != null && stringTimer.length() > 0) {
-			timer = Integer.parseInt(stringTimer);
-		}
-		return timer;
+public abstract class AbstractDownloader<C extends DownloaderConfiguration>
+		implements Downloader<C> {
+	/**
+	 * The download URL
+	 */
+	protected final URL url;
+
+	/**
+	 * The {@link Downloader} configuration
+	 */
+	protected final C configuration;
+
+	/**
+	 * Creates a new instance
+	 * 
+	 * @param url
+	 *            the download url
+	 * @param configuration
+	 *            the configuration object
+	 */
+	protected AbstractDownloader(URL url, C configuration) {
+		this.url = url;
+		this.configuration = configuration;
 	}
 
-	protected long getContentLength(HttpResponse response) {
-		final Header contentLengthHeader = response
-				.getFirstHeader("Content-Length");
-		long contentLength = -1;
-		if (contentLengthHeader != null) {
-			contentLength = Long.valueOf(contentLengthHeader.getValue());
-		}
-		return contentLength;
+	@Override
+	public DownloadChannel openChannel(long position) throws IOException,
+			DownloadLinkNotFoundException, DownloadLimitExceededException,
+			DownloadNotAuthorizedException, DownloadNotResumableException {
+		return openChannel(null, position);
 	}
 
-	protected void timer(DownloadListener listener, long timer) {
-		if (listener != null) {
-			listener.timer(timer);
-		}
-		ThreadUtils.sleep(timer);
+	@Override
+	public DownloadChannel openChannel(DownloadListener listener)
+			throws IOException, DownloadLinkNotFoundException,
+			DownloadLimitExceededException, DownloadNotAuthorizedException,
+			DownloadNotResumableException {
+		return openChannel(listener, 0);
+	}
+
+	@Override
+	public DownloadChannel openChannel() throws IOException,
+			DownloadLinkNotFoundException, DownloadLimitExceededException,
+			DownloadNotAuthorizedException, DownloadNotResumableException {
+		return openChannel(null, 0);
+	}
+
+	protected InputStreamDownloadChannel createInputStreamChannel(
+			InputStream in, long length, String filename) {
+		return new InputStreamDownloadChannel(in, length, filename);
+	}
+
+	@Override
+	public C getConfiguration() {
+		return configuration;
 	}
 }

@@ -16,13 +16,16 @@
  */
 package com.rogiel.httpchannel.service;
 
+import com.rogiel.httpchannel.service.Uploader.UploaderConfiguration;
+import com.rogiel.httpchannel.service.config.NullUploaderConfiguration;
+
 /**
  * Implements an service capable of uploading a file.
  * 
- * @author Rogiel
+ * @author <a href="http://www.rogiel.com">Rogiel</a>
  * @since 1.0
  */
-public interface UploadService extends Service {
+public interface UploadService<C extends UploaderConfiguration> extends Service {
 	/**
 	 * Creates a new instance of {@link Uploader}. This instance is attached
 	 * with the parent {@link Service} instance.<br>
@@ -32,11 +35,34 @@ public interface UploadService extends Service {
 	 *            the name of the file to be uploaded
 	 * @param filesize
 	 *            the size of the file to be uploaded. This must be exact.
-	 * @param description
-	 *            the description of the upload. If supported.
+	 * @param configuration
+	 *            the uploader configuration
 	 * @return the new {@link Uploader} instance
 	 */
-	Uploader getUploader(String filename, long filesize, String description);
+	Uploader<C> getUploader(String filename, long filesize, C configuration);
+	
+	/**
+	 * Creates a new instance of {@link Uploader}. This instance is attached
+	 * with the parent {@link Service} instance.<br>
+	 * <b>Note</b>: not all services might support <tt>description</tt>
+	 * 
+	 * @param filename
+	 *            the name of the file to be uploaded
+	 * @param filesize
+	 *            the size of the file to be uploaded. This must be exact.
+	 * @return the new {@link Uploader} instance
+	 */
+	Uploader<C> getUploader(String filename, long filesize);
+	
+	/**
+	 * Creates a new configuration object. If a service does not support or
+	 * require configuration, {@link NullUploaderConfiguration} should be
+	 * returned.
+	 * 
+	 * @return a new configuration object or
+	 *         {@link NullUploaderConfiguration}
+	 */
+	C newUploaderConfiguration();
 
 	/**
 	 * Get the maximum upload file size supported by this service.

@@ -18,18 +18,21 @@ package com.rogiel.httpchannel.service;
 
 import java.io.IOException;
 
+import com.rogiel.httpchannel.captcha.CaptchaResolver;
+import com.rogiel.httpchannel.service.Downloader.DownloaderConfiguration;
 import com.rogiel.httpchannel.service.exception.DownloadLimitExceededException;
 import com.rogiel.httpchannel.service.exception.DownloadLinkNotFoundException;
 import com.rogiel.httpchannel.service.exception.DownloadNotAuthorizedException;
 import com.rogiel.httpchannel.service.exception.DownloadNotResumableException;
+import com.rogiel.httpchannel.service.exception.UnresolvedCaptchaException;
 
 /**
  * This interfaces provides downloading for an service.
  * 
- * @author Rogiel
+ * @author <a href="http://www.rogiel.com">Rogiel</a>
  * @since 1.0
  */
-public interface Downloader {
+public interface Downloader<C extends DownloaderConfiguration> {
 	/**
 	 * Opens a new {@link DownloadChannel} that will be immediately ready to
 	 * read data from the download stream.
@@ -67,9 +70,105 @@ public interface Downloader {
 	 * @throws DownloadNotResumableException
 	 *             if the download cannot be started at <tt>position</tt>. Will
 	 *             only be thrown if <tt>position > 0</tt>.
+	 * @throws UnresolvedCaptchaException
+	 *             if the service required captcha resolving but no
+	 *             {@link CaptchaResolver} was available or the resolver did not
+	 *             solve the challenge
 	 */
-	DownloadChannel download(DownloadListener listener, long position)
+	DownloadChannel openChannel(DownloadListener listener, long position)
 			throws IOException, DownloadLinkNotFoundException,
 			DownloadLimitExceededException, DownloadNotAuthorizedException,
-			DownloadNotResumableException;
+			DownloadNotResumableException, UnresolvedCaptchaException;
+
+	/**
+	 * Opens a new {@link DownloadChannel} with not listener. For more details,
+	 * see {@link #openChannel(DownloadListener, long)}
+	 * 
+	 * @param position
+	 *            the download start position. If seek is supported by service.
+	 *            If zero, download will start from the beginning.
+	 * @return the {@link DownloadChannel} instance
+	 * @throws IOException
+	 *             if any IO error occur
+	 * @throws DownloadLinkNotFoundException
+	 *             if the direct download link cannot be found (the file could
+	 *             have been deleted)
+	 * @throws DownloadLimitExceededException
+	 *             if the download limit has been exceed, most times thrown when
+	 *             downloading as a non-premium user
+	 * @throws DownloadNotAuthorizedException
+	 *             if the user (or guest) account does not have necessary rights
+	 *             to download the file
+	 * @throws DownloadNotResumableException
+	 *             if the download cannot be started at <tt>position</tt>. Will
+	 *             only be thrown if <tt>position > 0</tt>.
+	 */
+	DownloadChannel openChannel(long position) throws IOException,
+			DownloadLinkNotFoundException, DownloadLimitExceededException,
+			DownloadNotAuthorizedException, DownloadNotResumableException;
+
+	/**
+	 * Opens a new {@link DownloadChannel} positioned at start. For more
+	 * details, see {@link #openChannel(DownloadListener, long)}
+	 * 
+	 * @param listener
+	 *            the listener to keep a track on the download progress
+	 * @return the {@link DownloadChannel} instance
+	 * @throws IOException
+	 *             if any IO error occur
+	 * @throws DownloadLinkNotFoundException
+	 *             if the direct download link cannot be found (the file could
+	 *             have been deleted)
+	 * @throws DownloadLimitExceededException
+	 *             if the download limit has been exceed, most times thrown when
+	 *             downloading as a non-premium user
+	 * @throws DownloadNotAuthorizedException
+	 *             if the user (or guest) account does not have necessary rights
+	 *             to download the file
+	 */
+	DownloadChannel openChannel(DownloadListener listener) throws IOException,
+			DownloadLinkNotFoundException, DownloadLimitExceededException,
+			DownloadNotAuthorizedException;
+
+	/**
+	 * Opens a new {@link DownloadChannel} with not listener and positioned at
+	 * start. For more details, see {@link #openChannel(DownloadListener, long)}
+	 * 
+	 * @return the {@link DownloadChannel} instance
+	 * @throws IOException
+	 *             if any IO error occur
+	 * @throws DownloadLinkNotFoundException
+	 *             if the direct download link cannot be found (the file could
+	 *             have been deleted)
+	 * @throws DownloadLimitExceededException
+	 *             if the download limit has been exceed, most times thrown when
+	 *             downloading as a non-premium user
+	 * @throws DownloadNotAuthorizedException
+	 *             if the user (or guest) account does not have necessary rights
+	 *             to download the file
+	 */
+	DownloadChannel openChannel() throws IOException,
+			DownloadLinkNotFoundException, DownloadLimitExceededException,
+			DownloadNotAuthorizedException;
+
+	/**
+	 * Returns this {@link Downloader} configuration.
+	 * <p>
+	 * <b>IMPORTANT NOTE</b>: You should not modify any configuration within
+	 * this configuration object once the download has started. Doing so, could
+	 * result in a error.
+	 * 
+	 * @return this {@link Downloader} configuration
+	 */
+	C getConfiguration();
+
+	/**
+	 * This interface must be implemented in order to allow download
+	 * configuration.
+	 * 
+	 * @author <a href="http://www.rogiel.com">Rogiel</a>
+	 */
+	public interface DownloaderConfiguration {
+
+	}
 }

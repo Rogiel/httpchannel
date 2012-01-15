@@ -16,7 +16,9 @@
  */
 package com.rogiel.httpchannel.service;
 
+import java.io.Closeable;
 import java.io.IOException;
+import java.net.URL;
 import java.nio.channels.Channel;
 import java.nio.channels.WritableByteChannel;
 
@@ -34,7 +36,7 @@ import com.rogiel.httpchannel.service.exception.UploadLinkNotFoundException;
  * 
  * @author <a href="http://www.rogiel.com">Rogiel</a>
  */
-public interface UploadChannel extends WritableByteChannel {
+public interface UploadChannel extends WritableByteChannel, Closeable {
 	/**
 	 * @return the file size
 	 */
@@ -52,7 +54,7 @@ public interface UploadChannel extends WritableByteChannel {
 	 * 
 	 * @return the download link for this upload
 	 */
-	String getDownloadLink();
+	URL getDownloadLink();
 
 	/**
 	 * @throws UploadLinkNotFoundException

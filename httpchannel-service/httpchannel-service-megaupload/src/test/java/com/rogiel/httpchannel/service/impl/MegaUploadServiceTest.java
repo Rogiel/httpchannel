@@ -20,10 +20,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.SeekableByteChannel;
@@ -38,25 +36,18 @@ import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.rogiel.httpchannel.service.AuthenticationService;
 import com.rogiel.httpchannel.service.Credential;
 import com.rogiel.httpchannel.service.DownloadChannel;
 import com.rogiel.httpchannel.service.DownloadListener;
-import com.rogiel.httpchannel.service.DownloadService;
-import com.rogiel.httpchannel.service.Service;
-import com.rogiel.httpchannel.service.ServiceHelper;
 import com.rogiel.httpchannel.service.ServiceID;
 import com.rogiel.httpchannel.service.UploadChannel;
-import com.rogiel.httpchannel.service.UploadService;
 import com.rogiel.httpchannel.service.UploaderCapability;
-import com.rogiel.httpchannel.service.config.ServiceConfigurationHelper;
 import com.rogiel.httpchannel.service.exception.AuthenticationInvalidCredentialException;
-import com.rogiel.httpchannel.service.impl.MegaUploadService.MegaUploadServiceConfiguration;
+import com.rogiel.httpchannel.service.helper.UploadServices;
 import com.rogiel.httpchannel.util.ChannelUtils;
 
 public class MegaUploadServiceTest {
-	private Service service;
-	private ServiceHelper helper;
+	private MegaUploadService service;
 
 	/**
 	 * See <b>src/test/resources/config/megaupload.properties</b>
@@ -78,7 +69,6 @@ public class MegaUploadServiceTest {
 	public void setUp() throws Exception {
 		// MegaUploadServiceConfiguration.class;
 		service = new MegaUploadService();
-		helper = new ServiceHelper(service);
 
 		final Properties properties = new Properties();
 		properties.load(new FileInputStream(
@@ -89,19 +79,18 @@ public class MegaUploadServiceTest {
 
 	@Test
 	public void testServiceId() {
-		System.out.println("Service: " + service.toString());
 		assertEquals(ServiceID.create("megaupload"), service.getID());
 	}
 
 	@Test
 	public void testValidAuthenticator() throws IOException {
-		((AuthenticationService) service).getAuthenticator(
-				new Credential(VALID_USERNAME, VALID_PASSWORD)).login();
+		service.getAuthenticator(new Credential(VALID_USERNAME, VALID_PASSWORD))
+				.login();
 	}
 
 	@Test(expected = AuthenticationInvalidCredentialException.class)
 	public void testInvalidAuthenticator() throws IOException {
-		((AuthenticationService) service).getAuthenticator(
+		service.getAuthenticator(
 				new Credential(INVALID_USERNAME, INVALID_PASSWORD)).login();
 	}
 
@@ -109,11 +98,11 @@ public class MegaUploadServiceTest {
 	public void testNonLoguedInUploader() throws IOException {
 		assertTrue(
 				"This service does not have the capability UploadCapability.FREE_UPLOAD",
-				((UploadService) service).getUploadCapabilities().has(
+				service.getUploadCapabilities().has(
 						UploaderCapability.NON_PREMIUM_ACCOUNT_UPLOAD));
 		final Path path = Paths.get("src/test/resources/upload-test-file.txt");
-		final UploadChannel channel = helper.upload(path,
-				"httpchannel test upload");
+		final UploadChannel channel = UploadServices.upload(service, path)
+				.openChannel();
 		final SeekableByteChannel inChannel = Files.newByteChannel(path);
 
 		try {
@@ -131,15 +120,15 @@ public class MegaUploadServiceTest {
 	public void testLoguedInUploader() throws IOException {
 		assertTrue(
 				"This service does not have the capability UploadCapability.PREMIUM_UPLOAD",
-				((UploadService) service).getUploadCapabilities().has(
+				service.getUploadCapabilities().has(
 						UploaderCapability.PREMIUM_ACCOUNT_UPLOAD));
 
-		((AuthenticationService) service).getAuthenticator(
-				new Credential(VALID_USERNAME, VALID_PASSWORD)).login();
+		service.getAuthenticator(new Credential(VALID_USERNAME, VALID_PASSWORD))
+				.login();
 
 		final Path path = Paths.get("src/test/resources/upload-test-file.txt");
-		final UploadChannel channel = helper.upload(path,
-				"httpchannel test upload");
+		final UploadChannel channel = UploadServices.upload(service, path)
+				.openChannel();
 		final SeekableByteChannel inChannel = Files.newByteChannel(path);
 
 		try {
@@ -154,10 +143,10 @@ public class MegaUploadServiceTest {
 	}
 
 	@Test
-	public void testFreeDownloader() throws IOException, MalformedURLException {
-		final DownloadChannel channel = ((DownloadService) service)
-				.getDownloader(new URL("http://www.megaupload.com/?d=CVQKJ1KM"))
-				.download(new DownloadListener() {
+	public void testFreeDownloader() throws IOException {
+		final DownloadChannel channel = service.getDownloader(
+				new URL("http://www.megaupload.com/?d=CVQKJ1KM")).openChannel(
+				new DownloadListener() {
 					@Override
 					public boolean timer(long time) {
 						System.out.println("Waiting " + time);
@@ -172,14 +161,13 @@ public class MegaUploadServiceTest {
 	}
 
 	@Test
-	public void testPremiumDownloader() throws IOException,
-			MalformedURLException {
-		((AuthenticationService) service).getAuthenticator(
-				new Credential(VALID_USERNAME, VALID_PASSWORD)).login();
+	public void testPremiumDownloader() throws IOException {
+		service.getAuthenticator(new Credential(VALID_USERNAME, VALID_PASSWORD))
+				.login();
 
-		final DownloadChannel channel = ((DownloadService) service)
-				.getDownloader(new URL("http://www.megaupload.com/?d=CVQKJ1KM"))
-				.download(new DownloadListener() {
+		final DownloadChannel channel = service.getDownloader(
+				new URL("http://www.megaupload.com/?d=CVQKJ1KM")).openChannel(
+				new DownloadListener() {
 					@Override
 					public boolean timer(long time) {
 						System.out.println("Waiting " + time);
@@ -192,17 +180,18 @@ public class MegaUploadServiceTest {
 	}
 
 	@Test
-	public void testNoWaitDownloader() throws IOException,
-			MalformedURLException {
+	public void testNoWaitDownloader() throws IOException {
 		service = new MegaUploadService();
-		service.setServiceConfiguration(ServiceConfigurationHelper.file(
-				MegaUploadServiceConfiguration.class, new File(
-						"src/test/resources/megaupload-nowait.properties")));
+		// service.setServiceConfiguration(ServiceConfigurationHelper.file(
+		// MegaUploadServiceConfiguration.class, new File(
+		// "src/test/resources/megaupload-nowait.properties")));
+		final MegaUploadDownloaderConfiguration config = new MegaUploadDownloaderConfiguration();
+		config.setRespectWaitTime(false);
 
-		@SuppressWarnings("unused")
-		final DownloadChannel channel = ((DownloadService) service)
-				.getDownloader(new URL("http://www.megaupload.com/?d=CVQKJ1KM"))
-				.download(new DownloadListener() {
+		@SuppressWarnings({ "unused" })
+		final DownloadChannel channel = service.getDownloader(
+				new URL("http://www.megaupload.com/?d=CVQKJ1KM"), config)
+				.openChannel(new DownloadListener() {
 					@Override
 					public boolean timer(long time) {
 						System.out.println("Waiting " + time);

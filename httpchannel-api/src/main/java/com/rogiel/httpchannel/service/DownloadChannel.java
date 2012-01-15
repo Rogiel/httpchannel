@@ -16,6 +16,7 @@
  */
 package com.rogiel.httpchannel.service;
 
+import java.io.Closeable;
 import java.nio.channels.Channel;
 import java.nio.channels.ReadableByteChannel;
 
@@ -31,7 +32,7 @@ import java.nio.channels.ReadableByteChannel;
  * 
  * @author <a href="http://www.rogiel.com">Rogiel</a>
  */
-public interface DownloadChannel extends ReadableByteChannel {
+public interface DownloadChannel extends ReadableByteChannel, Closeable {
 	/**
 	 * @return the file size
 	 */

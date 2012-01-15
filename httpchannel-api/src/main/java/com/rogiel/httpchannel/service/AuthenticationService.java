@@ -16,13 +16,29 @@
  */
 package com.rogiel.httpchannel.service;
 
+import com.rogiel.httpchannel.service.Authenticator.AuthenticatorConfiguration;
+import com.rogiel.httpchannel.service.config.NullAuthenticatorConfiguration;
+
 /**
  * Implements an service capable of authenticating into an account.
  * 
- * @author Rogiel
+ * @author <a href="http://www.rogiel.com">Rogiel</a>
  * @since 1.0
  */
-public interface AuthenticationService extends Service {
+public interface AuthenticationService<C extends AuthenticatorConfiguration>
+		extends Service {
+	/**
+	 * Creates {@link Authenticator} instance for this service. This instance is
+	 * attached to an {@link Credential} and to its parent {@link Service}.
+	 * 
+	 * @param credential
+	 *            the credential
+	 * @param configuration
+	 *            the authenticator configuration
+	 * @return an new {@link Authenticator} instance
+	 */
+	Authenticator<C> getAuthenticator(Credential credential, C configuration);
+
 	/**
 	 * Creates {@link Authenticator} instance for this service. This instance is
 	 * attached to an {@link Credential} and to its parent {@link Service}.
@@ -31,7 +47,17 @@ public interface AuthenticationService extends Service {
 	 *            the credential
 	 * @return an new {@link Authenticator} instance
 	 */
-	Authenticator getAuthenticator(Credential credential);
+	Authenticator<C> getAuthenticator(Credential credential);
+
+	/**
+	 * Creates a new configuration object. If a service does not support or
+	 * require configuration, {@link NullAuthenticatorConfiguration} should be
+	 * returned.
+	 * 
+	 * @return a new configuration object or
+	 *         {@link NullAuthenticatorConfiguration}
+	 */
+	C newAuthenticatorConfiguration();
 
 	/**
 	 * Return the matrix of capabilities for this {@link Authenticator}.
