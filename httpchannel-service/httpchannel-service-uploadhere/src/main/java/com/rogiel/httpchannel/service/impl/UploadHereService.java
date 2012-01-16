@@ -276,7 +276,7 @@ public class UploadHereService extends AbstractHttpService implements Service,
 
 		@Override
 		public void logout() throws IOException {
-			post("http://www.uploadking.com/login").parameter("do", "logout")
+			post("http://www.uploadhere.com/login").parameter("do", "logout")
 					.request();
 			// TODO check logout status
 		}

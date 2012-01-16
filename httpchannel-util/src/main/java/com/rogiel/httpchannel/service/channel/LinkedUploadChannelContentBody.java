@@ -49,10 +49,9 @@ public class LinkedUploadChannelContentBody extends AbstractContentBody {
 	public void writeTo(OutputStream out) throws IOException {
 		final WritableByteChannel outputChannel = Channels.newChannel(out);
 		channel.linkChannel(outputChannel);
-
 		while (channel.isOpen() && outputChannel.isOpen()) {
 			try {
-				Thread.sleep(500);
+				Thread.sleep(50);
 			} catch (InterruptedException e) {
 			}
 		}

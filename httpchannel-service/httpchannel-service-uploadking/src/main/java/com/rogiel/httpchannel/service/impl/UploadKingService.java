@@ -40,7 +40,7 @@ import com.rogiel.httpchannel.util.PatternUtils;
 import com.rogiel.httpchannel.util.htmlparser.HTMLPage;
 
 /**
- * This service handles uploads to UploadKing.com.
+ * This service handles uploads to zshare.net.
  * 
  * @author <a href="http://www.rogiel.com/">Rogiel</a>
  * @since 1.0
@@ -103,7 +103,7 @@ public class UploadKingService extends AbstractHttpService implements Service,
 
 	@Override
 	public long getMaximumFilesize() {
-		return 1 * 1024 * 1024 * 1024;
+		return 500 * 1024 * 1024;
 	}
 
 	@Override
@@ -191,7 +191,7 @@ public class UploadKingService extends AbstractHttpService implements Service,
 			final String uploadID = page.getInputValue("UPLOAD_IDENTIFIER");
 
 			final LinkedUploadChannel channel = createLinkedChannel(this);
-			uploadFuture = multipartPost(url).parameter("file_0", channel)
+			uploadFuture = multipartPost(url).parameter("file", channel)
 					.parameter("u", userCookie)
 					.parameter("UPLOAD_IDENTIFIER", uploadID).asStringAsync();
 			return waitChannelLink(channel, uploadFuture);

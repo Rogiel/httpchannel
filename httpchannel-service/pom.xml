@@ -17,6 +17,9 @@
 		<module>httpchannel-service-megaupload</module>
 		<module>httpchannel-service-hotfile</module>
 		<module>httpchannel-service-multiupload</module>
+		<module>httpchannel-service-zshare</module>
+		
+		<module>httpchannel-service-filesonic</module>
 	</modules>
 
 	<dependencies>

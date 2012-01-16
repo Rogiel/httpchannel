@@ -7,7 +7,7 @@
 		<version>1.0.0</version>
 		<relativePath>..</relativePath>
 	</parent>
-	<artifactId>httpchannel-capcha</artifactId>
+	<artifactId>httpchannel-captcha</artifactId>
 	<packaging>pom</packaging>
 
 	<name>HttpChannel/CaptchaService</name>

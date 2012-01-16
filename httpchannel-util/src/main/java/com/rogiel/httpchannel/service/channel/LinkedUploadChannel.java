@@ -19,6 +19,7 @@ package com.rogiel.httpchannel.service.channel;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.ByteBuffer;
+import java.nio.channels.ClosedChannelException;
 import java.nio.channels.WritableByteChannel;
 
 import com.rogiel.httpchannel.service.UploadChannel;
@@ -49,7 +50,14 @@ public class LinkedUploadChannel implements UploadChannel {
 	public int write(ByteBuffer src) throws IOException {
 		if (channel == null)
 			throw new IOException("Channel is not linked yet");
-		return channel.write(src);
+		if(!open)
+			throw new ClosedChannelException();
+		try {
+			return channel.write(src);
+		} catch(IOException e) {
+			close();
+			throw e;
+		}
 	}
 
 	@Override
@@ -85,7 +93,7 @@ public class LinkedUploadChannel implements UploadChannel {
 		return downloadLink;
 	}
 
-	public void linkChannel(WritableByteChannel channel) throws IOException {
+	protected void linkChannel(WritableByteChannel channel) throws IOException {
 		if (this.channel != null)
 			throw new IOException("This channel is already linked.");
 		this.channel = channel;

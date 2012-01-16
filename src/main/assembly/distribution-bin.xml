@@ -9,12 +9,19 @@
 	<baseDirectory></baseDirectory>
 	<moduleSets>
 		<moduleSet>
-			<includeSubModules>false</includeSubModules>
+			<includeSubModules>true</includeSubModules>
 			<binaries>
+				<unpack>true</unpack>
+				<useStrictFiltering>true</useStrictFiltering>
+				<unpackOptions>
+					<includes>
+						<include>com/rogiel/httpchannel/**</include>
+					</includes>
+				</unpackOptions>
 				<includeDependencies>false</includeDependencies>
 				<includes>
-					<include>httpchannel-service</include>
 					<include>httpchannel-api</include>
+					<include>httpchannel-service</include>
 				</includes>
 			</binaries>
 		</moduleSet>

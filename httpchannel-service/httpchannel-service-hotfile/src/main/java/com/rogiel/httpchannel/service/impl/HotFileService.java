@@ -220,8 +220,7 @@ public class HotFileService extends AbstractHttpService implements Service,
 
 	protected class DownloaderImpl extends
 			AbstractHttpDownloader<NullDownloaderConfiguration> {
-		public DownloaderImpl(URL url,
-				NullDownloaderConfiguration configuration) {
+		public DownloaderImpl(URL url, NullDownloaderConfiguration configuration) {
 			super(url, configuration);
 		}
 

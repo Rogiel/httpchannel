@@ -15,8 +15,7 @@
 		<module>httpchannel-service</module>
 		<module>httpchannel-util</module>
 		<module>httpchannel-channelcopy</module>
-		
-		<module>httpchannel-capcha</module>
+		<module>httpchannel-captcha</module>
 	</modules>
 
 	<build>
@@ -39,34 +38,10 @@
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-jar-plugin</artifactId>
-				<executions>
-					<execution>
-						<phase>package</phase>
-						<goals>
-							<goal>jar</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-install-plugin</artifactId>
-				<executions>
-					<execution>
-						<phase>package</phase>
-						<goals>
-							<goal>install</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-assembly-plugin</artifactId>
 				<configuration>
 					<descriptors>
-						<descriptor>assembly/distribution-bin.xml</descriptor>
+						<descriptor>src/main/assembly/distribution-bin.xml</descriptor>
 					</descriptors>
 				</configuration>
 				<executions>
