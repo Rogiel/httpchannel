@@ -196,8 +196,11 @@ public class HotFileService extends AbstractHttpService implements Service,
 
 		@Override
 		public UploadChannel openChannel() throws IOException {
+			logger.debug("Starting upload to hotfile.com");
 			final HTMLPage page = get("http://www.hotfile.com/").asPage();
 			final String action = page.findFormAction(UPLOAD_URL_PATTERN);
+
+			logger.debug("Upload URL is {}", action);
 
 			final LinkedUploadChannel channel = createLinkedChannel(this);
 
@@ -227,6 +230,7 @@ public class HotFileService extends AbstractHttpService implements Service,
 		@Override
 		public DownloadChannel openChannel(DownloadListener listener,
 				long position) throws IOException {
+			logger.debug("Downloading {} from hotfile.com", url);
 			final HTMLPage page = get(url).asPage();
 
 			// // try to find timer
@@ -243,6 +247,7 @@ public class HotFileService extends AbstractHttpService implements Service,
 
 			final String downloadUrl = page
 					.findLink(DOWNLOAD_DIRECT_LINK_PATTERN);
+			logger.debug("Download link is {}", downloadUrl);
 			// final String tmHash = PatternUtils.find(DOWNLOAD_TMHASH_PATTERN,
 			// content);F
 			if (downloadUrl != null && downloadUrl.length() > 0) {
@@ -254,49 +259,6 @@ public class HotFileService extends AbstractHttpService implements Service,
 
 				return new InputStreamDownloadChannel(downloadResponse
 						.getEntity().getContent(), contentLength, filename);
-				// } else if (tmHash != null) {
-				// String dlUrl = PatternUtils.find(FREE_DOWNLOAD_URL_PATTERN,
-				// content);
-				//
-				// String action = PatternUtils.find(DOWNLOAD_ACTION_PATTERN,
-				// content, 1);
-				// int tm = PatternUtils.findInt(DOWNLOAD_TM_PATTERN, content,
-				// 1);
-				// int wait = PatternUtils.findInt(DOWNLOAD_WAIT_PATTERN,
-				// content,
-				// 1);
-				// String waitHash =
-				// PatternUtils.find(DOWNLOAD_WAITHASH_PATTERN,
-				// content, 1);
-				// String upId = PatternUtils.find(DOWNLOAD_UPIDHASH_PATTERN,
-				// content, 1);
-				//
-				// System.out.println("Wait time: "+wait);
-				//
-				// if (wait > 0)
-				// timer(listener, wait * 1000);
-				//
-				// final HttpPost downloadPost = new
-				// HttpPost("http://www.hotfile.com"+dlUrl);
-				// final List<NameValuePair> pairs = new
-				// ArrayList<NameValuePair>();
-				// pairs.add(new BasicNameValuePair("action", action));
-				// pairs.add(new BasicNameValuePair("tm",
-				// Integer.toString(tm)));
-				// pairs.add(new BasicNameValuePair("tmhash", tmHash));
-				// pairs.add(new BasicNameValuePair("wait",
-				// Integer.toString(wait)));
-				// pairs.add(new BasicNameValuePair("waithash", waitHash));
-				// pairs.add(new BasicNameValuePair("upidhash", upId));
-				//
-				// downloadPost.setEntity(new UrlEncodedFormEntity(pairs));
-				//
-				// final HttpResponse downloadResponse = client
-				// .execute(downloadPost);
-				// System.out.println(IOUtils.toString(downloadResponse.getEntity().getContent()));
-				//
-				// return new InputStreamDownloadChannel(downloadResponse
-				// .getEntity().getContent(), 0, "haha");
 			} else {
 				throw new IOException("Download link not found");
 			}
@@ -313,6 +275,7 @@ public class HotFileService extends AbstractHttpService implements Service,
 
 		@Override
 		public void login() throws ClientProtocolException, IOException {
+			logger.debug("Authenticating hotfile.com");
 			HTMLPage page = post("http://www.hotfile.com/login.php")
 					.parameter("returnto", "/index.php")
 					.parameter("user", credential.getUsername())

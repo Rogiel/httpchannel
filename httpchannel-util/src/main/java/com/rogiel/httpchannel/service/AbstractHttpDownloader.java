@@ -23,6 +23,8 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.rogiel.httpchannel.http.Request;
 import com.rogiel.httpchannel.service.Downloader.DownloaderConfiguration;
@@ -35,6 +37,8 @@ import com.rogiel.httpchannel.util.ThreadUtils;
  */
 public abstract class AbstractHttpDownloader<C extends DownloaderConfiguration>
 		extends AbstractDownloader<C> implements Downloader<C> {
+	private final Logger logger = LoggerFactory.getLogger(this.getClass());
+	
 	protected AbstractHttpDownloader(URL url, C configuration) {
 		super(url, configuration);
 	}
@@ -54,6 +58,7 @@ public abstract class AbstractHttpDownloader<C extends DownloaderConfiguration>
 			if (!listener.timer(timer))
 				return;
 		}
+		logger.debug("Download timer waiting {}", timer);
 		ThreadUtils.sleep(timer);
 	}
 

@@ -32,13 +32,4 @@ import java.nio.channels.ReadableByteChannel;
  * @author <a href="http://www.rogiel.com">Rogiel</a>
  */
 public interface DownloadChannel extends HttpChannel, ReadableByteChannel {
-	/**
-	 * @return the file size
-	 */
-	long getFilesize();
-
-	/**
-	 * @return the file name
-	 */
-	String getFilename();
 }

@@ -205,10 +205,12 @@ public class MegaUploadService extends AbstractHttpService implements Service,
 
 		@Override
 		public UploadChannel openChannel() throws IOException {
+			logger.debug("Starting upload to megaupload.com");
 			final HTMLPage page = get("http://www.megaupload.com/multiupload/")
 					.asPage();
 			final String url = page.findFormAction(UPLOAD_URL_PATTERN);
-
+			logger.debug("Upload URL is {}", url);
+			
 			final LinkedUploadChannel channel = createLinkedChannel(this);
 			uploadFuture = multipartPost(url)
 					.parameter("multimessage_0", configuration.description())
@@ -240,11 +242,13 @@ public class MegaUploadService extends AbstractHttpService implements Service,
 		@Override
 		public DownloadChannel openChannel(DownloadListener listener,
 				long position) throws IOException {
+			logger.debug("Starting {} download from megaupload.com", url);
 			HttpResponse response = get(url).request();
 
 			// disable direct downloads, we don't support them!
 			if (response.getEntity().getContentType().getValue()
 					.equals("application/octet-stream")) {
+				logger.debug("Direct download is enabled, deactivating");
 				// close connection
 				response.getEntity().getContent().close();
 
@@ -263,6 +267,7 @@ public class MegaUploadService extends AbstractHttpService implements Service,
 			// try to find timer
 			int timer = page.findScriptAsInt(DOWNLOAD_TIMER, 1);
 			if (timer > 0 && configuration.getRespectWaitTime()) {
+				logger.debug("");
 				timer(listener, timer * 1000);
 			}
 			final String downloadUrl = page
@@ -299,6 +304,7 @@ public class MegaUploadService extends AbstractHttpService implements Service,
 
 		@Override
 		public void login() throws IOException {
+			logger.debug("Starting login to megaupload.com");
 			final HTMLPage page = post("http://www.megaupload.com/?c=login")
 					.parameter("login", true)
 					.parameter("username", credential.getUsername())

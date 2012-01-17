@@ -183,8 +183,10 @@ public class MultiUploadService extends AbstractHttpService implements Service,
 
 		@Override
 		public UploadChannel openChannel() throws IOException {
+			logger.debug("Starting upload to multiupload.com");
 			final String url = get("http://www.multiupload.com/").asPage()
 					.findFormAction(UPLOAD_URL_PATTERN);
+			logger.debug("Upload URL is {}", url);
 			final LinkedUploadChannel channel = createLinkedChannel(this);
 
 			PostMultipartRequest request = multipartPost(url).parameter(
@@ -192,6 +194,7 @@ public class MultiUploadService extends AbstractHttpService implements Service,
 					"file_0", channel);
 			for (final MultiUploadMirrorService mirror : configuration
 					.uploadServices()) {
+				logger.debug("Adding {} as mirror", mirror.name());
 				request.parameter("service_" + mirror.id, 1);
 			}
 
@@ -204,6 +207,7 @@ public class MultiUploadService extends AbstractHttpService implements Service,
 			try {
 				final String linkId = PatternUtils.find(DOWNLOAD_ID_PATTERN,
 						uploadFuture.get(), 1);
+				logger.debug("Upload to multiupload.com finished");
 				if (linkId == null)
 					return null;
 				return new StringBuilder("http://www.multiupload.com/").append(
@@ -231,6 +235,7 @@ public class MultiUploadService extends AbstractHttpService implements Service,
 				DownloadNotAuthorizedException, DownloadNotResumableException {
 			final HTMLPage page = get(url).asPage();
 			final String link = page.findLink(DIRECT_DOWNLOAD_LINK_PATTERN);
+			logger.debug("Direct download link is {}", link);
 			if (link == null)
 				throw new DownloadLinkNotFoundException();
 			return download(get(link).position(position));

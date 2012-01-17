@@ -9,25 +9,45 @@ package com.rogiel.httpchannel.captcha;
  */
 public interface Captcha {
 	/**
-	 * Sets the captcha answer
-	 * 
+	 * @return the captcha ID
+	 */
+	String getID();
+
+	/**
+	 * @return the resolved captcha answer
+	 */
+	String getAnswer();
+
+	/**
 	 * @param answer
 	 *            the captcha answer
 	 */
 	void setAnswer(String answer);
 
 	/**
-	 * Returns the captcha answer. <code>null</code> if the service was not able
-	 * to resolve it automatically. In such case, {@link #setAnswer(String)}
-	 * must be used to set the correct answer.
-	 * 
-	 * @return the captcha answer
+	 * @return <code>true</code> if the captcha was resolved and
+	 *         {@link #getAnswer()} will not return <code>null</code>.
 	 */
-	String getAnswer();
+	boolean isResolved();
 
 	/**
-	 * @return <code>true</code> if, and only if, the service was able to
-	 *         automatically resolve the captcha result
+	 * Get this CAPTCHA's attachment.
+	 * <p>
+	 * <b>Important note</b>: Attachments are for {@link CaptchaService}
+	 * implementations usage! You should not touch any of the attachments!
+	 * 
+	 * @return the attachment
 	 */
-	boolean wasAutomaticallyResolved();
+	Object getAttachment();
+
+	/**
+	 * Sets this CAPTCHA's attachment.
+	 * <p>
+	 * <b>Important note</b>: Attachments are for {@link CaptchaService}
+	 * implementations usage! You should not touch any of the attachments!
+	 * 
+	 * @param attachment
+	 *            the attachment
+	 */
+	void setAttachment(Object attachment);
 }

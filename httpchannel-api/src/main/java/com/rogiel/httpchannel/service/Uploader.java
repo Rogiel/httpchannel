@@ -18,9 +18,10 @@ package com.rogiel.httpchannel.service;
 
 import java.io.IOException;
 
-import com.rogiel.httpchannel.captcha.CaptchaResolver;
+import com.rogiel.httpchannel.captcha.CaptchaService;
+import com.rogiel.httpchannel.captcha.exception.UnsolvableCaptchaServiceException;
 import com.rogiel.httpchannel.service.Uploader.UploaderConfiguration;
-import com.rogiel.httpchannel.service.exception.UnresolvedCaptchaException;
+import com.rogiel.httpchannel.service.exception.NoCaptchaServiceException;
 
 /**
  * This interfaces provides uploading for an service.
@@ -48,12 +49,16 @@ public interface Uploader<C extends UploaderConfiguration> {
 	 * @return the {@link UploadChannel} instance
 	 * @throws IOException
 	 *             if any IO error occur
-	 * @throws UnresolvedCaptchaException
+	 * @throws UnsolvableCaptchaServiceException
 	 *             if the service required captcha resolving but no
-	 *             {@link CaptchaResolver} was available or the resolver did not
+	 *             {@link CaptchaService} was available or the service did not
 	 *             solve the challenge
+	 * @throws NoCaptchaServiceException
+	 *             if the service required an {@link CaptchaService}
+	 *             implementation to be present, but none was available
 	 */
-	UploadChannel openChannel() throws IOException, UnresolvedCaptchaException;
+	UploadChannel openChannel() throws IOException,
+			UnsolvableCaptchaServiceException, NoCaptchaServiceException;
 
 	/**
 	 * Returns this {@link Uploader} configuration.

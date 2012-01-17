@@ -6,8 +6,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.regex.Pattern;
 
-import com.rogiel.httpchannel.captcha.impl.AjaxReCaptchaService;
-import com.rogiel.httpchannel.captcha.impl.ReCaptcha;
+import com.rogiel.httpchannel.captcha.ImageCaptcha;
+import com.rogiel.httpchannel.captcha.ReCaptchaExtractor;
 import com.rogiel.httpchannel.service.AbstractAuthenticator;
 import com.rogiel.httpchannel.service.AbstractHttpDownloader;
 import com.rogiel.httpchannel.service.AbstractHttpService;
@@ -66,8 +66,6 @@ public class UploadKingService extends AbstractHttpService implements Service,
 			.compile("(http:\\\\/\\\\/www[0-9]*\\.uploadking\\.com(:[0-9]*)?\\\\/files\\\\/([0-9A-z]*)\\\\/(.*))\"");
 
 	private static final String INVALID_LOGIN_STRING = "Incorrect username and/or password. Please try again!";
-
-	private final AjaxReCaptchaService captchaService = new AjaxReCaptchaService();
 
 	@Override
 	public ServiceID getID() {
@@ -190,6 +188,9 @@ public class UploadKingService extends AbstractHttpService implements Service,
 			final String url = page.findFormAction(UPLOAD_URL_PATTERN);
 			final String uploadID = page.getInputValue("UPLOAD_IDENTIFIER");
 
+			logger.debug("Upload URL: {}, UserCookie: {}, UploadID: {}",
+					new Object[] { url, userCookie, uploadID });
+
 			final LinkedUploadChannel channel = createLinkedChannel(this);
 			uploadFuture = multipartPost(url).parameter("file", channel)
 					.parameter("u", userCookie)
@@ -202,6 +203,7 @@ public class UploadKingService extends AbstractHttpService implements Service,
 			try {
 				final String linkId = PatternUtils.find(DOWNLOAD_ID_PATTERN,
 						uploadFuture.get(), 1);
+				logger.debug("Upload to uploadking.com finished");
 				if (linkId == null)
 					return null;
 				return new StringBuilder("http://www.uploadking.com/").append(
@@ -224,19 +226,29 @@ public class UploadKingService extends AbstractHttpService implements Service,
 		@Override
 		public DownloadChannel openChannel(DownloadListener listener,
 				long position) throws IOException {
+			logger.debug("Downloading {} with uploadking.com");
 			HTMLPage page = get(url).asPage();
 
 			final int waitTime = page.findScriptAsInt(TIMER_PATTERN, 1) * 1000;
+			logger.debug("Wait time is {}", waitTime);
 
-			final ReCaptcha captcha = captchaService.create(page.toString());
+			final ImageCaptcha captcha = ReCaptchaExtractor.extractAjaxCaptcha(
+					page, http);
 			if (captcha != null) {
+				logger.debug("Service is requiring CAPTCHA {}", captcha);
 				final long start = System.currentTimeMillis();
 
 				resolveCaptcha(captcha);
 
 				final long delta = System.currentTimeMillis() - start;
-				if (delta < waitTime)
+				if (delta < waitTime) {
+					logger.debug(
+							"After captcha resolving, still {} ms remaining",
+							delta);
 					timer(listener, waitTime - delta);
+				} else {
+					logger.debug("CAPTCHA solving took longer than timer, skipping it");
+				}
 
 				String content = post(url)
 						.parameter("recaptcha_challenge_field", captcha.getID())
@@ -244,10 +256,15 @@ public class UploadKingService extends AbstractHttpService implements Service,
 								captcha.getAnswer()).asString();
 				String downloadLink = PatternUtils.find(
 						DIERCT_DOWNLOAD_URL_PATTERN, content, 1);
-				if (downloadLink == null)
+				if (downloadLink == null) {
+					captchaService.invalid(captcha);
 					throw new InvalidCaptchaException();
+				} else {
+					captchaService.valid(captcha);
+				}
 				downloadLink = downloadLink.replaceAll(Pattern.quote("\\/"),
 						"/");
+				logger.debug("Direct download URL is {}", downloadLink);
 				return download(get(downloadLink).position(position));
 			}
 			throw new DownloadLinkNotFoundException();

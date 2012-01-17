@@ -4,14 +4,20 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.net.URL;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.util.Properties;
 
 import junit.framework.Assert;
 
 import org.junit.Before;
 import org.junit.Test;
 
+import com.rogiel.httpchannel.captcha.CaptchaService;
+import com.rogiel.httpchannel.captcha.impl.CaptchaTraderService;
+import com.rogiel.httpchannel.service.DownloadChannel;
 import com.rogiel.httpchannel.service.UploaderCapability;
 import com.rogiel.httpchannel.util.ChannelUtils;
 
@@ -37,26 +43,19 @@ public class UploadKingServiceTest {
 		System.out.println(url);
 	}
 
-	// @Test
-	// public void testDownloader() throws IOException {
-	// service.setCaptchaResolver(new CaptchaResolver() {
-	// @Override
-	// public boolean resolve(Captcha rawCaptcha) {
-	// final ImageCaptcha captcha = (ImageCaptcha) rawCaptcha;
-	// System.out.println(captcha.getImageURL());
-	// try {
-	// captcha.setAnswer(new BufferedReader(new InputStreamReader(
-	// System.in)).readLine());
-	// System.out.println("Answer is: " + captcha.getAnswer());
-	// return true;
-	// } catch (IOException e) {
-	// return false;
-	// }
-	// }
-	// });
-	//
-	// final DownloadChannel channel = service.getDownloader(
-	// new URL("http://www.uploadking.com/WM3PHD9JAY")).openChannel(512);
-	// System.out.println(new String(ChannelUtils.toByteArray(channel)));
-	// }
+	@Test
+	public void testDownloader() throws IOException {
+		final Properties p = new Properties();
+		p.load(Files.newInputStream(
+				Paths.get("../../httpchannel-captcha/src/test/resources/captchatrader.properties"),
+				StandardOpenOption.READ));
+
+		final CaptchaService<?> s = new CaptchaTraderService();
+		s.authenticate(p.getProperty("username"), p.getProperty("password"));
+		service.setCaptchaService(s);
+
+		final DownloadChannel channel = service.getDownloader(
+				new URL("http://www.uploadking.com/WM3PHD9JAY")).openChannel(0);
+		System.out.println(new String(ChannelUtils.toByteArray(channel)));
+	}
 }

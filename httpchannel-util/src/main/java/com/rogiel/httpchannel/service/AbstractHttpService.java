@@ -38,6 +38,7 @@ public abstract class AbstractHttpService extends AbstractService implements
 
 	protected LinkedUploadChannel waitChannelLink(LinkedUploadChannel channel,
 			Future<?> future) {
+		logger.debug("Waiting channel {} to link", channel);
 		while (!channel.isLinked() && !future.isDone()) {
 			ThreadUtils.sleep(100);
 		}

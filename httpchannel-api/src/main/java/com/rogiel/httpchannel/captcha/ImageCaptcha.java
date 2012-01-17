@@ -9,14 +9,66 @@ import java.net.URL;
  * @author <a href="http://www.rogiel.com">Rogiel</a>
  * 
  */
-public interface ImageCaptcha extends Captcha {
+public class ImageCaptcha implements Captcha {
 	/**
-	 * @return the captcha identifier
+	 * The CAPTCHA ID
 	 */
-	String getID();
+	private final String ID;
+	/**
+	 * The CAPTCHA Image {@link URL}
+	 */
+	private final URL imageURL;
+	/**
+	 * The CAPTCHA answer
+	 */
+	private String answer;
+	/**
+	 * The CAPTCHA attachment
+	 */
+	private Object attachment;
 
-	/**
-	 * @return the captcha image {@link URL}
-	 */
-	URL getImageURL();
+	public ImageCaptcha(String id, URL imageURL) {
+		this.ID = id;
+		this.imageURL = imageURL;
+	}
+
+	@Override
+	public String getID() {
+		return ID;
+	}
+
+	public URL getImageURL() {
+		return imageURL;
+	}
+
+	@Override
+	public String getAnswer() {
+		return answer;
+	}
+
+	@Override
+	public void setAnswer(String answer) {
+		this.answer = answer;
+	}
+
+	@Override
+	public boolean isResolved() {
+		return answer != null;
+	}
+
+	@Override
+	public Object getAttachment() {
+		return attachment;
+	}
+
+	@Override
+	public void setAttachment(Object attachment) {
+		this.attachment = attachment;
+	}
+
+	@Override
+	public String toString() {
+		return "ImageCaptcha [ID=" + ID + ", imageURL=" + imageURL
+				+ ", answer=" + answer + ", attachment=" + attachment + "]";
+	}
 }

@@ -16,10 +16,10 @@
  */
 package com.rogiel.httpchannel.service.exception;
 
-import com.rogiel.httpchannel.captcha.CaptchaResolver;
+import com.rogiel.httpchannel.captcha.CaptchaService;
 
 /**
- * Exception thrown if the {@link CaptchaResolver} has returned an invalid
+ * Exception thrown if the {@link CaptchaService} has returned an invalid
  * captcha
  * 
  * @author <a href="http://www.rogiel.com">Rogiel</a>

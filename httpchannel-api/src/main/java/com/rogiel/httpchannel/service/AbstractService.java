@@ -16,9 +16,13 @@
  */
 package com.rogiel.httpchannel.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.rogiel.httpchannel.captcha.Captcha;
-import com.rogiel.httpchannel.captcha.CaptchaResolver;
-import com.rogiel.httpchannel.service.exception.UnresolvedCaptchaException;
+import com.rogiel.httpchannel.captcha.CaptchaService;
+import com.rogiel.httpchannel.captcha.exception.UnsolvableCaptchaServiceException;
+import com.rogiel.httpchannel.service.exception.NoCaptchaServiceException;
 
 /**
  * This is an abstract {@link Service} implementation.
@@ -27,7 +31,11 @@ import com.rogiel.httpchannel.service.exception.UnresolvedCaptchaException;
  * @version 1.0
  */
 public abstract class AbstractService implements Service {
-	protected CaptchaResolver captchaResolver;
+	/**
+	 * The service {@link Logger} instance
+	 */
+	protected final Logger logger = LoggerFactory.getLogger(this.getClass());
+	protected CaptchaService<Captcha> captchaService;
 
 	@Override
 	public Service clone() {
@@ -39,17 +47,17 @@ public abstract class AbstractService implements Service {
 	}
 
 	@Override
-	public void setCaptchaResolver(CaptchaResolver captchaResolver) {
-		this.captchaResolver = captchaResolver;
+	@SuppressWarnings("unchecked")
+	public void setCaptchaService(
+			CaptchaService<? extends Captcha> captchaService) {
+		this.captchaService = (CaptchaService<Captcha>) captchaService;
 	}
 
 	protected void resolveCaptcha(Captcha captcha)
-			throws UnresolvedCaptchaException {
-		if (captchaResolver == null)
-			throw new UnresolvedCaptchaException();
-		if (!captchaResolver.resolve(captcha))
-			throw new UnresolvedCaptchaException();
-		if (captcha.getAnswer() == null)
-			throw new UnresolvedCaptchaException();
+			throws NoCaptchaServiceException, UnsolvableCaptchaServiceException {
+		if (captchaService == null)
+			throw new NoCaptchaServiceException(
+					"No CaptchaService is configured");
+		captchaService.solve((Captcha) captcha);
 	}
 }

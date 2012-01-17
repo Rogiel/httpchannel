@@ -37,16 +37,6 @@ import com.rogiel.httpchannel.service.exception.UploadLinkNotFoundException;
  */
 public interface UploadChannel extends HttpChannel, WritableByteChannel {
 	/**
-	 * @return the file size
-	 */
-	long getFilesize();
-
-	/**
-	 * @return the file name
-	 */
-	String getFilename();
-
-	/**
 	 * The link is located after you call {@link UploadChannel#close()}, but it
 	 * can only be retrieved by calling this method. If {@link #close()} throwed
 	 * an exception, this method might return <tt>null</tt>.

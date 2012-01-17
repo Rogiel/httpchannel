@@ -22,6 +22,9 @@ import java.nio.ByteBuffer;
 import java.nio.channels.ClosedChannelException;
 import java.nio.channels.WritableByteChannel;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.rogiel.httpchannel.service.UploadChannel;
 import com.rogiel.httpchannel.service.exception.UploadLinkNotFoundException;
 
@@ -30,6 +33,8 @@ import com.rogiel.httpchannel.service.exception.UploadLinkNotFoundException;
  * 
  */
 public class LinkedUploadChannel implements UploadChannel {
+	private final Logger logger = LoggerFactory.getLogger(this.getClass());
+	
 	private WritableByteChannel channel;
 	private final LinkedUploadChannelCloseCallback closeCallback;
 
@@ -69,6 +74,7 @@ public class LinkedUploadChannel implements UploadChannel {
 	public void close() throws IOException {
 		open = false;
 		final String downloadLink = closeCallback.finish();
+		logger.debug("Download link returned by service is {}", downloadLink);
 		if (downloadLink == null)
 			throw new UploadLinkNotFoundException();
 		this.downloadLink = new URL(downloadLink);

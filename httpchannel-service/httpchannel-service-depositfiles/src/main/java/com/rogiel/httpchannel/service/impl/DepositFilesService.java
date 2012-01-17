@@ -5,8 +5,9 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.regex.Pattern;
 
-import com.rogiel.httpchannel.captcha.impl.EmbeddedReCaptchaService;
-import com.rogiel.httpchannel.captcha.impl.ReCaptcha;
+import com.rogiel.httpchannel.captcha.ImageCaptcha;
+import com.rogiel.httpchannel.captcha.ReCaptchaExtractor;
+import com.rogiel.httpchannel.captcha.exception.UnsolvableCaptchaServiceException;
 import com.rogiel.httpchannel.service.AbstractAuthenticator;
 import com.rogiel.httpchannel.service.AbstractHttpService;
 import com.rogiel.httpchannel.service.AbstractUploader;
@@ -49,8 +50,6 @@ public class DepositFilesService extends AbstractHttpService implements
 
 	private static final Pattern VALID_LOGIN_REDIRECT = Pattern
 			.compile("window.location.href");
-
-	private final EmbeddedReCaptchaService captchaService = new EmbeddedReCaptchaService();
 
 	@Override
 	public ServiceID getID() {
@@ -137,11 +136,14 @@ public class DepositFilesService extends AbstractHttpService implements
 
 		@Override
 		public UploadChannel openChannel() throws IOException {
+			logger.debug("Starting upload to depositfiles.com");
 			final HTMLPage page = get("http://www.depositfiles.com/").asPage();
 
 			final String url = page.findFormAction(UPLOAD_URL_PATTERN);
 			final String uploadID = page.getInputValue("UPLOAD_IDENTIFIER");
 			final String maxFileSize = page.getInputValue("MAX_FILE_SIZE");
+
+			logger.debug("Upload URL: {}, ID: {}", url, uploadID);
 
 			final LinkedUploadChannel channel = createLinkedChannel(this);
 			uploadFuture = multipartPost(url).parameter("files", channel)
@@ -178,13 +180,16 @@ public class DepositFilesService extends AbstractHttpService implements
 
 		@Override
 		public void login() throws IOException {
+			logger.debug("Authenticating into depositfiles.com");
 			HTMLPage page = post("http://depositfiles.com/login.php?return=%2F")
 					.parameter("go", true)
 					.parameter("login", credential.getUsername())
 					.parameter("password", credential.getPassword()).asPage();
 
-			final ReCaptcha captcha = captchaService.create(page);
+			final ImageCaptcha captcha = ReCaptchaExtractor.extractCaptcha(
+					page, http);
 			if (captcha != null) {
+				logger.debug("Service is requiring CAPTCHA {}", captcha);
 				resolveCaptcha(captcha);
 				page = post("http://depositfiles.com/login.php?return=%2F")
 						.parameter("go", true)
@@ -195,9 +200,17 @@ public class DepositFilesService extends AbstractHttpService implements
 								captcha.getAnswer()).asPage();
 			}
 
-			if (!page.contains(VALID_LOGIN_REDIRECT))
-				throw new AuthenticationInvalidCredentialException();
-			return;
+			final ImageCaptcha testCaptcha = ReCaptchaExtractor.extractCaptcha(
+					page, http);
+			if (testCaptcha != null) {
+				captchaService.invalid(captcha);
+				throw new UnsolvableCaptchaServiceException();
+			} else {
+				captchaService.valid(captcha);
+				if (!page.contains(VALID_LOGIN_REDIRECT))
+					throw new AuthenticationInvalidCredentialException();
+				return;
+			}
 		}
 
 		@Override

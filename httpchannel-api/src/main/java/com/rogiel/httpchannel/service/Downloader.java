@@ -18,13 +18,14 @@ package com.rogiel.httpchannel.service;
 
 import java.io.IOException;
 
-import com.rogiel.httpchannel.captcha.CaptchaResolver;
+import com.rogiel.httpchannel.captcha.CaptchaService;
+import com.rogiel.httpchannel.captcha.exception.UnsolvableCaptchaServiceException;
 import com.rogiel.httpchannel.service.Downloader.DownloaderConfiguration;
 import com.rogiel.httpchannel.service.exception.DownloadLimitExceededException;
 import com.rogiel.httpchannel.service.exception.DownloadLinkNotFoundException;
 import com.rogiel.httpchannel.service.exception.DownloadNotAuthorizedException;
 import com.rogiel.httpchannel.service.exception.DownloadNotResumableException;
-import com.rogiel.httpchannel.service.exception.UnresolvedCaptchaException;
+import com.rogiel.httpchannel.service.exception.NoCaptchaServiceException;
 
 /**
  * This interfaces provides downloading for an service.
@@ -42,7 +43,8 @@ public interface Downloader<C extends DownloaderConfiguration> {
 	 * very unlikely to be done. The most common usage usage scenario for this
 	 * is when an {@link DownloadNotResumableException} is thrown and you wish
 	 * to restart the download from start giving <tt>position</tt> equal to
-	 * zero.
+	 * zero, in such scenario, reutilizing the same {@link Downloader} instance
+	 * is safe.
 	 * <p>
 	 * Please remember to close the channel by calling
 	 * {@link DownloadChannel#close()}, otherwise some of the resources (such as
@@ -70,15 +72,19 @@ public interface Downloader<C extends DownloaderConfiguration> {
 	 * @throws DownloadNotResumableException
 	 *             if the download cannot be started at <tt>position</tt>. Will
 	 *             only be thrown if <tt>position > 0</tt>.
-	 * @throws UnresolvedCaptchaException
+	 * @throws UnsolvableCaptchaServiceException
 	 *             if the service required captcha resolving but no
-	 *             {@link CaptchaResolver} was available or the resolver did not
+	 *             {@link CaptchaService} was available or the service did not
 	 *             solve the challenge
+	 * @throws NoCaptchaServiceException
+	 *             if the service required an {@link CaptchaService}
+	 *             implementation to be present, but none was available
 	 */
 	DownloadChannel openChannel(DownloadListener listener, long position)
 			throws IOException, DownloadLinkNotFoundException,
 			DownloadLimitExceededException, DownloadNotAuthorizedException,
-			DownloadNotResumableException, UnresolvedCaptchaException;
+			DownloadNotResumableException, UnsolvableCaptchaServiceException,
+			NoCaptchaServiceException;
 
 	/**
 	 * Opens a new {@link DownloadChannel} with not listener. For more details,
@@ -102,14 +108,26 @@ public interface Downloader<C extends DownloaderConfiguration> {
 	 * @throws DownloadNotResumableException
 	 *             if the download cannot be started at <tt>position</tt>. Will
 	 *             only be thrown if <tt>position > 0</tt>.
+	 * @throws UnsolvableCaptchaServiceException
+	 *             if the service required captcha resolving but no
+	 *             {@link CaptchaService} was available or the service did not
+	 *             solve the challenge
+	 * @throws NoCaptchaServiceException
+	 *             if the service required an {@link CaptchaService}
+	 *             implementation to be present, but none was available
+	 * 
 	 */
 	DownloadChannel openChannel(long position) throws IOException,
 			DownloadLinkNotFoundException, DownloadLimitExceededException,
-			DownloadNotAuthorizedException, DownloadNotResumableException;
+			DownloadNotAuthorizedException, DownloadNotResumableException,
+			UnsolvableCaptchaServiceException, NoCaptchaServiceException;
 
 	/**
 	 * Opens a new {@link DownloadChannel} positioned at start. For more
 	 * details, see {@link #openChannel(DownloadListener, long)}
+	 * <p>
+	 * Note that {@link DownloadNotResumableException} is never thrown because
+	 * this channel always starts at <code>0</code> offset.
 	 * 
 	 * @param listener
 	 *            the listener to keep a track on the download progress
@@ -125,14 +143,25 @@ public interface Downloader<C extends DownloaderConfiguration> {
 	 * @throws DownloadNotAuthorizedException
 	 *             if the user (or guest) account does not have necessary rights
 	 *             to download the file
+	 * @throws UnsolvableCaptchaServiceException
+	 *             if the service required captcha resolving but no
+	 *             {@link CaptchaService} was available or the service did not
+	 *             solve the challenge
+	 * @throws NoCaptchaServiceException
+	 *             if the service required an {@link CaptchaService}
+	 *             implementation to be present, but none was available
 	 */
 	DownloadChannel openChannel(DownloadListener listener) throws IOException,
 			DownloadLinkNotFoundException, DownloadLimitExceededException,
-			DownloadNotAuthorizedException;
+			DownloadNotAuthorizedException, UnsolvableCaptchaServiceException,
+			NoCaptchaServiceException;
 
 	/**
 	 * Opens a new {@link DownloadChannel} with not listener and positioned at
 	 * start. For more details, see {@link #openChannel(DownloadListener, long)}
+	 * <p>
+	 * Note that {@link DownloadNotResumableException} is never thrown because
+	 * this channel always starts at <code>0</code> offset.
 	 * 
 	 * @return the {@link DownloadChannel} instance
 	 * @throws IOException
@@ -146,10 +175,18 @@ public interface Downloader<C extends DownloaderConfiguration> {
 	 * @throws DownloadNotAuthorizedException
 	 *             if the user (or guest) account does not have necessary rights
 	 *             to download the file
+	 * @throws UnsolvableCaptchaServiceException
+	 *             if the service required captcha resolving but no
+	 *             {@link CaptchaService} was available or the service did not
+	 *             solve the challenge
+	 * @throws NoCaptchaServiceException
+	 *             if the service required an {@link CaptchaService}
+	 *             implementation to be present, but none was available
 	 */
 	DownloadChannel openChannel() throws IOException,
 			DownloadLinkNotFoundException, DownloadLimitExceededException,
-			DownloadNotAuthorizedException;
+			DownloadNotAuthorizedException, UnsolvableCaptchaServiceException,
+			NoCaptchaServiceException;
 
 	/**
 	 * Returns this {@link Downloader} configuration.

@@ -10,11 +10,4 @@
   <groupId>com.rogiel.httpchannel.services</groupId>
   <name>HttpChannel/Service/UploadHere</name>
   <description>Provides upload access to uploadhere.com</description>
-  <dependencies>
-  	<dependency>
-  		<groupId>com.rogiel.httpchannel</groupId>
-  		<artifactId>httpchannel-captcha-recaptcha</artifactId>
-  		<version>1.0.0</version>
-  	</dependency>
-  </dependencies>
 </project>

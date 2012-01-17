@@ -16,7 +16,8 @@
  */
 package com.rogiel.httpchannel.service;
 
-import com.rogiel.httpchannel.captcha.CaptchaResolver;
+import com.rogiel.httpchannel.captcha.Captcha;
+import com.rogiel.httpchannel.captcha.CaptchaService;
 
 /**
  * Base interface for all the services. Whenever the operation suported by the
@@ -53,13 +54,13 @@ public interface Service extends Cloneable {
 	int getMinorVersion();
 
 	/**
-	 * Sets this service captcha resolver. Resolvers are safe to be switched
+	 * Sets this service captcha service. CaptchaService are safe to be switched
 	 * even after an transfer has begun.
 	 * 
-	 * @param resolver
-	 *            the captcha resolver
+	 * @param captchaService
+	 *            the captcha service
 	 */
-	void setCaptchaResolver(CaptchaResolver resolver);
+	void setCaptchaService(CaptchaService<? extends Captcha> captchaService);
 
 	/**
 	 * @return a cloned version of this service
