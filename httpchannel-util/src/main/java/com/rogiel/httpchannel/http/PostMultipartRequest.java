@@ -18,14 +18,14 @@ import com.rogiel.httpchannel.service.channel.LinkedUploadChannelContentBody;
 public class PostMultipartRequest extends PostRequest {
 	private final MultipartEntity entity;
 
-	public PostMultipartRequest(HttpContext ctx, String url) {
-		super(ctx, url);
+	public PostMultipartRequest(HttpContext ctx, String uri) {
+		super(ctx, uri);
 		this.entity = new MultipartEntity();
 	}
 
 	@Override
 	public HttpResponse request() throws IOException {
-		final HttpPost post = new HttpPost(url);
+		final HttpPost post = new HttpPost(uri);
 		post.setEntity(entity);
 		return ctx.client.execute(post);
 	}

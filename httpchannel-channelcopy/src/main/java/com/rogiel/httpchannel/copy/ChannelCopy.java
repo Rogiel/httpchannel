@@ -1,7 +1,7 @@
 package com.rogiel.httpchannel.copy;
 
 import java.io.IOException;
-import java.net.URL;
+import java.net.URI;
 import java.nio.ByteBuffer;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Files;
@@ -41,7 +41,7 @@ import com.rogiel.httpchannel.service.helper.Services;
  * 
  * @author <a href="http://www.rogiel.com">Rogiel</a>
  */
-public class ChannelCopy implements Callable<List<URL>> {
+public class ChannelCopy implements Callable<List<URI>> {
 	/**
 	 * The input channel
 	 */
@@ -101,12 +101,12 @@ public class ChannelCopy implements Callable<List<URL>> {
 	}
 
 	/**
-	 * Initializes with an {@link URL}. First tries to open an
+	 * Initializes with an {@link URI}. First tries to open an
 	 * {@link DownloadChannel}, if no service is found,
 	 * {@link NoServiceFoundException} is thrown.
 	 * 
-	 * @param url
-	 *            the source {@link URL}
+	 * @param uri
+	 *            the source {@link URI}
 	 * @throws DownloadLinkNotFoundException
 	 *             if the download link could not be found
 	 * @throws DownloadLimitExceededException
@@ -114,17 +114,17 @@ public class ChannelCopy implements Callable<List<URL>> {
 	 * @throws DownloadNotAuthorizedException
 	 *             if the download was not authorized by the service
 	 * @throws NoServiceFoundException
-	 *             if no service could be found for the {@link URL}
+	 *             if no service could be found for the {@link URI}
 	 * @throws IOException
 	 *             if any IO error occur
 	 */
-	public ChannelCopy(URL url) throws DownloadLinkNotFoundException,
+	public ChannelCopy(URI uri) throws DownloadLinkNotFoundException,
 			DownloadLimitExceededException, DownloadNotAuthorizedException,
 			IOException {
-		final DownloadService<?> service = Services.matchURL(url);
+		final DownloadService<?> service = Services.matchURI(uri);
 		if (service == null)
-			throw new NoServiceFoundException(url.toString());
-		final DownloadChannel downloadChannel = service.getDownloader(url)
+			throw new NoServiceFoundException(uri.toString());
+		final DownloadChannel downloadChannel = service.getDownloader(uri)
 				.openChannel();
 
 		this.downloadChannel = downloadChannel;
@@ -173,7 +173,7 @@ public class ChannelCopy implements Callable<List<URL>> {
 	}
 
 	@Override
-	public List<URL> call() throws IOException {
+	public List<URI> call() throws IOException {
 		final ByteBuffer buffer = ByteBuffer.allocate(16 * 1024);
 		try {
 			while (downloadChannel.read(buffer) >= 0) {
@@ -196,11 +196,11 @@ public class ChannelCopy implements Callable<List<URL>> {
 			}
 		}
 
-		final List<URL> urls = new ArrayList<>();
+		final List<URI> uris = new ArrayList<>();
 		for (final UploadChannel channel : uploadChannels) {
-			urls.add(channel.getDownloadLink());
+			uris.add(channel.getDownloadLink());
 		}
 
-		return urls;
+		return uris;
 	}
 }

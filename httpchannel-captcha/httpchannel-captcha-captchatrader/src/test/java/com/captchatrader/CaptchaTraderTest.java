@@ -3,7 +3,7 @@
  */
 package com.captchatrader;
 
-import java.net.URL;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
@@ -33,7 +33,7 @@ public class CaptchaTraderTest {
 				"2acc44805ec208cc4d6b00c75a414996", p.getProperty("username"),
 				p.getProperty("password"));
 		final ResolvedCaptcha resolved = api
-				.submit(new URL(
+				.submit(new URI(
 						"http://www.google.com/recaptcha/api/image?c=03AHJ_VusNSxAzZgs9OEvH79rOWOFDYXE2ElE5qkCr9kFU-ZU7gqy72tqEL3j_qCLYwdXgh4jaxU1iECISuUwt0zHbelni-lq8c7RVGSjUtJiMyHwlTTsG5CxWKIEus--yy3GPvwaW9l4N7hFnT57lLq272EOxcFDGYA"));
 		System.out.println(resolved);
 		resolved.valid();

@@ -3,7 +3,7 @@
  */
 package com.rogiel.httpchannel.captcha;
 
-import java.net.URL;
+import java.net.URI;
 
 /**
  * @author <a href="http://www.rogiel.com">Rogiel</a>
@@ -15,9 +15,9 @@ public class ImageCaptcha implements Captcha {
 	 */
 	private final String ID;
 	/**
-	 * The CAPTCHA Image {@link URL}
+	 * The CAPTCHA Image {@link URI}
 	 */
-	private final URL imageURL;
+	private final URI imageURI;
 	/**
 	 * The CAPTCHA answer
 	 */
@@ -27,9 +27,9 @@ public class ImageCaptcha implements Captcha {
 	 */
 	private Object attachment;
 
-	public ImageCaptcha(String id, URL imageURL) {
+	public ImageCaptcha(String id, URI imageURI) {
 		this.ID = id;
-		this.imageURL = imageURL;
+		this.imageURI = imageURI;
 	}
 
 	@Override
@@ -37,8 +37,8 @@ public class ImageCaptcha implements Captcha {
 		return ID;
 	}
 
-	public URL getImageURL() {
-		return imageURL;
+	public URI getImageURI() {
+		return imageURI;
 	}
 
 	@Override
@@ -68,7 +68,7 @@ public class ImageCaptcha implements Captcha {
 
 	@Override
 	public String toString() {
-		return "ImageCaptcha [ID=" + ID + ", imageURL=" + imageURL
+		return "ImageCaptcha [ID=" + ID + ", imageURI=" + imageURI
 				+ ", answer=" + answer + ", attachment=" + attachment + "]";
 	}
 }

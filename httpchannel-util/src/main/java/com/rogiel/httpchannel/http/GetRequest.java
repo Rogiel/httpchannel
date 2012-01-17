@@ -11,13 +11,13 @@ import org.apache.http.client.methods.HttpGet;
 public class GetRequest extends Request {
 	private long position = 0;
 
-	public GetRequest(HttpContext ctx, String url) {
-		super(ctx, url);
+	public GetRequest(HttpContext ctx, String uri) {
+		super(ctx, uri);
 	}
 
 	@Override
 	public HttpResponse request() throws IOException {
-		final HttpGet get = new HttpGet(url);
+		final HttpGet get = new HttpGet(uri);
 		if (position > 0)
 			get.addHeader("Range", "bytes=" + position + "-");
 		return ctx.client.execute(get);

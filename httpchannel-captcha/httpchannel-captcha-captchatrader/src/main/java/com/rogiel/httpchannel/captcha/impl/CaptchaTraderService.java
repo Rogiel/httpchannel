@@ -32,7 +32,7 @@ public class CaptchaTraderService implements ImageCaptchaService {
 	/**
 	 * The current application key to be used
 	 */
-	private String currentApplicationKey = APP_KEY;
+	private String currentApplicationKey = CaptchaTraderService.APP_KEY;
 
 	/**
 	 * The CaptchaTrader.com API object
@@ -56,8 +56,8 @@ public class CaptchaTraderService implements ImageCaptchaService {
 	public void solve(ImageCaptcha captcha)
 			throws UnsolvableCaptchaServiceException {
 		try {
-			logger.debug("Resolving CAPTCHA {}", captcha.getImageURL());
-			final ResolvedCaptcha resolved = api.submit(captcha.getImageURL());
+			logger.debug("Resolving CAPTCHA {}", captcha.getImageURI());
+			final ResolvedCaptcha resolved = api.submit(captcha.getImageURI());
 			captcha.setAnswer(resolved.getAnswer());
 			captcha.setAttachment(resolved);
 			logger.debug("CAPTCHA solved, answer is \"{}\"",

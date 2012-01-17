@@ -18,7 +18,7 @@ package com.rogiel.httpchannel.util;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.net.URL;
+import java.net.URI;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
@@ -65,7 +65,7 @@ public class ChannelUtils {
 		return out.toByteArray();
 	}
 
-	public static URL upload(UploadService<?> service, Path path)
+	public static URI upload(UploadService<?> service, Path path)
 			throws IOException {
 		final UploadChannel uploadChannel = UploadServices
 				.upload(service, path).openChannel();

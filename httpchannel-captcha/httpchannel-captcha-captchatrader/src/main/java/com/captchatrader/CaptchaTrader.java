@@ -5,9 +5,7 @@ package com.captchatrader;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.MalformedURLException;
 import java.net.URI;
-import java.net.URL;
 import java.util.List;
 
 import org.apache.http.HttpResponse;
@@ -50,7 +48,7 @@ public class CaptchaTrader {
 	private final HttpClient client = new DefaultHttpClient();
 	private final JSONParser json = new JSONParser();
 
-	private final URI apiURL;
+	private final URI apiURI;
 	private final String applicationKey;
 	private final String username;
 	private final String password;
@@ -61,9 +59,9 @@ public class CaptchaTrader {
 	 * @param applicationKey
 	 *            the key
 	 */
-	public CaptchaTrader(URI apiURL, String applicationKey, String username,
+	public CaptchaTrader(URI apiURI, String applicationKey, String username,
 			String password) {
-		this.apiURL = apiURL;
+		this.apiURI = apiURI;
 		this.applicationKey = applicationKey;
 		this.username = username;
 		this.password = password;
@@ -74,7 +72,7 @@ public class CaptchaTrader {
 	 * 
 	 * @param applicationKey
 	 *            the key
-	 * @throws MalformedURLException
+	 * @throws MalformedURIException
 	 */
 	public CaptchaTrader(String applicationKey, String username, String password) {
 		this(URI.create("http://api.captchatrader.com/"), applicationKey,
@@ -84,27 +82,27 @@ public class CaptchaTrader {
 	/**
 	 * Submit a CAPTCHA already hosted on an existing website.
 	 * 
-	 * @param url
-	 *            The URL of the CAPTCHA image.
+	 * @param uri
+	 *            The URI of the CAPTCHA image.
 	 * @return The decoded CAPTCHA.
 	 * @throws Any
 	 *             exceptions sent by the server.
 	 */
-	public ResolvedCaptcha submit(URL url) throws CaptchaTraderException,
+	public ResolvedCaptcha submit(URI uri) throws CaptchaTraderException,
 			IOException {
-		final URI requestUri = apiURL.resolve("submit");
+		final URI requestUri = apiURI.resolve("submit");
 		final HttpPost request = new HttpPost(requestUri);
 		final MultipartEntity entity = new MultipartEntity();
 
 		entity.addPart("api_key", new StringBody(applicationKey));
 		entity.addPart("username", new StringBody(username));
 		entity.addPart("password", new StringBody(password));
-		entity.addPart("value", new StringBody(url.toString()));
+		entity.addPart("value", new StringBody(uri.toString()));
 
 		request.setEntity(entity);
 		final List<Object> response = validate(execute(request));
 
-		return new ResolvedCaptcha(this, ((Long) response.get(0)).intValue(),
+		return new ResolvedCaptcha(this, ((Long) response.get(0)).toString(),
 				(String) response.get(1));
 	}
 
@@ -118,17 +116,16 @@ public class CaptchaTrader {
 	 * @throws CaptchaTraderException
 	 *             any of the possible errors
 	 */
-	public void response(ResolvedCaptcha captcha, boolean state)
+	public void respond(ResolvedCaptcha captcha, boolean state)
 			throws CaptchaTraderException, IOException {
-		final URI requestUri = apiURL.resolve("respond");
+		final URI requestUri = apiURI.resolve("respond");
 		final HttpPost request = new HttpPost(requestUri);
 		final MultipartEntity entity = new MultipartEntity();
 
 		entity.addPart("is_correct", new StringBody(state ? "1" : "0"));
-		entity.addPart("username", new StringBody(username));
 		entity.addPart("password", new StringBody(password));
-		entity.addPart("ticket",
-				new StringBody(Integer.toString(captcha.getID())));
+		entity.addPart("ticket", new StringBody(captcha.getID()));
+		entity.addPart("username", new StringBody(username));
 
 		request.setEntity(entity);
 		validate(execute(request));
@@ -143,7 +140,7 @@ public class CaptchaTrader {
 	 */
 	public int getCredits() throws CaptchaTraderException, IOException {
 		return ((Number) validate(
-				execute(new HttpGet(apiURL.resolve("get_credits/username:"
+				execute(new HttpGet(apiURI.resolve("get_credits/username:"
 						+ username + "/password:" + password + "/")))).get(1))
 				.intValue();
 	}
@@ -185,7 +182,7 @@ public class CaptchaTrader {
 			return new InvalidApplicationKeyException();
 		case "INVALID PARAMETERS":
 			return new InvalidParametersException();
-		case "INVALID URL":
+		case "INVALID URI":
 			return new InvalidURLException();
 		case "INVALID USER":
 			return new InvalidUserException();

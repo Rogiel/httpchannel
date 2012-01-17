@@ -3,7 +3,7 @@ package com.rogiel.httpchannel.service.impl;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
-import java.net.URL;
+import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -31,9 +31,9 @@ public class DepositFilesServiceTest {
 						UploaderCapability.UNAUTHENTICATED_UPLOAD));
 
 		final Path path = Paths.get("src/test/resources/upload-test-file.txt");
-		final URL url = ChannelUtils.upload(service, path);
+		final URI uri = ChannelUtils.upload(service, path);
 
-		Assert.assertNotNull(url);
-		System.out.println(url);
+		Assert.assertNotNull(uri);
+		System.out.println(uri);
 	}
 }

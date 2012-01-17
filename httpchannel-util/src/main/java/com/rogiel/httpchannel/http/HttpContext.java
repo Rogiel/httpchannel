@@ -3,7 +3,7 @@
  */
 package com.rogiel.httpchannel.http;
 
-import java.net.URL;
+import java.net.URI;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -22,19 +22,19 @@ public class HttpContext {
 	 */
 	protected DefaultHttpClient client = new DefaultHttpClient();
 
-	public GetRequest get(String url) {
-		return new GetRequest(this, url);
+	public GetRequest get(String uri) {
+		return new GetRequest(this, uri);
 	}
 
-	public GetRequest get(URL url) {
-		return get(url.toString());
+	public GetRequest get(URI uri) {
+		return get(uri.toString());
 	}
 
-	public PostRequest post(String url) {
-		return new PostRequest(this, url);
+	public PostRequest post(String uri) {
+		return new PostRequest(this, uri);
 	}
 
-	public PostMultipartRequest multipartPost(String url) {
-		return new PostMultipartRequest(this, url);
+	public PostMultipartRequest multipartPost(String uri) {
+		return new PostMultipartRequest(this, uri);
 	}
 }

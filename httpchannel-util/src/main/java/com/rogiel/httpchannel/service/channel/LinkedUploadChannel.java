@@ -17,8 +17,9 @@
 package com.rogiel.httpchannel.service.channel;
 
 import java.io.IOException;
-import java.net.URL;
+import java.net.URI;
 import java.nio.ByteBuffer;
+import java.nio.channels.Channel;
 import java.nio.channels.ClosedChannelException;
 import java.nio.channels.WritableByteChannel;
 
@@ -29,19 +30,43 @@ import com.rogiel.httpchannel.service.UploadChannel;
 import com.rogiel.httpchannel.service.exception.UploadLinkNotFoundException;
 
 /**
- * @author <a href="http://www.rogiel.com">Rogiel</a>
+ * This channel is linked onto another {@link Channel} that actually writes data
+ * into the network stream.
  * 
+ * @author <a href="http://www.rogiel.com">Rogiel</a>
  */
 public class LinkedUploadChannel implements UploadChannel {
+	/**
+	 * The logger instance
+	 */
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
-	
+
+	/**
+	 * The destionation {@link Channel}. Data writted is forwarded to this
+	 * channel.
+	 */
 	private WritableByteChannel channel;
+	/**
+	 * The close callback, that notifies once the channel has been closed
+	 */
 	private final LinkedUploadChannelCloseCallback closeCallback;
 
+	/**
+	 * The length of the data being uploaded
+	 */
 	private final long length;
+	/**
+	 * The file name
+	 */
 	private final String filename;
-	private URL downloadLink;
+	/**
+	 * Only set when {@link #close()} is called and the download has finished.
+	 */
+	private URI downloadLink;
 
+	/**
+	 * Whether the channel is still open or not
+	 */
 	private boolean open = true;
 
 	public LinkedUploadChannel(LinkedUploadChannelCloseCallback closeCallback,
@@ -55,11 +80,11 @@ public class LinkedUploadChannel implements UploadChannel {
 	public int write(ByteBuffer src) throws IOException {
 		if (channel == null)
 			throw new IOException("Channel is not linked yet");
-		if(!open)
+		if (!open)
 			throw new ClosedChannelException();
 		try {
 			return channel.write(src);
-		} catch(IOException e) {
+		} catch (IOException e) {
 			close();
 			throw e;
 		}
@@ -77,7 +102,7 @@ public class LinkedUploadChannel implements UploadChannel {
 		logger.debug("Download link returned by service is {}", downloadLink);
 		if (downloadLink == null)
 			throw new UploadLinkNotFoundException();
-		this.downloadLink = new URL(downloadLink);
+		this.downloadLink = URI.create(downloadLink);
 	}
 
 	public interface LinkedUploadChannelCloseCallback {
@@ -95,16 +120,33 @@ public class LinkedUploadChannel implements UploadChannel {
 	}
 
 	@Override
-	public URL getDownloadLink() {
+	public URI getDownloadLink() {
 		return downloadLink;
 	}
 
+	/**
+	 * Links this {@link Channel} to the destionation {@link Channel}. All data
+	 * written in this channel will be redirected to the destination
+	 * {@link Channel}.
+	 * 
+	 * @param channel
+	 *            the target channel
+	 * @throws IOException
+	 *             if the channel is already linked or the destination channel
+	 *             is closed
+	 */
 	protected void linkChannel(WritableByteChannel channel) throws IOException {
 		if (this.channel != null)
-			throw new IOException("This channel is already linked.");
+			throw new IOException("This channel is already linked");
+		if (!channel.isOpen())
+			throw new IOException("The destination channel is closed");
 		this.channel = channel;
 	}
 
+	/**
+	 * @return <code>true</code> if the channel is linked with the destination
+	 *         {@link Channel}
+	 */
 	public boolean isLinked() {
 		return channel != null;
 	}

@@ -2,7 +2,7 @@ package com.rogiel.httpchannel.service;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
+import java.net.URI;
 
 import com.rogiel.httpchannel.service.Downloader.DownloaderConfiguration;
 import com.rogiel.httpchannel.service.channel.InputStreamDownloadChannel;
@@ -23,9 +23,9 @@ import com.rogiel.httpchannel.service.exception.DownloadNotResumableException;
 public abstract class AbstractDownloader<C extends DownloaderConfiguration>
 		implements Downloader<C> {
 	/**
-	 * The download URL
+	 * The download URI
 	 */
-	protected final URL url;
+	protected final URI uri;
 
 	/**
 	 * The {@link Downloader} configuration
@@ -35,13 +35,13 @@ public abstract class AbstractDownloader<C extends DownloaderConfiguration>
 	/**
 	 * Creates a new instance
 	 * 
-	 * @param url
-	 *            the download url
+	 * @param uri
+	 *            the download uri
 	 * @param configuration
 	 *            the configuration object
 	 */
-	protected AbstractDownloader(URL url, C configuration) {
-		this.url = url;
+	protected AbstractDownloader(URI uri, C configuration) {
+		this.uri = uri;
 		this.configuration = configuration;
 	}
 

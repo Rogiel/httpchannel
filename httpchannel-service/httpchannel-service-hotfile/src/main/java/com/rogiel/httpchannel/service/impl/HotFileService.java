@@ -17,7 +17,7 @@
 package com.rogiel.httpchannel.service.impl;
 
 import java.io.IOException;
-import java.net.URL;
+import java.net.URI;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.regex.Pattern;
@@ -71,7 +71,7 @@ public class HotFileService extends AbstractHttpService implements Service,
 	 */
 	public static final ServiceID SERVICE_ID = ServiceID.create("hotfile");
 
-	private static final Pattern UPLOAD_URL_PATTERN = Pattern
+	private static final Pattern UPLOAD_URI_PATTERN = Pattern
 			.compile("http://u[0-9]*\\.hotfile\\.com/upload\\.cgi\\?[0-9]*");
 
 	private static final Pattern DOWNLOAD_DIRECT_LINK_PATTERN = Pattern
@@ -81,11 +81,11 @@ public class HotFileService extends AbstractHttpService implements Service,
 	// private static final Pattern DOWNLOAD_FILESIZE = Pattern
 	// .compile("[0-9]*(\\.[0-9]*)? (K|M|G)B");
 
-	private static final Pattern DOWNLOAD_URL_PATTERN = Pattern
+	private static final Pattern DOWNLOAD_URI_PATTERN = Pattern
 			.compile("http://hotfile\\.com/dl/([0-9]*)/([A-Za-z0-9]*)/(.*)");
 
 	@Override
-	public ServiceID getID() {
+	public ServiceID getServiceID() {
 		return SERVICE_ID;
 	}
 
@@ -135,14 +135,14 @@ public class HotFileService extends AbstractHttpService implements Service,
 	}
 
 	@Override
-	public Downloader<NullDownloaderConfiguration> getDownloader(URL url,
+	public Downloader<NullDownloaderConfiguration> getDownloader(URI uri,
 			NullDownloaderConfiguration configuration) {
-		return new DownloaderImpl(url, configuration);
+		return new DownloaderImpl(uri, configuration);
 	}
 
 	@Override
-	public Downloader<NullDownloaderConfiguration> getDownloader(URL url) {
-		return getDownloader(url, newDownloaderConfiguration());
+	public Downloader<NullDownloaderConfiguration> getDownloader(URI uri) {
+		return getDownloader(uri, newDownloaderConfiguration());
 	}
 
 	@Override
@@ -151,8 +151,8 @@ public class HotFileService extends AbstractHttpService implements Service,
 	}
 
 	@Override
-	public boolean matchURL(URL url) {
-		return DOWNLOAD_URL_PATTERN.matcher(url.toString()).matches();
+	public boolean matchURI(URI uri) {
+		return DOWNLOAD_URI_PATTERN.matcher(uri.toString()).matches();
 	}
 
 	@Override
@@ -198,9 +198,9 @@ public class HotFileService extends AbstractHttpService implements Service,
 		public UploadChannel openChannel() throws IOException {
 			logger.debug("Starting upload to hotfile.com");
 			final HTMLPage page = get("http://www.hotfile.com/").asPage();
-			final String action = page.findFormAction(UPLOAD_URL_PATTERN);
+			final String action = page.findFormAction(UPLOAD_URI_PATTERN);
 
-			logger.debug("Upload URL is {}", action);
+			logger.debug("Upload URI is {}", action);
 
 			final LinkedUploadChannel channel = createLinkedChannel(this);
 
@@ -212,7 +212,7 @@ public class HotFileService extends AbstractHttpService implements Service,
 		@Override
 		public String finish() throws IOException {
 			try {
-				return uploadFuture.get().getInputValue(DOWNLOAD_URL_PATTERN);
+				return uploadFuture.get().getInputValue(DOWNLOAD_URI_PATTERN);
 			} catch (InterruptedException e) {
 				return null;
 			} catch (ExecutionException e) {
@@ -223,15 +223,15 @@ public class HotFileService extends AbstractHttpService implements Service,
 
 	protected class DownloaderImpl extends
 			AbstractHttpDownloader<NullDownloaderConfiguration> {
-		public DownloaderImpl(URL url, NullDownloaderConfiguration configuration) {
-			super(url, configuration);
+		public DownloaderImpl(URI uri, NullDownloaderConfiguration configuration) {
+			super(uri, configuration);
 		}
 
 		@Override
 		public DownloadChannel openChannel(DownloadListener listener,
 				long position) throws IOException {
-			logger.debug("Downloading {} from hotfile.com", url);
-			final HTMLPage page = get(url).asPage();
+			logger.debug("Downloading {} from hotfile.com", uri);
+			final HTMLPage page = get(uri).asPage();
 
 			// // try to find timer
 			// final String stringTimer = PatternUtils.find(DOWNLOAD_TIMER,

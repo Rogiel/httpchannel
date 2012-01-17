@@ -16,7 +16,7 @@
  */
 package com.rogiel.httpchannel.service;
 
-import java.net.URL;
+import java.net.URI;
 import java.util.concurrent.Future;
 
 import com.rogiel.httpchannel.http.GetRequest;
@@ -45,23 +45,23 @@ public abstract class AbstractHttpService extends AbstractService implements
 		return channel;
 	}
 
-	public GetRequest get(String url) {
-		return http.get(url);
+	public GetRequest get(String uri) {
+		return http.get(uri);
 	}
 
-	public GetRequest get(URL url) {
-		return http.get(url);
+	public GetRequest get(URI uri) {
+		return http.get(uri);
 	}
 
-	public PostRequest post(String url) {
-		return http.post(url);
+	public PostRequest post(String uri) {
+		return http.post(uri);
 	}
 
-	public PostRequest post(URL url) {
-		return post(url.toString());
+	public PostRequest post(URI uri) {
+		return post(uri.toString());
 	}
 
-	public PostMultipartRequest multipartPost(String url) {
-		return http.multipartPost(url);
+	public PostMultipartRequest multipartPost(String uri) {
+		return http.multipartPost(uri);
 	}
 }

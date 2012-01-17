@@ -13,16 +13,16 @@ import com.captchatrader.exception.CaptchaTraderException;
  */
 public class ResolvedCaptcha {
 	private final CaptchaTrader api;
-	private final int id;
+	private final String id;
 	private final String answer;
 
-	public ResolvedCaptcha(CaptchaTrader api, int id, String answer) {
+	public ResolvedCaptcha(CaptchaTrader api, String id, String answer) {
 		this.api = api;
 		this.id = id;
 		this.answer = answer;
 	}
 
-	public int getID() {
+	public String getID() {
 		return id;
 	}
 
@@ -31,10 +31,10 @@ public class ResolvedCaptcha {
 	}
 
 	public void valid() throws CaptchaTraderException, IOException {
-		api.response(this, true);
+		api.respond(this, true);
 	}
 
 	public void invalid() throws CaptchaTraderException, IOException {
-		api.response(this, true);
+		api.respond(this, true);
 	}
 }

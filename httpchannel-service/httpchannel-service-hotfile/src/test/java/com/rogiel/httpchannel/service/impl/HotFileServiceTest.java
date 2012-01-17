@@ -22,7 +22,7 @@ import static org.junit.Assert.assertTrue;
 import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.net.URL;
+import java.net.URI;
 import java.nio.channels.Channels;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.Files;
@@ -80,7 +80,7 @@ public class HotFileServiceTest {
 
 	@Test
 	public void testServiceId() {
-		assertEquals(ServiceID.create("hotfile"), service.getID());
+		assertEquals(ServiceID.create("hotfile"), service.getServiceID());
 	}
 
 	@Test
@@ -146,10 +146,10 @@ public class HotFileServiceTest {
 
 	@Test
 	public void testDownloader() throws IOException {
-		final URL downloadUrl = new URL(
-				"http://hotfile.com/dl/129251605/9b4faf2/simulado_2010_1_res_all.zip.htm");
+		final URI downloadUrl = URI
+				.create("http://hotfile.com/dl/129251605/9b4faf2/simulado_2010_1_res_all.zip.htm");
 
-		final DownloadService<?> service = Services.matchURL(downloadUrl);
+		final DownloadService<?> service = Services.matchURI(downloadUrl);
 
 		final DownloadChannel channel = service.getDownloader(downloadUrl)
 				.openChannel(null, 0);
@@ -165,8 +165,7 @@ public class HotFileServiceTest {
 
 		final DownloadChannel channel = service
 				.getDownloader(
-						new URL(
-								"http://hotfile.com/dl/129251605/9b4faf2/simulado_2010_1_res_all.zip.html"))
+						URI.create("http://hotfile.com/dl/129251605/9b4faf2/simulado_2010_1_res_all.zip.html"))
 				.openChannel(null, 0);
 
 		final ByteArrayOutputStream bout = new ByteArrayOutputStream();

@@ -16,7 +16,7 @@
  */
 package com.rogiel.httpchannel.service.helper;
 
-import java.net.URL;
+import java.net.URI;
 import java.util.Iterator;
 import java.util.ServiceLoader;
 
@@ -41,17 +41,17 @@ public class Services {
 	}
 
 	/**
-	 * Tries to detect which service should be used to download the given URL
+	 * Tries to detect which service should be used to download the given URI
 	 * 
-	 * @param url
-	 *            the URL
+	 * @param uri
+	 *            the URI
 	 * @return the matched service
 	 */
-	public static DownloadService<?> matchURL(URL url) {
+	public static DownloadService<?> matchURI(URI uri) {
 		for (final Service service : iterate()) {
 			if (!(service instanceof DownloadService))
 				continue;
-			if (((DownloadService<?>) service).matchURL(url))
+			if (((DownloadService<?>) service).matchURI(uri))
 				return (DownloadService<?>) service;
 		}
 		return null;
@@ -66,7 +66,7 @@ public class Services {
 	 */
 	public static Service getService(ServiceID id) {
 		for (final Service service : iterate()) {
-			if (service.getID().equals(id))
+			if (service.getServiceID().equals(id))
 				return service;
 		}
 		return null;
@@ -106,7 +106,7 @@ public class Services {
 
 					@Override
 					public ServiceID next() {
-						return iterator.next().getID();
+						return iterator.next().getServiceID();
 					}
 
 					@Override

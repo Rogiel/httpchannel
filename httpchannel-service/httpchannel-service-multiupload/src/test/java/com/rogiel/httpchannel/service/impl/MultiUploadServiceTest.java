@@ -1,7 +1,7 @@
 package com.rogiel.httpchannel.service.impl;
 
 import java.io.IOException;
-import java.net.URL;
+import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.MessageDigest;
@@ -33,16 +33,16 @@ public class MultiUploadServiceTest {
 
 	@Test
 	public void testUploader() throws IOException {
-		final URL url = ChannelUtils.upload(service, TEST_UPLOAD_FILE);
-		Assert.assertNotNull(url);
-		System.out.println("Uploaded file to " + url);
+		final URI uri = ChannelUtils.upload(service, TEST_UPLOAD_FILE);
+		Assert.assertNotNull(uri);
+		System.out.println("Uploaded file to " + uri);
 	}
 
 	@Test
 	public void testDownloader() throws IOException, NoSuchAlgorithmException {
 		final byte[] data = ChannelUtils
 				.toByteArray(((DownloadService<?>) service).getDownloader(
-						new URL("http://www.multiupload.com/TJOYWB4JEW"))
+						URI.create("http://www.multiupload.com/TJOYWB4JEW"))
 						.openChannel());
 		assertChecksum("Downloaded data checksum did not matched", "SHA1",
 				data, EXPECTED_FULL_CHECKSUM);
@@ -53,7 +53,7 @@ public class MultiUploadServiceTest {
 			NoSuchAlgorithmException {
 		final byte[] data = ChannelUtils
 				.toByteArray(((DownloadService<?>) service).getDownloader(
-						new URL("http://www.multiupload.com/TJOYWB4JEW"))
+						URI.create("http://www.multiupload.com/TJOYWB4JEW"))
 						.openChannel(50));
 		assertChecksum("Downloaded data checksum did not matched", "SHA1",
 				data, EXPECTED_RESUME_CHECKSUM);

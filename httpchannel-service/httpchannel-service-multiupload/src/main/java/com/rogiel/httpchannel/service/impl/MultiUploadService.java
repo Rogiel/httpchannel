@@ -1,7 +1,7 @@
 package com.rogiel.httpchannel.service.impl;
 
 import java.io.IOException;
-import java.net.URL;
+import java.net.URI;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.regex.Pattern;
@@ -56,7 +56,7 @@ public class MultiUploadService extends AbstractHttpService implements Service,
 	public static final ServiceID SERVICE_ID = ServiceID.create("multiupload");
 
 	// http://www52.multiupload.com/upload/?UPLOAD_IDENTIFIER=73132658610746
-	private static final Pattern UPLOAD_URL_PATTERN = Pattern
+	private static final Pattern UPLOAD_URI_PATTERN = Pattern
 			.compile("http://www([0-9]*)\\.multiupload\\.com/upload/\\?UPLOAD_IDENTIFIER=[0-9]*");
 	private static final Pattern DOWNLOAD_ID_PATTERN = Pattern
 			.compile("\"downloadid\":\"([0-9a-zA-Z]*)\"");
@@ -66,7 +66,7 @@ public class MultiUploadService extends AbstractHttpService implements Service,
 			.compile("http://www[0-9]*\\.multiupload\\.com(:[0-9]*)?/files/([0-9a-zA-Z]*)/(.*)");
 
 	@Override
-	public ServiceID getID() {
+	public ServiceID getServiceID() {
 		return SERVICE_ID;
 	}
 
@@ -119,14 +119,14 @@ public class MultiUploadService extends AbstractHttpService implements Service,
 	}
 
 	@Override
-	public Downloader<NullDownloaderConfiguration> getDownloader(URL url,
+	public Downloader<NullDownloaderConfiguration> getDownloader(URI uri,
 			NullDownloaderConfiguration configuration) {
-		return new DownloaderImpl(url, configuration);
+		return new DownloaderImpl(uri, configuration);
 	}
 
 	@Override
-	public Downloader<NullDownloaderConfiguration> getDownloader(URL url) {
-		return getDownloader(url, newDownloaderConfiguration());
+	public Downloader<NullDownloaderConfiguration> getDownloader(URI uri) {
+		return getDownloader(uri, newDownloaderConfiguration());
 	}
 
 	@Override
@@ -135,8 +135,8 @@ public class MultiUploadService extends AbstractHttpService implements Service,
 	}
 
 	@Override
-	public boolean matchURL(URL url) {
-		return DOWNLOAD_LINK_PATTERN.matcher(url.toString()).matches();
+	public boolean matchURI(URI uri) {
+		return DOWNLOAD_LINK_PATTERN.matcher(uri.toString()).matches();
 	}
 
 	@Override
@@ -184,12 +184,12 @@ public class MultiUploadService extends AbstractHttpService implements Service,
 		@Override
 		public UploadChannel openChannel() throws IOException {
 			logger.debug("Starting upload to multiupload.com");
-			final String url = get("http://www.multiupload.com/").asPage()
-					.findFormAction(UPLOAD_URL_PATTERN);
-			logger.debug("Upload URL is {}", url);
+			final String uri = get("http://www.multiupload.com/").asPage()
+					.findFormAction(UPLOAD_URI_PATTERN);
+			logger.debug("Upload URI is {}", uri);
 			final LinkedUploadChannel channel = createLinkedChannel(this);
 
-			PostMultipartRequest request = multipartPost(url).parameter(
+			PostMultipartRequest request = multipartPost(uri).parameter(
 					"description_0", configuration.description()).parameter(
 					"file_0", channel);
 			for (final MultiUploadMirrorService mirror : configuration
@@ -223,9 +223,9 @@ public class MultiUploadService extends AbstractHttpService implements Service,
 	protected class DownloaderImpl extends
 			AbstractHttpDownloader<NullDownloaderConfiguration> implements
 			Downloader<NullDownloaderConfiguration> {
-		protected DownloaderImpl(URL url,
+		protected DownloaderImpl(URI uri,
 				NullDownloaderConfiguration configuration) {
-			super(url, configuration);
+			super(uri, configuration);
 		}
 
 		@Override
@@ -233,7 +233,7 @@ public class MultiUploadService extends AbstractHttpService implements Service,
 				long position) throws IOException,
 				DownloadLinkNotFoundException, DownloadLimitExceededException,
 				DownloadNotAuthorizedException, DownloadNotResumableException {
-			final HTMLPage page = get(url).asPage();
+			final HTMLPage page = get(uri).asPage();
 			final String link = page.findLink(DIRECT_DOWNLOAD_LINK_PATTERN);
 			logger.debug("Direct download link is {}", link);
 			if (link == null)

@@ -3,7 +3,7 @@ package com.rogiel.httpchannel.service.impl;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
-import java.net.URL;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -37,10 +37,10 @@ public class UploadKingServiceTest {
 						UploaderCapability.UNAUTHENTICATED_UPLOAD));
 
 		final Path path = Paths.get("src/test/resources/upload-test-file.txt");
-		final URL url = ChannelUtils.upload(service, path);
+		final URI uri = ChannelUtils.upload(service, path);
 
-		Assert.assertNotNull(url);
-		System.out.println(url);
+		Assert.assertNotNull(uri);
+		System.out.println(uri);
 	}
 
 	@Test
@@ -55,7 +55,8 @@ public class UploadKingServiceTest {
 		service.setCaptchaService(s);
 
 		final DownloadChannel channel = service.getDownloader(
-				new URL("http://www.uploadking.com/WM3PHD9JAY")).openChannel(0);
+				URI.create("http://www.uploadking.com/WM3PHD9JAY"))
+				.openChannel(0);
 		System.out.println(new String(ChannelUtils.toByteArray(channel)));
 	}
 }

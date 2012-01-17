@@ -35,14 +35,14 @@ public class HttpClientUtils {
 	private static final ExecutorService threadPool = Executors
 			.newCachedThreadPool();
 
-	public static HttpResponse get(HttpClient client, String url)
+	public static HttpResponse get(HttpClient client, String uri)
 			throws IOException {
-		return client.execute(new HttpGet(url));
+		return client.execute(new HttpGet(uri));
 	}
 
-	public static String getString(HttpClient client, String url)
+	public static String getString(HttpClient client, String uri)
 			throws IOException {
-		return toString(get(client, url));
+		return toString(get(client, uri));
 	}
 
 	public static String execute(HttpClient client, HttpUriRequest request)

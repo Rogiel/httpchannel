@@ -17,7 +17,7 @@
 package com.rogiel.httpchannel.service;
 
 import java.io.IOException;
-import java.net.URL;
+import java.net.URI;
 import java.nio.channels.Channel;
 import java.nio.channels.WritableByteChannel;
 
@@ -43,7 +43,7 @@ public interface UploadChannel extends HttpChannel, WritableByteChannel {
 	 * 
 	 * @return the download link for this upload
 	 */
-	URL getDownloadLink();
+	URI getDownloadLink();
 
 	/**
 	 * @throws UploadLinkNotFoundException

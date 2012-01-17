@@ -43,16 +43,16 @@ public class DepositFilesService extends AbstractHttpService implements
 	 */
 	public static final ServiceID SERVICE_ID = ServiceID.create("depositfiles");
 
-	private static final Pattern UPLOAD_URL_PATTERN = Pattern
+	private static final Pattern UPLOAD_URI_PATTERN = Pattern
 			.compile("http://fileshare([0-9]*)\\.depositfiles\\.com/(.*)/\\?X-Progress-ID=(.*)");
-	private static final Pattern DOWNLOAD_URL_PATTERN = Pattern
+	private static final Pattern DOWNLOAD_URI_PATTERN = Pattern
 			.compile("http://(www\\.)?depositfiles\\.com/files/([0-9A-z]*)");
 
 	private static final Pattern VALID_LOGIN_REDIRECT = Pattern
 			.compile("window.location.href");
 
 	@Override
-	public ServiceID getID() {
+	public ServiceID getServiceID() {
 		return SERVICE_ID;
 	}
 
@@ -139,14 +139,14 @@ public class DepositFilesService extends AbstractHttpService implements
 			logger.debug("Starting upload to depositfiles.com");
 			final HTMLPage page = get("http://www.depositfiles.com/").asPage();
 
-			final String url = page.findFormAction(UPLOAD_URL_PATTERN);
+			final String uri = page.findFormAction(UPLOAD_URI_PATTERN);
 			final String uploadID = page.getInputValue("UPLOAD_IDENTIFIER");
 			final String maxFileSize = page.getInputValue("MAX_FILE_SIZE");
 
-			logger.debug("Upload URL: {}, ID: {}", url, uploadID);
+			logger.debug("Upload URI: {}, ID: {}", uri, uploadID);
 
 			final LinkedUploadChannel channel = createLinkedChannel(this);
-			uploadFuture = multipartPost(url).parameter("files", channel)
+			uploadFuture = multipartPost(uri).parameter("files", channel)
 					.parameter("go", true)
 					.parameter("UPLOAD_IDENTIFIER", uploadID)
 					.parameter("agree", true)
@@ -158,7 +158,7 @@ public class DepositFilesService extends AbstractHttpService implements
 		public String finish() throws IOException {
 			try {
 				final String link = uploadFuture.get().findScript(
-						DOWNLOAD_URL_PATTERN, 0);
+						DOWNLOAD_URI_PATTERN, 0);
 				if (link == null)
 					return null;
 				return link;

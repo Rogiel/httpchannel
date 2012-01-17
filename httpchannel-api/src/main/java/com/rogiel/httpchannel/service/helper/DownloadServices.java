@@ -17,7 +17,7 @@
 package com.rogiel.httpchannel.service.helper;
 
 import java.io.IOException;
-import java.net.URL;
+import java.net.URI;
 
 import com.rogiel.httpchannel.service.DownloadService;
 
@@ -25,8 +25,8 @@ import com.rogiel.httpchannel.service.DownloadService;
  * @author <a href="http://www.rogiel.com">Rogiel</a>
  */
 public class DownloadServices {
-	public static boolean canDownload(DownloadService<?> service, URL url)
+	public static boolean canDownload(DownloadService<?> service, URI uri)
 			throws IOException {
-		return service.matchURL(url);
+		return service.matchURI(uri);
 	}
 }

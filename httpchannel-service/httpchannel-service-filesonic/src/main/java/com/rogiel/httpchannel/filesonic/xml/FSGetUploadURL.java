@@ -20,13 +20,13 @@ public class FSGetUploadURL extends FSResponse {
 
 	@XmlAccessorType(XmlAccessType.NONE)
 	public static class FSGetUploadURLResponse {
-		@XmlElement(name = "url")
-		private String uploadURL;
+		@XmlElement(name = "uri")
+		private String uploadURI;
 		@XmlElement(name = "max-filesize")
 		private long maxFilesize;
 
-		public String getUploadURL() {
-			return uploadURL;
+		public String getUploadURI() {
+			return uploadURI;
 		}
 
 		public long getMaxFilesize() {

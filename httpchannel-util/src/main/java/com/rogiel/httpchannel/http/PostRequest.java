@@ -17,13 +17,13 @@ import org.apache.http.message.BasicNameValuePair;
 public class PostRequest extends Request {
 	protected final List<NameValuePair> params = new ArrayList<NameValuePair>();
 
-	public PostRequest(HttpContext ctx, String url) {
-		super(ctx, url);
+	public PostRequest(HttpContext ctx, String uri) {
+		super(ctx, uri);
 	}
 
 	@Override
 	public HttpResponse request() throws IOException {
-		final HttpPost post = new HttpPost(url);
+		final HttpPost post = new HttpPost(uri);
 		post.setEntity(new UrlEncodedFormEntity(params));
 		return ctx.client.execute(post);
 	}

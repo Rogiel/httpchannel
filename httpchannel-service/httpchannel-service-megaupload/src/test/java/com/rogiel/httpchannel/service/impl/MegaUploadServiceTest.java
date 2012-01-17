@@ -22,7 +22,7 @@ import static org.junit.Assert.assertTrue;
 import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.net.URL;
+import java.net.URI;
 import java.nio.channels.Channels;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.Files;
@@ -79,7 +79,7 @@ public class MegaUploadServiceTest {
 
 	@Test
 	public void testServiceId() {
-		assertEquals(ServiceID.create("megaupload"), service.getID());
+		assertEquals(ServiceID.create("megaupload"), service.getServiceID());
 	}
 
 	@Test
@@ -145,7 +145,7 @@ public class MegaUploadServiceTest {
 	@Test
 	public void testFreeDownloader() throws IOException {
 		final DownloadChannel channel = service.getDownloader(
-				new URL("http://www.megaupload.com/?d=CVQKJ1KM")).openChannel(
+				URI.create("http://www.megaupload.com/?d=CVQKJ1KM")).openChannel(
 				new DownloadListener() {
 					@Override
 					public boolean timer(long time) {
@@ -166,7 +166,7 @@ public class MegaUploadServiceTest {
 				.login();
 
 		final DownloadChannel channel = service.getDownloader(
-				new URL("http://www.megaupload.com/?d=CVQKJ1KM")).openChannel(
+				URI.create("http://www.megaupload.com/?d=CVQKJ1KM")).openChannel(
 				new DownloadListener() {
 					@Override
 					public boolean timer(long time) {
@@ -190,7 +190,7 @@ public class MegaUploadServiceTest {
 
 		@SuppressWarnings({ "unused" })
 		final DownloadChannel channel = service.getDownloader(
-				new URL("http://www.megaupload.com/?d=CVQKJ1KM"), config)
+				URI.create("http://www.megaupload.com/?d=CVQKJ1KM"), config)
 				.openChannel(new DownloadListener() {
 					@Override
 					public boolean timer(long time) {

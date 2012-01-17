@@ -3,7 +3,7 @@ package com.rogiel.httpchannel.service.impl;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
-import java.net.URL;
+import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -31,10 +31,10 @@ public class UploadHereServiceTest {
 						UploaderCapability.UNAUTHENTICATED_UPLOAD));
 
 		final Path path = Paths.get("src/test/resources/upload-test-file.txt");
-		final URL url = ChannelUtils.upload(service, path);
+		final URI uri = ChannelUtils.upload(service, path);
 
-		Assert.assertNotNull(url);
-		System.out.println(url);
+		Assert.assertNotNull(uri);
+		System.out.println(uri);
 	}
 
 	// @Test
@@ -43,7 +43,7 @@ public class UploadHereServiceTest {
 	// @Override
 	// public boolean resolve(Captcha rawCaptcha) {
 	// final ImageCaptcha captcha = (ImageCaptcha) rawCaptcha;
-	// System.out.println(captcha.getImageURL());
+	// System.out.println(captcha.getImageURI());
 	// try {
 	// captcha.setAnswer(new BufferedReader(new InputStreamReader(
 	// System.in)).readLine());
@@ -56,7 +56,7 @@ public class UploadHereServiceTest {
 	// });
 	//
 	// final DownloadChannel channel = service.getDownloader(
-	// new URL("http://www.uploadhere.com/9WCEQF1Q07")).openChannel();
+	// new URI("http://www.uploadhere.com/9WCEQF1Q07")).openChannel();
 	// System.out.println(new String(ChannelUtils.toByteArray(channel)));
 	// }
 }

@@ -104,7 +104,7 @@ public class HTMLPage {
 	}
 
 	/**
-	 * Tries to find a link that has an URL following the given pattern
+	 * Tries to find a link that has an URI following the given pattern
 	 * 
 	 * @param pattern
 	 *            the pattern
@@ -119,11 +119,11 @@ public class HTMLPage {
 	}
 
 	/**
-	 * Tries to find a frame that has an URL following the given pattern
+	 * Tries to find a frame that has an URI following the given pattern
 	 * 
 	 * @param pattern
 	 *            the pattern
-	 * @return the iframe url, if found. <code>null</code> otherwise
+	 * @return the iframe uri, if found. <code>null</code> otherwise
 	 */
 	public String findFrame(final Pattern pattern) {
 		for (final TagNode tag : filter(TagNode.class, new FramePatternFilter(
@@ -134,11 +134,11 @@ public class HTMLPage {
 	}
 
 	/**
-	 * Tries to find a image that has an URL following the given pattern
+	 * Tries to find a image that has an URI following the given pattern
 	 * 
 	 * @param pattern
 	 *            the pattern
-	 * @return the iframe url, if found. <code>null</code> otherwise
+	 * @return the iframe uri, if found. <code>null</code> otherwise
 	 */
 	public String findImage(final Pattern pattern) {
 		for (final ImageTag tag : filter(ImageTag.class,
@@ -154,7 +154,7 @@ public class HTMLPage {
 	 * 
 	 * @param pattern
 	 *            the pattern
-	 * @return the URL found, if any. <code>null</code> otherwise
+	 * @return the URI found, if any. <code>null</code> otherwise
 	 */
 	public String findFormAction(final Pattern pattern) {
 		for (final FormTag tag : filter(FormTag.class,

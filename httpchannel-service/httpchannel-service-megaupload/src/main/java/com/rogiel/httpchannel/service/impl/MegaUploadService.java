@@ -17,7 +17,7 @@
 package com.rogiel.httpchannel.service.impl;
 
 import java.io.IOException;
-import java.net.URL;
+import java.net.URI;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.regex.Pattern;
@@ -71,7 +71,7 @@ public class MegaUploadService extends AbstractHttpService implements Service,
 	 */
 	public static final ServiceID SERVICE_ID = ServiceID.create("megaupload");
 
-	private static final Pattern UPLOAD_URL_PATTERN = Pattern
+	private static final Pattern UPLOAD_URI_PATTERN = Pattern
 			.compile("http://www([0-9]*)\\.megaupload\\.com/upload_done\\.php\\?UPLOAD_IDENTIFIER=[0-9]*");
 
 	private static final Pattern DOWNLOAD_DIRECT_LINK_PATTERN = Pattern
@@ -81,14 +81,14 @@ public class MegaUploadService extends AbstractHttpService implements Service,
 	// private static final Pattern DOWNLOAD_FILESIZE = Pattern
 	// .compile("[0-9]*(\\.[0-9]*)? (K|M|G)B");
 
-	private static final Pattern DOWNLOAD_URL_PATTERN = Pattern
+	private static final Pattern DOWNLOAD_URI_PATTERN = Pattern
 			.compile("http://www\\.megaupload\\.com/\\?d=([A-Za-z0-9]*)");
 
 	private static final Pattern LOGIN_USERNAME_PATTERN = Pattern
 			.compile("flashvars\\.username = \"(.*)\";");
 
 	@Override
-	public ServiceID getID() {
+	public ServiceID getServiceID() {
 		return SERVICE_ID;
 	}
 
@@ -139,14 +139,14 @@ public class MegaUploadService extends AbstractHttpService implements Service,
 	}
 
 	@Override
-	public Downloader<MegaUploadDownloaderConfiguration> getDownloader(URL url,
+	public Downloader<MegaUploadDownloaderConfiguration> getDownloader(URI uri,
 			MegaUploadDownloaderConfiguration configuration) {
-		return new DownloaderImpl(url, configuration);
+		return new DownloaderImpl(uri, configuration);
 	}
 
 	@Override
-	public Downloader<MegaUploadDownloaderConfiguration> getDownloader(URL url) {
-		return getDownloader(url, newDownloaderConfiguration());
+	public Downloader<MegaUploadDownloaderConfiguration> getDownloader(URI uri) {
+		return getDownloader(uri, newDownloaderConfiguration());
 	}
 
 	@Override
@@ -155,8 +155,8 @@ public class MegaUploadService extends AbstractHttpService implements Service,
 	}
 
 	@Override
-	public boolean matchURL(URL url) {
-		return DOWNLOAD_URL_PATTERN.matcher(url.toString()).matches();
+	public boolean matchURI(URI uri) {
+		return DOWNLOAD_URI_PATTERN.matcher(uri.toString()).matches();
 	}
 
 	@Override
@@ -208,11 +208,11 @@ public class MegaUploadService extends AbstractHttpService implements Service,
 			logger.debug("Starting upload to megaupload.com");
 			final HTMLPage page = get("http://www.megaupload.com/multiupload/")
 					.asPage();
-			final String url = page.findFormAction(UPLOAD_URL_PATTERN);
-			logger.debug("Upload URL is {}", url);
+			final String uri = page.findFormAction(UPLOAD_URI_PATTERN);
+			logger.debug("Upload URI is {}", uri);
 			
 			final LinkedUploadChannel channel = createLinkedChannel(this);
-			uploadFuture = multipartPost(url)
+			uploadFuture = multipartPost(uri)
 					.parameter("multimessage_0", configuration.description())
 					.parameter("multifile_0", channel).asStringAsync();
 			return waitChannelLink(channel, uploadFuture);
@@ -221,7 +221,7 @@ public class MegaUploadService extends AbstractHttpService implements Service,
 		@Override
 		public String finish() throws IOException {
 			try {
-				return PatternUtils.find(DOWNLOAD_URL_PATTERN,
+				return PatternUtils.find(DOWNLOAD_URI_PATTERN,
 						uploadFuture.get());
 			} catch (InterruptedException e) {
 				return null;
@@ -234,16 +234,16 @@ public class MegaUploadService extends AbstractHttpService implements Service,
 	protected class DownloaderImpl extends
 			AbstractHttpDownloader<MegaUploadDownloaderConfiguration> implements
 			Downloader<MegaUploadDownloaderConfiguration> {
-		public DownloaderImpl(URL url,
+		public DownloaderImpl(URI uri,
 				MegaUploadDownloaderConfiguration configuration) {
-			super(url, configuration);
+			super(uri, configuration);
 		}
 
 		@Override
 		public DownloadChannel openChannel(DownloadListener listener,
 				long position) throws IOException {
-			logger.debug("Starting {} download from megaupload.com", url);
-			HttpResponse response = get(url).request();
+			logger.debug("Starting {} download from megaupload.com", uri);
+			HttpResponse response = get(uri).request();
 
 			// disable direct downloads, we don't support them!
 			if (response.getEntity().getContentType().getValue()
@@ -259,7 +259,7 @@ public class MegaUploadService extends AbstractHttpService implements Service,
 						.parameter("set_ddl", "0").request();
 
 				// execute and re-request download
-				response = get(url).request();
+				response = get(uri).request();
 			}
 
 			final HTMLPage page = HttpClientUtils.toPage(response);

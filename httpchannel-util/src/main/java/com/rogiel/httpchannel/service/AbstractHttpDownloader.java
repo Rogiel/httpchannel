@@ -17,7 +17,7 @@
 package com.rogiel.httpchannel.service;
 
 import java.io.IOException;
-import java.net.URL;
+import java.net.URI;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.http.Header;
@@ -39,8 +39,8 @@ public abstract class AbstractHttpDownloader<C extends DownloaderConfiguration>
 		extends AbstractDownloader<C> implements Downloader<C> {
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 	
-	protected AbstractHttpDownloader(URL url, C configuration) {
-		super(url, configuration);
+	protected AbstractHttpDownloader(URI uri, C configuration) {
+		super(uri, configuration);
 	}
 
 	protected long getContentLength(HttpResponse response) {
@@ -70,7 +70,7 @@ public abstract class AbstractHttpDownloader<C extends DownloaderConfiguration>
 				.getStatusLine().getStatusCode() == HttpStatus.SC_PARTIAL_CONTENT))
 			throw new DownloadLinkNotFoundException();
 
-		final String filename = FilenameUtils.getName(request.getURL());
+		final String filename = FilenameUtils.getName(request.getURI());
 		final long contentLength = getContentLength(response);
 		return createInputStreamChannel(response.getEntity().getContent(),
 				contentLength, filename);

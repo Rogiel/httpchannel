@@ -37,7 +37,7 @@ public interface Service extends Cloneable {
 	 * 
 	 * @return the id of the service
 	 */
-	ServiceID getID();
+	ServiceID getServiceID();
 
 	/**
 	 * Get Major version of this service

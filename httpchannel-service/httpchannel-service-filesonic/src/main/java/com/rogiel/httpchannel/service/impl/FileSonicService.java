@@ -57,9 +57,9 @@ public class FileSonicService extends AbstractHttpService implements Service,
 	public static final ServiceID SERVICE_ID = ServiceID.create("megaupload");
 
 	/**
-	 * The download URL pattern
+	 * The download URI pattern
 	 */
-	private static final Pattern DOWNLOAD_URL_PATTERN = Pattern
+	private static final Pattern DOWNLOAD_URI_PATTERN = Pattern
 			.compile("http://www.filesonic.com/file/[0-9A-z]*");
 	/**
 	 * The FileSonic API
@@ -67,7 +67,7 @@ public class FileSonicService extends AbstractHttpService implements Service,
 	private final FileSonicAPI api = new FileSonicAPI();
 
 	@Override
-	public ServiceID getID() {
+	public ServiceID getServiceID() {
 		return SERVICE_ID;
 	}
 
@@ -156,7 +156,7 @@ public class FileSonicService extends AbstractHttpService implements Service,
 		public UploadChannel openChannel() throws IOException {
 			logger.debug("Starting upload to filesonic.com");
 			final LinkedUploadChannel channel = createLinkedChannel(this);
-			uploadFuture = multipartPost(api.getUploadURL().toString())
+			uploadFuture = multipartPost(api.getUploadURI().toString())
 					.parameter("files[]", channel).asStringAsync();
 			return waitChannelLink(channel, uploadFuture);
 		}
@@ -164,7 +164,7 @@ public class FileSonicService extends AbstractHttpService implements Service,
 		@Override
 		public String finish() throws IOException {
 			try {
-				return PatternUtils.find(DOWNLOAD_URL_PATTERN,
+				return PatternUtils.find(DOWNLOAD_URI_PATTERN,
 						uploadFuture.get());
 			} catch (InterruptedException e) {
 				return null;

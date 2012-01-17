@@ -16,7 +16,7 @@
  */
 package com.rogiel.httpchannel.service;
 
-import java.net.URL;
+import java.net.URI;
 
 import javax.tools.FileObject;
 
@@ -33,27 +33,27 @@ public interface DownloadService<C extends DownloaderConfiguration> extends
 		Service {
 	/**
 	 * Creates a new instance of the {@link Downloader}. This instance will be
-	 * attached to the {@link URL}, {@link FileObject} provided through the the
+	 * attached to the {@link URI}, {@link FileObject} provided through the the
 	 * arguments and the parent {@link Service} instance.
 	 * 
-	 * @param url
-	 *            the url to be downloaded
+	 * @param uri
+	 *            the uri to be downloaded
 	 * @param configuration
-	 *            the downloader configurationf
+	 *            the downloader configuration
 	 * @return an new instance of {@link Downloader}
 	 */
-	Downloader<C> getDownloader(URL url, C configuration);
+	Downloader<C> getDownloader(URI uri, C configuration);
 
 	/**
 	 * Creates a new instance of the {@link Downloader}. This instance will be
-	 * attached to the {@link URL}, {@link FileObject} provided through the the
+	 * attached to the {@link URI}, {@link FileObject} provided through the the
 	 * arguments and the parent {@link Service} instance.
 	 * 
-	 * @param url
-	 *            the url to be downloaded
+	 * @param uri
+	 *            the uri to be downloaded
 	 * @return an new instance of {@link Downloader}
 	 */
-	Downloader<C> getDownloader(URL url);
+	Downloader<C> getDownloader(URI uri);
 
 	/**
 	 * Creates a new configuration object. If a service does not support or
@@ -65,17 +65,17 @@ public interface DownloadService<C extends DownloaderConfiguration> extends
 	C newDownloaderConfiguration();
 
 	/**
-	 * Check if this {@link Service} can download from this URL. Implementations
+	 * Check if this {@link Service} can download from this URI. Implementations
 	 * might or might not perform network activity.
 	 * <p>
 	 * <b>Please note</b> that the value returned by this method may vary based
 	 * on it's state (i.e. premium or not).
 	 * 
-	 * @param url
-	 *            the {@link URL} to be tested.
+	 * @param uri
+	 *            the {@link URI} to be tested.
 	 * @return true if supported, false otherwise.
 	 */
-	boolean matchURL(URL url);
+	boolean matchURI(URI uri);
 
 	/**
 	 * Return the matrix of capabilities for this {@link Downloader}.

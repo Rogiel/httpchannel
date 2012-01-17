@@ -15,11 +15,11 @@ import com.rogiel.httpchannel.util.htmlparser.HTMLPage;
 
 public abstract class Request {
 	protected final HttpContext ctx;
-	protected final String url;
+	protected final String uri;
 
-	public Request(HttpContext ctx, String url) {
+	public Request(HttpContext ctx, String uri) {
 		this.ctx = ctx;
-		this.url = url;
+		this.uri = uri;
 	}
 
 	public abstract HttpResponse request() throws IOException;
@@ -59,7 +59,7 @@ public abstract class Request {
 		});
 	}
 
-	public String getURL() {
-		return url;
+	public String getURI() {
+		return uri;
 	}
 }
