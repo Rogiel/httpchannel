@@ -14,4 +14,7 @@ import com.rogiel.httpchannel.service.Authenticator.AuthenticatorConfiguration;
 public final class NullAuthenticatorConfiguration implements
 		AuthenticatorConfiguration {
 	public static final NullAuthenticatorConfiguration SHARED_INSTANCE = new NullAuthenticatorConfiguration();
+
+	private NullAuthenticatorConfiguration() {
+	}
 }

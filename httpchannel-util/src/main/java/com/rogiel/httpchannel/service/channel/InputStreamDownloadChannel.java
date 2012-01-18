@@ -23,7 +23,8 @@ import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 
 import com.rogiel.httpchannel.service.DownloadChannel;
-
+import com.rogiel.httpchannel.service.DownloadService;
+import com.rogiel.httpchannel.service.Downloader;
 
 /**
  * @author <a href="http://www.rogiel.com">Rogiel</a>
@@ -32,11 +33,17 @@ import com.rogiel.httpchannel.service.DownloadChannel;
 public class InputStreamDownloadChannel implements DownloadChannel {
 	private final ReadableByteChannel channel;
 
+	private final DownloadService<?> service;
+	private final Downloader<?> downloader;
+
 	private final long length;
 	private final String filename;
 
-	public InputStreamDownloadChannel(InputStream in, final long length,
+	public InputStreamDownloadChannel(DownloadService<?> service,
+			Downloader<?> downloader, InputStream in, final long length,
 			final String filename) {
+		this.service = service;
+		this.downloader = downloader;
 		this.channel = Channels.newChannel(in);
 		this.length = length;
 		this.filename = filename;
@@ -58,12 +65,22 @@ public class InputStreamDownloadChannel implements DownloadChannel {
 	}
 
 	@Override
-	public long getFilesize() {
+	public long size() {
 		return length;
 	}
 
 	@Override
-	public String getFilename() {
+	public String filename() {
 		return filename;
+	}
+
+	@Override
+	public DownloadService<?> getService() {
+		return service;
+	}
+
+	@Override
+	public Downloader<?> getDownloader() {
+		return downloader;
 	}
 }

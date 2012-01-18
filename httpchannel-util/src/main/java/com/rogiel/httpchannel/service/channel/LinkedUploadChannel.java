@@ -27,6 +27,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.rogiel.httpchannel.service.UploadChannel;
+import com.rogiel.httpchannel.service.UploadService;
+import com.rogiel.httpchannel.service.Uploader;
 import com.rogiel.httpchannel.service.exception.UploadLinkNotFoundException;
 
 /**
@@ -40,6 +42,15 @@ public class LinkedUploadChannel implements UploadChannel {
 	 * The logger instance
 	 */
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
+
+	/**
+	 * The upload service
+	 */
+	private final UploadService<?> service;
+	/**
+	 * The uploader instance
+	 */
+	private final Uploader<?> uploader;
 
 	/**
 	 * The destionation {@link Channel}. Data writted is forwarded to this
@@ -69,8 +80,11 @@ public class LinkedUploadChannel implements UploadChannel {
 	 */
 	private boolean open = true;
 
-	public LinkedUploadChannel(LinkedUploadChannelCloseCallback closeCallback,
-			long filesize, String filename) {
+	public LinkedUploadChannel(UploadService<?> service, Uploader<?> uploader,
+			LinkedUploadChannelCloseCallback closeCallback, long filesize,
+			String filename) {
+		this.service = service;
+		this.uploader = uploader;
 		this.closeCallback = closeCallback;
 		this.filename = filename;
 		this.length = filesize;
@@ -110,18 +124,28 @@ public class LinkedUploadChannel implements UploadChannel {
 	}
 
 	@Override
-	public long getFilesize() {
+	public long size() {
 		return length;
 	}
 
 	@Override
-	public String getFilename() {
+	public String filename() {
 		return filename;
 	}
 
 	@Override
 	public URI getDownloadLink() {
 		return downloadLink;
+	}
+
+	@Override
+	public UploadService<?> getService() {
+		return service;
+	}
+
+	@Override
+	public Uploader<?> getUploader() {
+		return uploader;
 	}
 
 	/**

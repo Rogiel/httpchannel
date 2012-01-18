@@ -25,13 +25,41 @@ import com.rogiel.httpchannel.service.Credential;
  * @author <a href="http://www.rogiel.com">Rogiel</a>
  */
 public class AuthenticationServices {
-	public static <S extends AuthenticationService<C>, C extends AuthenticatorConfiguration> Authenticator<C> authenticate(
+	/**
+	 * Creates a new {@link Credential} with <code>username</code> and
+	 * <code>password</code> and creates a new {@link Authenticator} with it and
+	 * <code>configuration</code>. {@link Authenticator#login()} is not called.
+	 * 
+	 * @param service
+	 *            the service
+	 * @param configuration
+	 *            the authenticator configuration
+	 * @param username
+	 *            the username
+	 * @param password
+	 *            the password
+	 * @return a newly created {@link Authenticator}
+	 */
+	public static <S extends AuthenticationService<C>, C extends AuthenticatorConfiguration> Authenticator<C> authenticator(
 			S service, C configuration, String username, String password) {
 		return service.getAuthenticator(new Credential(username, password),
 				configuration);
 	}
 
-	public static <S extends AuthenticationService<C>, C extends AuthenticatorConfiguration> Authenticator<C> authenticate(
+	/**
+	 * Creates a new {@link Credential} with <code>username</code> and
+	 * <code>password</code> and creates a new {@link Authenticator} with it.
+	 * {@link Authenticator#login()} is not called.
+	 * 
+	 * @param service
+	 *            the service
+	 * @param username
+	 *            the username
+	 * @param password
+	 *            the password
+	 * @return a newly created {@link Authenticator}
+	 */
+	public static <S extends AuthenticationService<C>, C extends AuthenticatorConfiguration> Authenticator<C> authenticator(
 			S service, String username, String password) {
 		return service.getAuthenticator(new Credential(username, password));
 	}

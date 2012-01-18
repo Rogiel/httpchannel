@@ -22,8 +22,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.regex.Pattern;
 
-import org.apache.commons.io.FilenameUtils;
-import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
 import org.htmlparser.Tag;
 
@@ -43,11 +41,11 @@ import com.rogiel.httpchannel.service.Downloader;
 import com.rogiel.httpchannel.service.DownloaderCapability;
 import com.rogiel.httpchannel.service.Service;
 import com.rogiel.httpchannel.service.ServiceID;
+import com.rogiel.httpchannel.service.ServiceMode;
 import com.rogiel.httpchannel.service.UploadChannel;
 import com.rogiel.httpchannel.service.UploadService;
 import com.rogiel.httpchannel.service.Uploader;
 import com.rogiel.httpchannel.service.UploaderCapability;
-import com.rogiel.httpchannel.service.channel.InputStreamDownloadChannel;
 import com.rogiel.httpchannel.service.channel.LinkedUploadChannel;
 import com.rogiel.httpchannel.service.channel.LinkedUploadChannel.LinkedUploadChannelCloseCallback;
 import com.rogiel.httpchannel.service.config.NullAuthenticatorConfiguration;
@@ -97,6 +95,12 @@ public class HotFileService extends AbstractHttpService implements Service,
 	@Override
 	public int getMinorVersion() {
 		return 0;
+	}
+
+	@Override
+	public CapabilityMatrix<ServiceMode> getPossibleServiceModes() {
+		return new CapabilityMatrix<ServiceMode>(ServiceMode.UNAUTHENTICATED,
+				ServiceMode.NON_PREMIUM, ServiceMode.PREMIUM);
 	}
 
 	@Override
@@ -191,7 +195,7 @@ public class HotFileService extends AbstractHttpService implements Service,
 
 		public UploaderImpl(String filename, long filesize,
 				NullUploaderConfiguration configuration) {
-			super(filename, filesize, configuration);
+			super(HotFileService.this, filename, filesize, configuration);
 		}
 
 		@Override
@@ -224,7 +228,7 @@ public class HotFileService extends AbstractHttpService implements Service,
 	protected class DownloaderImpl extends
 			AbstractHttpDownloader<NullDownloaderConfiguration> {
 		public DownloaderImpl(URI uri, NullDownloaderConfiguration configuration) {
-			super(uri, configuration);
+			super(HotFileService.this, uri, configuration);
 		}
 
 		@Override
@@ -251,14 +255,7 @@ public class HotFileService extends AbstractHttpService implements Service,
 			// final String tmHash = PatternUtils.find(DOWNLOAD_TMHASH_PATTERN,
 			// content);F
 			if (downloadUrl != null && downloadUrl.length() > 0) {
-				final HttpResponse downloadResponse = get(downloadUrl)
-						.request();
-
-				final String filename = FilenameUtils.getName(downloadUrl);
-				long contentLength = getContentLength(downloadResponse);
-
-				return new InputStreamDownloadChannel(downloadResponse
-						.getEntity().getContent(), contentLength, filename);
+				return download(get(downloadUrl));
 			} else {
 				throw new IOException("Download link not found");
 			}
@@ -284,6 +281,7 @@ public class HotFileService extends AbstractHttpService implements Service,
 			final Tag accountTag = page.getTagByID("account");
 			if (accountTag == null)
 				throw new AuthenticationInvalidCredentialException();
+			serviceMode = ServiceMode.NON_PREMIUM;
 		}
 
 		@Override

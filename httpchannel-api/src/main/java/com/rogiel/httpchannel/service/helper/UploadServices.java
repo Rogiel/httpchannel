@@ -28,18 +28,58 @@ import com.rogiel.httpchannel.service.Uploader.UploaderConfiguration;
  * @author <a href="http://www.rogiel.com">Rogiel</a>
  */
 public class UploadServices {
+	/**
+	 * Creates a new {@link Uploader} for the given NIO {@link Path}, using
+	 * <code>configuration</code> as the {@link Uploader} configuration.
+	 * 
+	 * @param service
+	 *            the upload service
+	 * @param configuration
+	 *            the uploader configuration
+	 * @param path
+	 *            the NIO.2 {@link Path}
+	 * @return a newly created {@link Uploader}
+	 * @throws IOException
+	 *             if any exception occur while fetching {@link Path}
+	 *             information
+	 */
 	public static <S extends UploadService<C>, C extends UploaderConfiguration> Uploader<C> upload(
 			S service, C configuration, Path path) throws IOException {
 		return service.getUploader(path.getFileName().toString(),
 				Files.size(path), configuration);
 	}
 
+	/**
+	 * Creates a new {@link Uploader} for the given NIO {@link Path}.
+	 * 
+	 * @param service
+	 *            the upload service
+	 * @param path
+	 *            the NIO.2 {@link Path}
+	 * @return a newly created {@link Uploader}
+	 * @throws IOException
+	 *             if any exception occur while fetching {@link Path}
+	 *             information
+	 */
 	public static <S extends UploadService<C>, C extends UploaderConfiguration> Uploader<C> upload(
 			S service, Path path) throws IOException {
 		return service.getUploader(path.getFileName().toString(),
 				Files.size(path));
 	}
 
+	/**
+	 * Checks whether the given <code>service</code> can upload the file
+	 * represented by <code>path</code>
+	 * 
+	 * @param service
+	 *            the upload service
+	 * @param path
+	 *            the file {@link Path}
+	 * @return <code>true</code> if the upload will be acepted
+	 * @throws IOException
+	 *             if any exception occur while fetching {@link Path}
+	 *             information
+	 */
 	public static boolean canUpload(UploadService<?> service, Path path)
 			throws IOException {
 		return service.getMaximumFilesize() >= Files.size(path);

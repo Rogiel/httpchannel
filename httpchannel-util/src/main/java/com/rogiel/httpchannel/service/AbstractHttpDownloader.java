@@ -38,9 +38,10 @@ import com.rogiel.httpchannel.util.ThreadUtils;
 public abstract class AbstractHttpDownloader<C extends DownloaderConfiguration>
 		extends AbstractDownloader<C> implements Downloader<C> {
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
-	
-	protected AbstractHttpDownloader(URI uri, C configuration) {
-		super(uri, configuration);
+
+	protected AbstractHttpDownloader(DownloadService<?> service, URI uri,
+			C configuration) {
+		super(service, uri, configuration);
 	}
 
 	protected long getContentLength(HttpResponse response) {

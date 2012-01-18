@@ -42,6 +42,7 @@ import com.rogiel.httpchannel.service.Downloader;
 import com.rogiel.httpchannel.service.DownloaderCapability;
 import com.rogiel.httpchannel.service.Service;
 import com.rogiel.httpchannel.service.ServiceID;
+import com.rogiel.httpchannel.service.ServiceMode;
 import com.rogiel.httpchannel.service.UploadChannel;
 import com.rogiel.httpchannel.service.UploadService;
 import com.rogiel.httpchannel.service.Uploader;
@@ -100,6 +101,12 @@ public class MegaUploadService extends AbstractHttpService implements Service,
 	@Override
 	public int getMinorVersion() {
 		return 0;
+	}
+
+	@Override
+	public CapabilityMatrix<ServiceMode> getPossibleServiceModes() {
+		return new CapabilityMatrix<ServiceMode>(ServiceMode.UNAUTHENTICATED,
+				ServiceMode.NON_PREMIUM, ServiceMode.PREMIUM);
 	}
 
 	@Override
@@ -200,7 +207,7 @@ public class MegaUploadService extends AbstractHttpService implements Service,
 
 		public UploaderImpl(String filename, long filesize,
 				MegaUploadUploaderConfiguration configuration) {
-			super(filename, filesize, configuration);
+			super(MegaUploadService.this, filename, filesize, configuration);
 		}
 
 		@Override
@@ -210,7 +217,7 @@ public class MegaUploadService extends AbstractHttpService implements Service,
 					.asPage();
 			final String uri = page.findFormAction(UPLOAD_URI_PATTERN);
 			logger.debug("Upload URI is {}", uri);
-			
+
 			final LinkedUploadChannel channel = createLinkedChannel(this);
 			uploadFuture = multipartPost(uri)
 					.parameter("multimessage_0", configuration.description())
@@ -236,7 +243,7 @@ public class MegaUploadService extends AbstractHttpService implements Service,
 			Downloader<MegaUploadDownloaderConfiguration> {
 		public DownloaderImpl(URI uri,
 				MegaUploadDownloaderConfiguration configuration) {
-			super(uri, configuration);
+			super(MegaUploadService.this, uri, configuration);
 		}
 
 		@Override
@@ -313,6 +320,7 @@ public class MegaUploadService extends AbstractHttpService implements Service,
 			String username = page.findScript(LOGIN_USERNAME_PATTERN, 1);
 			if (username == null)
 				throw new AuthenticationInvalidCredentialException();
+			serviceMode = ServiceMode.NON_PREMIUM;
 		}
 
 		@Override

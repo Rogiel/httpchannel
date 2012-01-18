@@ -24,6 +24,7 @@ import com.rogiel.httpchannel.service.Downloader;
 import com.rogiel.httpchannel.service.DownloaderCapability;
 import com.rogiel.httpchannel.service.Service;
 import com.rogiel.httpchannel.service.ServiceID;
+import com.rogiel.httpchannel.service.ServiceMode;
 import com.rogiel.httpchannel.service.UploadChannel;
 import com.rogiel.httpchannel.service.UploadService;
 import com.rogiel.httpchannel.service.Uploader;
@@ -80,6 +81,12 @@ public class UploadKingService extends AbstractHttpService implements Service,
 	@Override
 	public int getMinorVersion() {
 		return 0;
+	}
+
+	@Override
+	public CapabilityMatrix<ServiceMode> getPossibleServiceModes() {
+		return new CapabilityMatrix<ServiceMode>(ServiceMode.UNAUTHENTICATED,
+				ServiceMode.NON_PREMIUM, ServiceMode.PREMIUM);
 	}
 
 	@Override
@@ -177,7 +184,7 @@ public class UploadKingService extends AbstractHttpService implements Service,
 
 		public UploaderImpl(String filename, long filesize,
 				NullUploaderConfiguration configuration) {
-			super(filename, filesize, configuration);
+			super(UploadKingService.this, filename, filesize, configuration);
 		}
 
 		@Override
@@ -220,7 +227,7 @@ public class UploadKingService extends AbstractHttpService implements Service,
 			AbstractHttpDownloader<NullDownloaderConfiguration> implements
 			Downloader<NullDownloaderConfiguration> {
 		public DownloaderImpl(URI uri, NullDownloaderConfiguration configuration) {
-			super(uri, configuration);
+			super(UploadKingService.this, uri, configuration);
 		}
 
 		@Override
@@ -287,6 +294,7 @@ public class UploadKingService extends AbstractHttpService implements Service,
 					.parameter("password", credential.getPassword()).asPage();
 			if (page.contains(INVALID_LOGIN_STRING))
 				throw new AuthenticationInvalidCredentialException();
+			serviceMode = ServiceMode.NON_PREMIUM;
 		}
 
 		@Override

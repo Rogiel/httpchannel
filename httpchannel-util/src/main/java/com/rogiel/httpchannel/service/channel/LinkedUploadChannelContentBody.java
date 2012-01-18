@@ -42,7 +42,7 @@ public class LinkedUploadChannelContentBody extends AbstractContentBody {
 
 	@Override
 	public String getFilename() {
-		return channel.getFilename();
+		return channel.filename();
 	}
 
 	@Override
@@ -64,7 +64,7 @@ public class LinkedUploadChannelContentBody extends AbstractContentBody {
 
 	@Override
 	public long getContentLength() {
-		return channel.getFilesize();
+		return channel.size();
 	}
 
 	@Override

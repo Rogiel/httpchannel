@@ -87,7 +87,7 @@ public interface Downloader<C extends DownloaderConfiguration> {
 			NoCaptchaServiceException;
 
 	/**
-	 * Opens a new {@link DownloadChannel} with not listener. For more details,
+	 * Opens a new {@link DownloadChannel} with no listener. For more details,
 	 * see {@link #openChannel(DownloadListener, long)}
 	 * 
 	 * @param position
@@ -157,7 +157,7 @@ public interface Downloader<C extends DownloaderConfiguration> {
 			NoCaptchaServiceException;
 
 	/**
-	 * Opens a new {@link DownloadChannel} with not listener and positioned at
+	 * Opens a new {@link DownloadChannel} with no listener and positioned at
 	 * start. For more details, see {@link #openChannel(DownloadListener, long)}
 	 * <p>
 	 * Note that {@link DownloadNotResumableException} is never thrown because

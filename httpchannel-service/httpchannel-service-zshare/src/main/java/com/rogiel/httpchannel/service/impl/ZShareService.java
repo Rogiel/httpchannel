@@ -1,8 +1,10 @@
 package com.rogiel.httpchannel.service.impl;
 
 import com.rogiel.httpchannel.service.AbstractHttpService;
+import com.rogiel.httpchannel.service.CapabilityMatrix;
 import com.rogiel.httpchannel.service.Service;
 import com.rogiel.httpchannel.service.ServiceID;
+import com.rogiel.httpchannel.service.ServiceMode;
 
 /**
  * This service handles uploads to UploadKing.com.
@@ -35,14 +37,15 @@ public class ZShareService extends AbstractHttpService implements Service/*
 	// Pattern.CASE_INSENSITIVE);
 	// private static final Pattern DOWNLOAD_ID_PATTERN = Pattern
 	// .compile("\"downloadid\":\"([0-9a-zA-Z]*)\"");
-//	private static final Pattern DOWNLOAD_URI_PATTERN = Pattern
-//			.compile("http://(www\\.)?uploadking.\\com/[0-9A-z]*");
-//	private static final Pattern TIMER_PATTERN = Pattern.compile(
-//			"count = ([0-9]*);", Pattern.COMMENTS);
-//	private static final Pattern DIERCT_DOWNLOAD_URI_PATTERN = Pattern
-//			.compile("(http:\\\\/\\\\/www[0-9]*\\.uploadking\\.com(:[0-9]*)?\\\\/files\\\\/([0-9A-z]*)\\\\/(.*))\"");
-//
-//	private static final String INVALID_LOGIN_STRING = "Incorrect username and/or password. Please try again!";
+	// private static final Pattern DOWNLOAD_URI_PATTERN = Pattern
+	// .compile("http://(www\\.)?uploadking.\\com/[0-9A-z]*");
+	// private static final Pattern TIMER_PATTERN = Pattern.compile(
+	// "count = ([0-9]*);", Pattern.COMMENTS);
+	// private static final Pattern DIERCT_DOWNLOAD_URI_PATTERN = Pattern
+	// .compile("(http:\\\\/\\\\/www[0-9]*\\.uploadking\\.com(:[0-9]*)?\\\\/files\\\\/([0-9A-z]*)\\\\/(.*))\"");
+	//
+	// private static final String INVALID_LOGIN_STRING =
+	// "Incorrect username and/or password. Please try again!";
 
 	@Override
 	public ServiceID getServiceID() {
@@ -57,6 +60,16 @@ public class ZShareService extends AbstractHttpService implements Service/*
 	@Override
 	public int getMinorVersion() {
 		return 0;
+	}
+
+	@Override
+	public ServiceMode getServiceMode() {
+		return null;
+	}
+
+	@Override
+	public CapabilityMatrix<ServiceMode> getPossibleServiceModes() {
+		return new CapabilityMatrix<ServiceMode>();
 	}
 
 	// @Override

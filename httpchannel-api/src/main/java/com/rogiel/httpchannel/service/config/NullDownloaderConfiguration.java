@@ -13,4 +13,7 @@ import com.rogiel.httpchannel.service.Downloader.DownloaderConfiguration;
 public final class NullDownloaderConfiguration implements
 		DownloaderConfiguration {
 	public static final NullDownloaderConfiguration SHARED_INSTANCE = new NullDownloaderConfiguration();
+
+	private NullDownloaderConfiguration() {
+	}
 }

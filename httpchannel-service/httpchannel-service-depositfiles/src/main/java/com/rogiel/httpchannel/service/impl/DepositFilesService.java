@@ -18,6 +18,7 @@ import com.rogiel.httpchannel.service.CapabilityMatrix;
 import com.rogiel.httpchannel.service.Credential;
 import com.rogiel.httpchannel.service.Service;
 import com.rogiel.httpchannel.service.ServiceID;
+import com.rogiel.httpchannel.service.ServiceMode;
 import com.rogiel.httpchannel.service.UploadChannel;
 import com.rogiel.httpchannel.service.UploadService;
 import com.rogiel.httpchannel.service.Uploader;
@@ -64,6 +65,12 @@ public class DepositFilesService extends AbstractHttpService implements
 	@Override
 	public int getMinorVersion() {
 		return 0;
+	}
+
+	@Override
+	public CapabilityMatrix<ServiceMode> getPossibleServiceModes() {
+		return new CapabilityMatrix<ServiceMode>(ServiceMode.UNAUTHENTICATED,
+				ServiceMode.NON_PREMIUM, ServiceMode.PREMIUM);
 	}
 
 	@Override
@@ -131,7 +138,7 @@ public class DepositFilesService extends AbstractHttpService implements
 
 		public UploaderImpl(String filename, long filesize,
 				NullUploaderConfiguration configuration) {
-			super(filename, filesize, configuration);
+			super(DepositFilesService.this, filename, filesize, configuration);
 		}
 
 		@Override
@@ -209,6 +216,7 @@ public class DepositFilesService extends AbstractHttpService implements
 				captchaService.valid(captcha);
 				if (!page.contains(VALID_LOGIN_REDIRECT))
 					throw new AuthenticationInvalidCredentialException();
+				serviceMode = ServiceMode.NON_PREMIUM;
 				return;
 			}
 		}

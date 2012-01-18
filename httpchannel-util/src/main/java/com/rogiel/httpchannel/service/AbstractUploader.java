@@ -15,7 +15,17 @@ import com.rogiel.httpchannel.service.channel.LinkedUploadChannel.LinkedUploadCh
  */
 public abstract class AbstractUploader<C extends UploaderConfiguration>
 		implements Uploader<C> {
+	/**
+	 * The upload service
+	 */
+	protected final UploadService<?> service;
+	/**
+	 * The name of the file to be uploaded
+	 */
 	protected final String filename;
+	/**
+	 * The size of the file to be uploaded
+	 */
 	protected final long filesize;
 
 	/**
@@ -26,6 +36,8 @@ public abstract class AbstractUploader<C extends UploaderConfiguration>
 	/**
 	 * Creates a new instance
 	 * 
+	 * @param service
+	 *            the upload service
 	 * @param filename
 	 *            the file name
 	 * @param filesize
@@ -33,7 +45,9 @@ public abstract class AbstractUploader<C extends UploaderConfiguration>
 	 * @param configuration
 	 *            the configuration object
 	 */
-	public AbstractUploader(String filename, long filesize, C configuration) {
+	public AbstractUploader(UploadService<?> service, String filename,
+			long filesize, C configuration) {
+		this.service = service;
 		this.filename = filename;
 		this.filesize = filesize;
 		this.configuration = configuration;
@@ -48,7 +62,8 @@ public abstract class AbstractUploader<C extends UploaderConfiguration>
 	 */
 	protected LinkedUploadChannel createLinkedChannel(
 			LinkedUploadChannelCloseCallback closeCallback) {
-		return new LinkedUploadChannel(closeCallback, filesize, filename);
+		return new LinkedUploadChannel(service, this, closeCallback, filesize,
+				filename);
 	}
 
 	@Override

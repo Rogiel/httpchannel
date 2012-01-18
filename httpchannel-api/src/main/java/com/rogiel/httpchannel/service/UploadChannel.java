@@ -46,6 +46,17 @@ public interface UploadChannel extends HttpChannel, WritableByteChannel {
 	URI getDownloadLink();
 
 	/**
+	 * @return the service instance providing this upload
+	 */
+	@Override
+	UploadService<?> getService();
+
+	/**
+	 * @return the {@link Uploader} providing this upload
+	 */
+	Uploader<?> getUploader();
+
+	/**
 	 * @throws UploadLinkNotFoundException
 	 *             if after the upload, the download link cannot be found
 	 */

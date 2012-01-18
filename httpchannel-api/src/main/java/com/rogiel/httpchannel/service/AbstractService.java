@@ -25,7 +25,9 @@ import com.rogiel.httpchannel.captcha.exception.UnsolvableCaptchaServiceExceptio
 import com.rogiel.httpchannel.service.exception.NoCaptchaServiceException;
 
 /**
- * This is an abstract {@link Service} implementation.
+ * This is an abstract {@link Service} implementation. Service implementators
+ * should try to implement this abstract class instead of directly implementing
+ * {@link Service}.
  * 
  * @author <a href="http://www.rogiel.com">Rogiel</a>
  * @version 1.0
@@ -35,7 +37,21 @@ public abstract class AbstractService implements Service {
 	 * The service {@link Logger} instance
 	 */
 	protected final Logger logger = LoggerFactory.getLogger(this.getClass());
+
+	/**
+	 * The currently active service mode
+	 */
+	protected ServiceMode serviceMode = ServiceMode.UNAUTHENTICATED;
+
+	/**
+	 * This service {@link CaptchaService} that is used to resolve CAPTCHAS
+	 */
 	protected CaptchaService<Captcha> captchaService;
+
+	@Override
+	public ServiceMode getServiceMode() {
+		return serviceMode;
+	}
 
 	@Override
 	public Service clone() {

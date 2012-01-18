@@ -32,6 +32,7 @@ import com.rogiel.httpchannel.service.CapabilityMatrix;
 import com.rogiel.httpchannel.service.Credential;
 import com.rogiel.httpchannel.service.Service;
 import com.rogiel.httpchannel.service.ServiceID;
+import com.rogiel.httpchannel.service.ServiceMode;
 import com.rogiel.httpchannel.service.UploadChannel;
 import com.rogiel.httpchannel.service.UploadService;
 import com.rogiel.httpchannel.service.Uploader;
@@ -79,6 +80,12 @@ public class FileSonicService extends AbstractHttpService implements Service,
 	@Override
 	public int getMinorVersion() {
 		return 0;
+	}
+
+	@Override
+	public CapabilityMatrix<ServiceMode> getPossibleServiceModes() {
+		return new CapabilityMatrix<ServiceMode>(ServiceMode.UNAUTHENTICATED,
+				ServiceMode.NON_PREMIUM, ServiceMode.PREMIUM);
 	}
 
 	@Override
@@ -149,7 +156,7 @@ public class FileSonicService extends AbstractHttpService implements Service,
 
 		public UploaderImpl(String filename, long filesize,
 				NullUploaderConfiguration configuration) {
-			super(filename, filesize, configuration);
+			super(FileSonicService.this, filename, filesize, configuration);
 		}
 
 		@Override
@@ -186,6 +193,7 @@ public class FileSonicService extends AbstractHttpService implements Service,
 		public void login() throws IOException {
 			logger.debug("Logging to filesonic.com");
 			api.login(credential.getUsername(), credential.getPassword());
+			serviceMode = ServiceMode.NON_PREMIUM;
 			// if (username == null)
 			// throw new AuthenticationInvalidCredentialException();
 		}

@@ -54,6 +54,23 @@ public interface Service extends Cloneable {
 	int getMinorVersion();
 
 	/**
+	 * Returns the currently active service mode. The mode is not static and can
+	 * be changed with an {@link Authenticator}
+	 * 
+	 * @return the service mode
+	 */
+	ServiceMode getServiceMode();
+
+	/**
+	 * Return the matrix of supported modes for this {@link Service}.
+	 * 
+	 * @return {@link CapabilityMatrix} with all supported modes of this
+	 *         {@link Service}.
+	 * @see DownloaderCapability
+	 */
+	CapabilityMatrix<ServiceMode> getPossibleServiceModes();
+
+	/**
 	 * Sets this service captcha service. CaptchaService are safe to be switched
 	 * even after an transfer has begun.
 	 * 

@@ -93,11 +93,13 @@ public class ChannelCopy implements Callable<List<URI>> {
 	 * 
 	 * @param downloadChannel
 	 *            the download channel
+	 * @throws IOException
+	 *             if any {@link IOException} occur
 	 */
-	public ChannelCopy(DownloadChannel downloadChannel) {
+	public ChannelCopy(DownloadChannel downloadChannel) throws IOException {
 		this.downloadChannel = downloadChannel;
-		this.filename = downloadChannel.getFilename();
-		this.filesize = downloadChannel.getFilesize();
+		this.filename = downloadChannel.filename();
+		this.filesize = downloadChannel.size();
 	}
 
 	/**
@@ -128,8 +130,8 @@ public class ChannelCopy implements Callable<List<URI>> {
 				.openChannel();
 
 		this.downloadChannel = downloadChannel;
-		this.filename = downloadChannel.getFilename();
-		this.filesize = downloadChannel.getFilesize();
+		this.filename = downloadChannel.filename();
+		this.filesize = downloadChannel.size();
 	}
 
 	/**

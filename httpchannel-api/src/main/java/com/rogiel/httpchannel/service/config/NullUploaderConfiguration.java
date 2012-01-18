@@ -12,4 +12,7 @@ import com.rogiel.httpchannel.service.Uploader.UploaderConfiguration;
  */
 public final class NullUploaderConfiguration implements UploaderConfiguration {
 	public static final NullUploaderConfiguration SHARED_INSTANCE = new NullUploaderConfiguration();
+
+	private NullUploaderConfiguration() {
+	}
 }

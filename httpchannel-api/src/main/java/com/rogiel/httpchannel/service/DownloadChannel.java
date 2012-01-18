@@ -32,4 +32,14 @@ import java.nio.channels.ReadableByteChannel;
  * @author <a href="http://www.rogiel.com">Rogiel</a>
  */
 public interface DownloadChannel extends HttpChannel, ReadableByteChannel {
+	/**
+	 * @return the service instance providing this download
+	 */
+	@Override
+	DownloadService<?> getService();
+
+	/**
+	 * @return the downloader providing this download
+	 */
+	Downloader<?> getDownloader();
 }

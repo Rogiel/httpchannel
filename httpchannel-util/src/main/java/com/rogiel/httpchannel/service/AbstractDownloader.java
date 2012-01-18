@@ -22,6 +22,7 @@ import com.rogiel.httpchannel.service.exception.DownloadNotResumableException;
  */
 public abstract class AbstractDownloader<C extends DownloaderConfiguration>
 		implements Downloader<C> {
+	protected final DownloadService<?> service;
 	/**
 	 * The download URI
 	 */
@@ -35,12 +36,16 @@ public abstract class AbstractDownloader<C extends DownloaderConfiguration>
 	/**
 	 * Creates a new instance
 	 * 
+	 * @param service
+	 *            the download service
 	 * @param uri
 	 *            the download uri
 	 * @param configuration
 	 *            the configuration object
 	 */
-	protected AbstractDownloader(URI uri, C configuration) {
+	protected AbstractDownloader(DownloadService<?> service, URI uri,
+			C configuration) {
+		this.service = service;
 		this.uri = uri;
 		this.configuration = configuration;
 	}
@@ -69,7 +74,8 @@ public abstract class AbstractDownloader<C extends DownloaderConfiguration>
 
 	protected InputStreamDownloadChannel createInputStreamChannel(
 			InputStream in, long length, String filename) {
-		return new InputStreamDownloadChannel(in, length, filename);
+		return new InputStreamDownloadChannel(service, this, in, length,
+				filename);
 	}
 
 	@Override
