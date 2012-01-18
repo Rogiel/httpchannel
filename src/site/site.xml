@@ -6,6 +6,8 @@
 		<menu ref="parent" inherit="top" />
 
 		<menu name="API" inherit="top">
+			<item name="Channel seeking" href="/httpchannel-api/seekable-download-channel.html"
+				target="_blank" />
 			<item name="API Javadoc" href="/httpchannel-api/apidocs/"
 				target="_blank" />
 			<item name="API Sources" href="/httpchannel-api/xref/" />

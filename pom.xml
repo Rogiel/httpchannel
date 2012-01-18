@@ -172,6 +172,7 @@
 				<artifactId>site-maven-plugin</artifactId>
 				<version>0.4</version>
 				<configuration>
+					<message>Creating ${project.artifactId} site for ${project.version}</message>
 					<repositoryOwner>seedbox</repositoryOwner>
 					<repositoryOwner>httpchannel.github.com</repositoryOwner>
 				</configuration>
@@ -207,7 +208,7 @@
 				<version>2.2.2</version>
 				<configuration>
 					<autoVersionSubmodules>true</autoVersionSubmodules>
-					<goals>deploy site-deploy</goals><!-- we have to force site-deploy -->
+					<goals>deploy</goals><!-- we have to force site-deploy -->
 				</configuration>
 			</plugin>
 			<plugin>

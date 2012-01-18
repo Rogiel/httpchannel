@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document xmlns="http://maven.apache.org/XDOC/2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/XDOC/2.0 http://maven.apache.org/xsd/xdoc-2.0.xsd">
+	<properties>
+		<title>Home</title>
+		<author email="rogiel@rogiel.com">Rogiel Sulzbach</author>
+	</properties>
+
+	<body>
+		<!-- The body of the document contains a number of sections -->
+		<section name="SeekableDownloadChannel">
+			<p>
+				The
+				<b>SeekableDownloadChannel</b>
+				allows you to emulate the download stream as if it was a local file:
+				you can go back and forth. All of that comes at a cost, you need to
+				restart the download everytime you set the channel position.
+			</p>
+
+			<source><![CDATA[final DownloadChannel downloadChannel = ...; // open a download channel here
+final SeekableDownloadChannel channel = new SeekableDownloadChannel(downloadChannel);
+channel.position(12 * 1024);]]></source>
+			<small>
+				Creates a new
+				<b>SeekableDownloadChannel</b>
+				channel and set its position to the 12288 byte offset.
+			</small>
+
+			<p>
+				If the channel does not support seeking, an
+				<b>IOException</b>
+				is thrown at construction time.
+			</p>
+		</section>
+	</body>
+</document>
