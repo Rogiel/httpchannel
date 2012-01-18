@@ -3,7 +3,7 @@
 	<parent>
 		<artifactId>httpchannel</artifactId>
 		<groupId>com.rogiel.httpchannel</groupId>
-		<version>1.0.0</version>
+		<version>1.0.1-SNAPSHOT</version>
 		<relativePath>..</relativePath>
 	</parent>
 	<artifactId>httpchannel-captcha</artifactId>
@@ -19,7 +19,7 @@
 		<dependency>
 			<groupId>com.rogiel.httpchannel</groupId>
 			<artifactId>httpchannel-api</artifactId>
-			<version>1.0.0</version>
+			<version>1.0.1-SNAPSHOT</version>
 		</dependency>
 	</dependencies>
 </project>

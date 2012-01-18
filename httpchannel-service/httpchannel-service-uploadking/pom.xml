@@ -3,7 +3,7 @@
 	<parent>
 		<artifactId>httpchannel-service</artifactId>
 		<groupId>com.rogiel.httpchannel</groupId>
-		<version>1.0.0</version>
+		<version>1.0.1-SNAPSHOT</version>
 		<relativePath>..</relativePath>
 	</parent>
 	<artifactId>httpchannel-service-uploadking</artifactId>
@@ -14,7 +14,7 @@
 		<dependency>
 			<groupId>com.rogiel.httpchannel.captcha</groupId>
 			<artifactId>httpchannel-captcha-captchatrader</artifactId>
-			<version>1.0.0</version>
+			<version>1.0.1-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
