@@ -7,8 +7,10 @@
 		<version>1.0.1-SNAPSHOT</version>
 		<relativePath>..</relativePath>
 	</parent>
-	<artifactId>httpchannel-service-depositfiles</artifactId>
-	<groupId>com.rogiel.httpchannel.services</groupId>
-	<name>HttpChannel/Service/DepositFiles</name>
-	<description>Provides upload access to depositfiles.com</description>
+	<groupId>${groupId}</groupId>
+	<artifactId>${artifactId}</artifactId>
+	<version>${version}</version>
+	<packaging>jar</packaging>
+	<name>HttpChannel/Service/MyService</name>
+	<description>Provides upload access to myservice.com</description>
 </project>
