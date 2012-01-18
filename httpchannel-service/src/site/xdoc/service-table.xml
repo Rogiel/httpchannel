@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document xmlns="http://maven.apache.org/XDOC/2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/XDOC/2.0 http://maven.apache.org/xsd/xdoc-2.0.xsd">
+	<properties>
+		<title>Home</title>
+		<author email="rogiel@rogiel.com">Rogiel Sulzbach</author>
+	</properties>
+
+	<body>
+		<!-- The body of the document contains a number of sections -->
+		<section name="List of available services">
+			<table>
+				<thead>
+					<tr>
+						<th>Service Name</th>
+						<th>Service ID</th>
+						<th>Authentication</th>
+						<th colspan="2">Upload</th>
+						<th colspan="2">Download</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td>
+							<a href="./httpchannel-service-depositfiles/">DepositFiles</a>
+						</td>
+						<td>depositfiles</td>
+						<td>Yes</td>
+						<td>Yes</td>
+						<td>up to 1GB</td>
+						<td colspan="2">No</td>
+					</tr>
+					<tr>
+						<td>
+							<a href="./httpchannel-service-filesonic/">FileSonic</a>
+						</td>
+						<td>filesonic</td>
+						<td>Yes</td>
+						<td>Yes</td>
+						<td>up to 1GB</td>
+						<td colspan="2">No</td>
+					</tr>
+
+					<tr>
+						<td>
+							<a href="./httpchannel-service-hotfile/">HotFile</a>
+						</td>
+						<td>hotfile</td>
+						<td>Yes</td>
+						<td>Yes</td>
+						<td>up to 1GB</td>
+						<td colspan="2">No</td>
+					</tr>
+
+					<tr>
+						<td>
+							<a href="./httpchannel-service-megaupload/">MegaUpload</a>
+						</td>
+						<td>megaupload</td>
+						<td>Yes</td>
+						<td>Yes</td>
+						<td>
+							up to 1GB non-premium, 2GB premium
+							<br />
+							<b>DescriptionableUploaderConfiguration</b>
+						</td>
+						<td>Yes</td>
+						<td>resumable, extended configuration</td>
+					</tr>
+
+					<tr>
+						<td>
+							<a href="./httpchannel-service-multiupload/">MultiUpload</a>
+						</td>
+						<td>multiupload</td>
+						<td>Yes</td>
+						<td>Yes</td>
+						<td>
+							up to 1GB
+							<br />
+							extended configuration,
+							<b>DescriptionableUploaderConfiguration</b>
+						</td>
+						<td>Yes</td>
+						<td>resumable</td>
+					</tr>
+
+					<tr>
+						<td>
+							<a href="./httpchannel-service-uploadhere/">UploadHere</a>
+						</td>
+						<td>uploadhere</td>
+						<td>Yes</td>
+						<td>Yes</td>
+						<td>up to 1GB</td>
+						<td>Yes</td>
+						<td>resumable, captcha</td>
+					</tr>
+
+					<tr>
+						<td>
+							<a href="./httpchannel-service-uploadking/">UploadKing</a>
+						</td>
+						<td>uploadking</td>
+						<td>Yes</td>
+						<td>Yes</td>
+						<td>up to 1GB</td>
+						<td>Yes</td>
+						<td>resumable, captcha</td>
+					</tr>
+				</tbody>
+			</table>
+		</section>
+	</body>
+</document>

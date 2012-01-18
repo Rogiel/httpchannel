@@ -34,4 +34,14 @@ public final class NullDownloaderConfiguration implements
 
 	private NullDownloaderConfiguration() {
 	}
+
+	@Override
+	public boolean is(Class<? extends DownloaderConfiguration> type) {
+		return false;
+	}
+
+	@Override
+	public <T extends DownloaderConfiguration> T as(Class<T> type) {
+		return null;
+	}
 }

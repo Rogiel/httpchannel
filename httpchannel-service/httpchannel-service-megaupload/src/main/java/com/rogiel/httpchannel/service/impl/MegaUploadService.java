@@ -74,7 +74,7 @@ public class MegaUploadService extends AbstractHttpService implements Service,
 	 */
 	public static final ServiceID SERVICE_ID = ServiceID.create("megaupload");
 
-	private static final Pattern UPLOAD_URI_PATTERN = Pattern
+	private static final Pattern UPLOAD_URL_PATTERN = Pattern
 			.compile("http://www([0-9]*)\\.megaupload\\.com/upload_done\\.php\\?UPLOAD_IDENTIFIER=[0-9]*");
 
 	private static final Pattern DOWNLOAD_DIRECT_LINK_PATTERN = Pattern
@@ -217,7 +217,7 @@ public class MegaUploadService extends AbstractHttpService implements Service,
 			logger.debug("Starting upload to megaupload.com");
 			final HTMLPage page = get("http://www.megaupload.com/multiupload/")
 					.asPage();
-			final String uri = page.findFormAction(UPLOAD_URI_PATTERN);
+			final String uri = page.findFormAction(UPLOAD_URL_PATTERN);
 			logger.debug("Upload URI is {}", uri);
 
 			final LinkedUploadChannel channel = createLinkedChannel(this);

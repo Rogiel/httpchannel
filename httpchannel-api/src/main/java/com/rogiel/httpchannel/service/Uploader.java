@@ -80,6 +80,26 @@ public interface Uploader<C extends UploaderConfiguration> {
 	 * @author <a href="http://www.rogiel.com">Rogiel</a>
 	 */
 	public interface UploaderConfiguration {
+		/**
+		 * Checks whether the configuration object can be casted to
+		 * <code>type</code>
+		 * 
+		 * @param type
+		 *            the casting type
+		 * @return <code>true</code> if this object can be casted to
+		 *         <code>type</code>
+		 */
+		boolean is(Class<? extends UploaderConfiguration> type);
+
+		/**
+		 * Casts this object to <code>type</code>. If cannot be casted,
+		 * <code>null</code> is returned.
+		 * 
+		 * @param type
+		 *            the casting type
+		 * @return the casted configuration
+		 */
+		<T extends UploaderConfiguration> T as(Class<T> type);
 	}
 
 	/**

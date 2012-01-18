@@ -35,4 +35,14 @@ public final class NullAuthenticatorConfiguration implements
 
 	private NullAuthenticatorConfiguration() {
 	}
+
+	@Override
+	public boolean is(Class<? extends AuthenticatorConfiguration> type) {
+		return false;
+	}
+
+	@Override
+	public <T extends AuthenticatorConfiguration> T as(Class<T> type) {
+		return null;
+	}
 }

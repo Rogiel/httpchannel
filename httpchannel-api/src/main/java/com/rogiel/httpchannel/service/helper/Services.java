@@ -25,6 +25,7 @@ import java.util.ServiceLoader;
 import com.rogiel.httpchannel.service.DownloadService;
 import com.rogiel.httpchannel.service.Service;
 import com.rogiel.httpchannel.service.ServiceID;
+import com.rogiel.httpchannel.service.UploadService;
 
 /**
  * @author <a href="http://www.rogiel.com">Rogiel</a>
@@ -70,6 +71,36 @@ public class Services {
 		for (final Service service : iterate()) {
 			if (service.getServiceID().equals(id))
 				return service;
+		}
+		return null;
+	}
+	
+	/**
+	 * Tries to detect which service has the given <tt>id</tt>
+	 * 
+	 * @param id
+	 *            the service id
+	 * @return the matched service
+	 */
+	public static UploadService<?> getUploadService(ServiceID id) {
+		for (final Service service : iterate()) {
+			if (service.getServiceID().equals(id))
+				return (UploadService<?>) service;
+		}
+		return null;
+	}
+	
+	/**
+	 * Tries to detect which service has the given <tt>id</tt>
+	 * 
+	 * @param id
+	 *            the service id
+	 * @return the matched service
+	 */
+	public static DownloadService<?> getDownloadService(ServiceID id) {
+		for (final Service service : iterate()) {
+			if (service.getServiceID().equals(id))
+				return (DownloadService<?>) service;
 		}
 		return null;
 	}

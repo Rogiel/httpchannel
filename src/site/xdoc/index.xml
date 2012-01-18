@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document xmlns="http://maven.apache.org/XDOC/2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/XDOC/2.0 http://maven.apache.org/xsd/xdoc-2.0.xsd">
+	<properties>
+		<title>Home</title>
+		<author email="rogiel@rogiel.com">Rogiel Sulzbach</author>
+	</properties>
+
+	<body>
+		<!-- The body of the document contains a number of sections -->
+		<section name="What is this?">
+			<p>
+				The HttpChannel library is a library that povides downloading and
+				uploading capaibilities to several share-sites (such as
+				<a href="http://www.megaupload.com/" target="_blank">MegaUpload</a>
+				and
+				<a href="http://www.filesonic.com/" target="_blank">FileSonic</a>
+				). Obviously, the API supports a lot more services, but those are
+				the most commonly used. Aside from that, the biggest point of the
+				library is its simple usage, you don't need to use any customized
+				API to perform download or uploads, you simply use the standard Java
+				NIO Channels for both upload and download.
+			</p>
+
+			<source><![CDATA[final UploadService<?> service = Services.getUploadService("megaupload");
+final Uploader<?> uploader = UploadServices.upload(service, Path.get("test-file.txt"));
+final UploadChannel channel = uploader.openChannel();
+// now, you can perform any operation you want with this channel!
+ChannelUtils.copy(inputChannel, channel);
+// this may take some time, it will finish the upload and generate the download link
+channel.close();
+System.out.println("Download Link: "+channel.getDownloadLink());]]></source>
+
+			<subsection name="Really? That's it?">
+				<p>Yeah! This is the fastest way to start an upload, you can also
+					customize a bit your upload. MegaUpload supports upload
+					configuration, the most common configuration options has an
+					interface which all service that supports it should extent, see
+					above:
+				</p>
+
+				<source><![CDATA[final UploaderConfiguration config = uploader.getConfiguration();
+if(config.is(DescriptionableUploaderConfiguration.class)) {
+	config.as(DescriptionableUploaderConfiguration.class).description("Hello world!");
+}
+// now, open the channel and go on!]]></source>
+				<p>You have two ways of setting and upload description. The way
+					showed previously, supports all the services which provide
+					description supported, howerver, if this is not intented, you can
+					cast it directly to the service configuration interface:
+				</p>
+				<source><![CDATA[final UploaderConfiguration config = uploader.getConfiguration();
+if(config.is(MegaUploadUploaderConfiguration.class)) {
+	config.as(MegaUploadUploaderConfiguration.class).description("Hello world!");
+}
+// now, open the channel and go on!]]></source>
+				<small>Although this does not give any compilation error, this is
+					not the correct way to do. If you ever remove the MegaUpload
+					service, you compilation will break and you will need to fix this
+					manually. Also, changes to the internal service implementation
+					could change and your compilation would break, again!
+				</small>
+				<p>Now, only uploads to MegaUpload.com will have a description.
+					Aside
+					from that, all configuration objects have a default
+					description
+					value: "Uploaded by httpchannel". This cannot be
+					overriden and if
+					you want to, you need to set the description to all
+					services that
+					support description.
+				</p>
+			</subsection>
+
+			<subsection name="And what about CAPTCHAs?">
+				<p>
+					The library also support CAPTCHA solving, not automatically but
+					through
+					<a href="./httpchannel-captcha/">CAPTCHA solving services</a>
+					. To bind an
+					<b>CaptchaService</b>
+					to an HttpChannel service, all you need to do is:
+				</p>
+
+				<source><![CDATA[final CaptchaService captchaSercice = new CaptchaTraderService();
+captchaService.authenticate("[your-captchatrader-username]", "[your-captchatrader-password or pubkey]");
+service.setCaptchaService(captchaService);]]></source>
+
+				<p>
+					Now, all CAPTCHAs that need to be solved, will be forwarded to
+					<a href="http://www.captchatrader.com/">CaptchaTrader</a>
+					for solving.
+				</p>
+			</subsection>
+		</section>
+
+		<section name="Implementing services">
+			<p>
+				To implement new services, you can follow
+				<a href="./httpchannel-service/implementing-services.html">this guide</a>
+				or look at the sources.
+			</p>
+		</section>
+	</body>
+</document>

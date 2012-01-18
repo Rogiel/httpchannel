@@ -18,10 +18,11 @@
  */
 package com.rogiel.httpchannel.service.impl;
 
+import com.rogiel.httpchannel.service.AbstractDownloaderConfiguration;
 import com.rogiel.httpchannel.service.Downloader.DownloaderConfiguration;
 
-public class MegaUploadDownloaderConfiguration implements
-		DownloaderConfiguration {
+public class MegaUploadDownloaderConfiguration extends
+		AbstractDownloaderConfiguration implements DownloaderConfiguration {
 	private boolean respectWaitTime = true;
 
 	public boolean getRespectWaitTime() {

@@ -1,0 +1,265 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document xmlns="http://maven.apache.org/XDOC/2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/XDOC/2.0 http://maven.apache.org/xsd/xdoc-2.0.xsd">
+	<properties>
+		<title>Home</title>
+		<author email="rogiel@rogiel.com">Rogiel Sulzbach</author>
+	</properties>
+
+	<body>
+		<!-- The body of the document contains a number of sections -->
+		<section name="Implementing services">
+			<p>Implementing services is really easy. There's a lot of abstraction
+				done in the service layer, that it donesn't even look that you are
+			</p>
+
+			<p>
+				In order to implement a new service, you first need to create a
+				class that implements
+				<b>Service</b>
+				. This interface provides basic information about the service, such
+				as version and ID. This however, is not enough and you need to
+				implement other specific interfaces for each type of behavior you
+				want:
+			</p>
+
+			<ul>
+				<li>
+					<b>UploadService</b>
+					: implements support for
+					<b>UploadChannel</b>
+				</li>
+				<li>
+					<b>DownloadService</b>
+					: implements support for
+					<b>DownloadChannel</b>
+				</li>
+				<li>
+					<b>AuthenticationService</b>
+					: implements support for account authentication (such as premium
+					accounts)
+				</li>
+			</ul>
+
+			<p>
+				Let's first implement an
+				<b>UploadService</b>
+				for
+				<a href="http://www.megaupload.com/" target="_blank">megaupload.com</a>
+				site:
+			</p>
+
+			<source><![CDATA[public class MegaUploadService extends AbstractHttpService implements Service,
+		UploadService<MegaUploadUploaderConfiguration>]]></source>
+
+			<small>
+				We extend
+				<b>AbstractHttpService</b>
+				which provides several handy methods for HTTP requests, it also
+				handles all the cookies for us, so we don't need to deal with
+				anything else but the HTML parsing.
+			</small>
+
+			<p>Now we add a few static fields that are gonna be used later on:
+			</p>
+
+			<source><![CDATA[public static final ServiceID SERVICE_ID = ServiceID.create("megaupload");
+private static final Pattern UPLOAD_URL_PATTERN = Pattern
+			.compile("http://www([0-9]*)\\.megaupload\\.com/upload_done\\.php\\?UPLOAD_IDENTIFIER=[0-9]*");
+private static final Pattern DOWNLOAD_URI_PATTERN = Pattern
+			.compile("http://www\\.megaupload\\.com/\\?d=([A-Za-z0-9]*)");]]></source>
+
+			<small>Those patterns will match the URLs we need to upload the file
+				and find the download link.
+			</small>
+
+			<source><![CDATA[
+	@Override
+	public ServiceID getServiceID() {
+		return SERVICE_ID; // thats the public static field we created before!
+	}
+
+	@Override
+	public int getMajorVersion() {
+		return 1;
+	}
+
+	@Override
+	public int getMinorVersion() {
+		return 0;
+	}
+	
+	@Override
+	public CapabilityMatrix<ServiceMode> getPossibleServiceModes() {
+		return new CapabilityMatrix<ServiceMode>(ServiceMode.UNAUTHENTICATED);
+	}]]></source>
+
+			<small>
+				This simple service implementation does not support authentication.
+				As such, the only supported mode is
+				<b>ServiceMode.UNAUTHENTICATED</b>
+				.
+			</small>
+
+			<source><![CDATA[
+	@Override
+	public Uploader<MegaUploadUploaderConfiguration> getUploader(
+			String filename, long filesize,
+			MegaUploadUploaderConfiguration configuration) {
+		return new UploaderImpl(filename, filesize, configuration);
+	}
+
+	@Override
+	public Uploader<MegaUploadUploaderConfiguration> getUploader(
+			String filename, long filesize) {
+		return getUploader(filename, filesize, newUploaderConfiguration());
+	}
+
+	@Override
+	public MegaUploadUploaderConfiguration newUploaderConfiguration() {
+		return new MegaUploadUploaderConfiguration();
+	}
+
+	@Override
+	public long getMaximumFilesize() {
+		return Filesizes.gb(1);
+	}
+
+	@Override
+	public String[] getSupportedExtensions() {
+		return null; // all extensions are suppoted, null need to be returned then
+	}
+
+	@Override
+	public CapabilityMatrix<UploaderCapability> getUploadCapabilities() {
+		return new CapabilityMatrix<UploaderCapability>(UploaderCapability.UNAUTHENTICATED_UPLOAD);
+	}]]></source>
+
+			<small>
+				Again, this simple service implementation does not support
+				authentication.
+				As such, the only
+				<b>upload capability</b>
+				supported is
+				<b>UploaderCapability.UNAUTHENTICATED</b>
+				.
+			</small>
+
+			<source><![CDATA[
+protected class UploaderImpl extends
+		AbstractUploader<MegaUploadUploaderConfiguration> implements
+		Uploader<MegaUploadUploaderConfiguration>,
+		LinkedUploadChannelCloseCallback {
+	private Future<String> uploadFuture;
+
+	public UploaderImpl(String filename, long filesize,
+			MegaUploadUploaderConfiguration configuration) {
+		super(MegaUploadService.this, filename, filesize, configuration);
+	}]]></source>
+
+			<p>
+				Notice we also implement LinkedUploadChannelCloseCallback. The
+				single method in this interface is called to finish the upload and
+				return the download link. Also
+				<b>AbstractUploader</b>
+				is implemented because it provides a lot of handy methods that can
+				shortcut the implementation.
+			</p>
+
+			<source><![CDATA[
+	@Override
+	public UploadChannel openChannel() throws IOException {
+		logger.debug("Starting upload to megaupload.com");
+		final HTMLPage page = get("http://www.megaupload.com/multiupload/")
+				.asPage();
+		final String uri = page.findFormAction(UPLOAD_URL_PATTERN);
+		logger.debug("Upload URI is {}", uri);
+			final LinkedUploadChannel channel = createLinkedChannel(this);
+		
+		uploadFuture = multipartPost(uri)
+				.parameter("multimessage_0", configuration.description())
+				.parameter("multifile_0", channel).asStringAsync();
+		return waitChannelLink(channel, uploadFuture);
+	}]]></source>
+
+			<p>Here is a bit implementation specific: we load the megaupload.com
+				page and return it as an HTNLPage. An HTMLPage is an parsed version
+				of the page, it contains several methods that provide methods for
+				finding form urls and links.
+			</p>
+
+			<p>
+				Now, once we load the page, we use the HTMLPage object to find a
+				form action using an Pattern with
+				<b>findFormAction</b>
+				. That is the URI we will use to do the upload.
+			</p>
+
+			<p>The a new UploadChannel is created, internally it uses an
+				LinkedUploadChannel which is a specific type of channel that gets
+				linked with another channel, and acts as some kind of "proxy"
+				channel.
+			</p>
+
+			<p>Here the fun part, we create a new "multipart HTTP request".
+				Multipart requests generally contain binary data, so we need to use
+				those to implement the service. Upload parameters are bound to the
+				request using a chain method, this makes code compact and easy to
+				read.
+			</p>
+
+			<p>
+				Finally, we execute
+				<b>asStringAsync</b>
+				that will return the page as an java String and executes the request
+				asynchronously (that is, it is not going to block, but will execute
+				on another Thread.). The future object returned is stored into an
+				field, because it will be used later by the
+				<b>finish()</b>
+				method.
+			</p>
+
+			<p>Finally, we wait for the channel to be effectivelly linked and
+				return it. Channel link may take some time until the HTTP request
+				estabilishes the connection and is ready to receive data, that is
+				why waiting for the link is of extreme importance.
+			</p>
+
+			<p>
+				Now the channel is returned to the user which will write data and
+				perform all kind of cool things with the channel. When the user
+				calls the
+				<b>close()</b>
+				method, the
+				<b>finish()</b>
+				method (defined by
+				<b>LinkedUploadChannelCloseCallback</b>
+				) is invoked and the upload is finished.
+			</p>
+
+			<source><![CDATA[
+	@Override
+	public String finish() throws IOException {
+		try {
+			return PatternUtils.find(DOWNLOAD_URI_PATTERN,
+					uploadFuture.get());
+		} catch (InterruptedException e) {
+			return null;
+		} catch (ExecutionException e) {
+			throw (IOException) e.getCause();
+		}
+	}]]></source>
+
+			<p>This portion of code is fairly easy to understand, it uses the
+				future that we previously created to get the resulting page. This
+				does not need to be an string, it can be any of the supported types.
+				Since MegaUpload retuns a JSON string, we need to use a string to
+				match it against an Pattern. Once the URL is matched, it is
+				returned, if no link is found, null should be returned and the
+				channel close() method will deal will all the exception throwing.
+			</p>
+			
+			<p>Your service is now ready. You can starting using it!</p>
+		</section>
+	</body>
+</document>

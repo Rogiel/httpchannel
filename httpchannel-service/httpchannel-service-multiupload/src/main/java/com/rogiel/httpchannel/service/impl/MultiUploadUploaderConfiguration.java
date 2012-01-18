@@ -20,6 +20,7 @@ package com.rogiel.httpchannel.service.impl;
 
 import java.util.EnumSet;
 
+import com.rogiel.httpchannel.service.AbstractUploaderConfiguration;
 import com.rogiel.httpchannel.service.Uploader.DescriptionableUploaderConfiguration;
 import com.rogiel.httpchannel.service.Uploader.UploaderConfiguration;
 import com.rogiel.httpchannel.service.impl.MultiUploadService.UploaderImpl;
@@ -29,7 +30,8 @@ import com.rogiel.httpchannel.service.impl.MultiUploadService.UploaderImpl;
  * 
  * @author <a href="http://www.rogiel.com">Rogiel</a>
  */
-public class MultiUploadUploaderConfiguration implements UploaderConfiguration,
+public class MultiUploadUploaderConfiguration extends
+		AbstractUploaderConfiguration implements UploaderConfiguration,
 		DescriptionableUploaderConfiguration {
 	/**
 	 * The upload description

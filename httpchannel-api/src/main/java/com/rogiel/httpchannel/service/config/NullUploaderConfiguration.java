@@ -33,4 +33,14 @@ public final class NullUploaderConfiguration implements UploaderConfiguration {
 
 	private NullUploaderConfiguration() {
 	}
+
+	@Override
+	public boolean is(Class<? extends UploaderConfiguration> type) {
+		return false;
+	}
+
+	@Override
+	public <T extends UploaderConfiguration> T as(Class<T> type) {
+		return null;
+	}
 }
