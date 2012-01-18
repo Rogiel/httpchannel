@@ -9,7 +9,7 @@
 
 	<name>HttpChannel</name>
 	<description>Library capable of downloading and uploading files from free servers using channels.</description>
-	<url>http://httpchannel.rogiel.com/</url>
+	<url>http://httpchannel.github.com/</url>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -128,7 +128,7 @@
 				<artifactId>maven-site-plugin</artifactId>
 				<version>3.0</version>
 				<configuration>
-					<skipDeploy>true</skipDeploy>
+					<skipDeploy>true</skipDeploy> <!-- site is deployed with github plugin -->
 					<outputEncoding>UTF-8</outputEncoding>
 					<reportPlugins>
 						<plugin>
@@ -167,22 +167,23 @@
 					</reportPlugins>
 				</configuration>
 			</plugin>
-			<!-- <plugin> -->
-			<!-- <groupId>com.github.github</groupId> -->
-			<!-- <artifactId>site-maven-plugin</artifactId> -->
-			<!-- <version>0.4</version> -->
-			<!-- <configuration> -->
-
-			<!-- </configuration> -->
-			<!-- <executions> -->
-			<!-- <execution> -->
-			<!-- <phase>site-deploy</phase> -->
-			<!-- <goals> -->
-			<!-- <goal>site</goal> -->
-			<!-- </goals> -->
-			<!-- </execution> -->
-			<!-- </executions> -->
-			<!-- </plugin> -->
+			<plugin>
+				<groupId>com.github.github</groupId>
+				<artifactId>site-maven-plugin</artifactId>
+				<version>0.4</version>
+				<configuration>
+					<repositoryOwner>seedbox</repositoryOwner>
+					<repositoryOwner>httpchannel.github.com</repositoryOwner>
+				</configuration>
+				<executions>
+					<execution>
+						<phase>site-deploy</phase>
+						<goals>
+							<goal>site</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 			<plugin>
 				<groupId>com.github.github</groupId>
 				<artifactId>downloads-maven-plugin</artifactId>
@@ -199,6 +200,14 @@
 						</goals>
 					</execution>
 				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-release-plugin</artifactId>
+				<version>2.2.2</version>
+				<configuration>
+					<autoVersionSubmodules>true</autoVersionSubmodules>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>
