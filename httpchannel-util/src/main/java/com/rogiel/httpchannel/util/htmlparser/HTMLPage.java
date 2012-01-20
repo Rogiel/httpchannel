@@ -184,6 +184,11 @@ public class HTMLPage {
 	public String getInputValueById(final String id) {
 		return inputValue(filter(InputTag.class, new InputIDFilter(id)));
 	}
+	
+	public int getInputValueByIdInt(final String id) {
+		return Integer.parseInt(inputValue(filter(InputTag.class, new InputIDFilter(id))));
+	}
+
 
 	public String getInputValue(final Pattern pattern) {
 		return inputValue(filter(InputTag.class, new InputValuePatternFilter(

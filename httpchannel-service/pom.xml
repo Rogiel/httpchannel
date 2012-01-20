@@ -22,6 +22,7 @@
 		<module>httpchannel-service-hotfile</module>
 		<module>httpchannel-service-filesonic</module>
 		<module>httpchannel-service-zshare</module>
+		<module>httpchannel-service-4shared</module>
 	</modules>
 
 	<dependencies>

@@ -23,6 +23,7 @@ import junit.framework.Assert;
 import org.junit.Test;
 
 import com.rogiel.httpchannel.service.helper.Services;
+import com.rogiel.httpchannel.service.megaupload.MegaUploadService;
 
 /**
  * @author <a href="http://www.rogiel.com">Rogiel</a>

@@ -31,6 +31,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.rogiel.httpchannel.service.UploaderCapability;
+import com.rogiel.httpchannel.service.depositfiles.DepositFilesService;
 import com.rogiel.httpchannel.util.ChannelUtils;
 
 public class DepositFilesServiceTest {

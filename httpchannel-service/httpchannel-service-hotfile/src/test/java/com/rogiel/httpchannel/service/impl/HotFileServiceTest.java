@@ -47,6 +47,7 @@ import com.rogiel.httpchannel.service.UploaderCapability;
 import com.rogiel.httpchannel.service.exception.AuthenticationInvalidCredentialException;
 import com.rogiel.httpchannel.service.helper.Services;
 import com.rogiel.httpchannel.service.helper.UploadServices;
+import com.rogiel.httpchannel.service.hotfile.HotFileService;
 import com.rogiel.httpchannel.util.ChannelUtils;
 
 public class HotFileServiceTest {

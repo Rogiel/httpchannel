@@ -37,6 +37,7 @@ import com.rogiel.httpchannel.captcha.CaptchaService;
 import com.rogiel.httpchannel.captcha.impl.CaptchaTraderService;
 import com.rogiel.httpchannel.service.DownloadChannel;
 import com.rogiel.httpchannel.service.UploaderCapability;
+import com.rogiel.httpchannel.service.uploadking.UploadKingService;
 import com.rogiel.httpchannel.util.ChannelUtils;
 
 public class UploadKingServiceTest {

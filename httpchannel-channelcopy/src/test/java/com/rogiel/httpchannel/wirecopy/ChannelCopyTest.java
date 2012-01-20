@@ -24,8 +24,8 @@ import java.nio.file.Paths;
 import org.junit.Test;
 
 import com.rogiel.httpchannel.copy.ChannelCopy;
-import com.rogiel.httpchannel.service.impl.MegaUploadService;
-import com.rogiel.httpchannel.service.impl.MultiUploadService;
+import com.rogiel.httpchannel.service.megaupload.MegaUploadService;
+import com.rogiel.httpchannel.service.multiupload.MultiUploadService;
 
 public class ChannelCopyTest {
 	@Test

@@ -30,6 +30,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.rogiel.httpchannel.service.DownloadService;
+import com.rogiel.httpchannel.service.multiupload.MultiUploadService;
 import com.rogiel.httpchannel.util.ChannelUtils;
 
 public class MultiUploadServiceTest {

@@ -46,6 +46,8 @@ import com.rogiel.httpchannel.service.UploadChannel;
 import com.rogiel.httpchannel.service.UploaderCapability;
 import com.rogiel.httpchannel.service.exception.AuthenticationInvalidCredentialException;
 import com.rogiel.httpchannel.service.helper.UploadServices;
+import com.rogiel.httpchannel.service.megaupload.MegaUploadDownloaderConfiguration;
+import com.rogiel.httpchannel.service.megaupload.MegaUploadService;
 import com.rogiel.httpchannel.util.ChannelUtils;
 
 public class MegaUploadServiceTest {
