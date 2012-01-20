@@ -251,48 +251,40 @@ public class UploadKingService extends AbstractHttpService implements Service,
 		@Override
 		public DownloadChannel openChannel(DownloadListener listener,
 				long position) throws IOException {
-			logger.debug("Downloading {} with uploadking.com");
 			HTMLPage page = get(uri).asPage();
 
 			final int waitTime = page.findScriptAsInt(TIMER_PATTERN, 1) * 1000;
 			logger.debug("Wait time is {}", waitTime);
 
+			timer(listener, waitTime);
 			final ImageCaptcha captcha = ReCaptchaExtractor.extractAjaxCaptcha(
 					page, http);
+
+			String content;
 			if (captcha != null) {
 				logger.debug("Service is requiring CAPTCHA {}", captcha);
-				final long start = System.currentTimeMillis();
-
 				resolveCaptcha(captcha);
 
-				final long delta = System.currentTimeMillis() - start;
-				if (delta < waitTime) {
-					logger.debug(
-							"After captcha resolving, still {} ms remaining",
-							delta);
-					timer(listener, waitTime - delta);
-				} else {
-					logger.debug("CAPTCHA solving took longer than timer, skipping it");
-				}
-
-				String content = post(uri)
+				content = post(uri)
 						.parameter("recaptcha_challenge_field", captcha.getID())
 						.parameter("recaptcha_response_field",
 								captcha.getAnswer()).asString();
-				String downloadLink = PatternUtils.find(
-						DIERCT_DOWNLOAD_URI_PATTERN, content, 1);
-				if (downloadLink == null) {
-					captchaService.invalid(captcha);
-					throw new InvalidCaptchaException();
-				} else {
-					captchaService.valid(captcha);
-				}
-				downloadLink = downloadLink.replaceAll(Pattern.quote("\\/"),
-						"/");
-				logger.debug("Direct download URI is {}", downloadLink);
-				return download(get(downloadLink).position(position));
+			} else {
+				content = page.toString();
 			}
-			throw new DownloadLinkNotFoundException();
+
+			String downloadLink = PatternUtils.find(
+					DIERCT_DOWNLOAD_URI_PATTERN, content, 1);
+			if (downloadLink == null) {
+				captchaService.invalid(captcha);
+				throw new DownloadLinkNotFoundException(
+						new InvalidCaptchaException());
+			} else {
+				captchaService.valid(captcha);
+			}
+			downloadLink = downloadLink.replaceAll(Pattern.quote("\\/"), "/");
+			logger.debug("Direct download URI is {}", downloadLink);
+			return download(get(downloadLink).position(position));
 		}
 	}
 
