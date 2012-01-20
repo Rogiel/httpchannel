@@ -118,6 +118,17 @@
 						<td>Yes</td>
 						<td>resumable, captcha</td>
 					</tr>
+					
+					<tr>
+						<td>
+							<a href="./httpchannel-service-wupload/">WUpload</a>
+						</td>
+						<td>wupload</td>
+						<td>Yes</td>
+						<td>Yes</td>
+						<td>login required</td>
+						<td colspan="2">No</td>
+					</tr>
 				</tbody>
 			</table>
 		</section>
