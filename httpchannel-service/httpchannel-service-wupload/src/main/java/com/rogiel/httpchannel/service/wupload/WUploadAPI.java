@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package com.rogiel.httpchannel.service.filesonic;
+package com.rogiel.httpchannel.service.wupload;
 
 import java.io.IOException;
 import java.net.URI;
@@ -24,22 +24,22 @@ import java.net.URI;
 import javax.xml.bind.JAXB;
 
 import com.rogiel.httpchannel.http.HttpContext;
-import com.rogiel.httpchannel.service.filesonic.xml.FSAPI;
-import com.rogiel.httpchannel.service.filesonic.xml.FSGetUploadURL;
-import com.rogiel.httpchannel.service.filesonic.xml.FSUpload;
+import com.rogiel.httpchannel.service.wupload.xml.FSAPI;
+import com.rogiel.httpchannel.service.wupload.xml.FSGetUploadURL;
+import com.rogiel.httpchannel.service.wupload.xml.FSUpload;
 
 /**
  * @author <a href="http://www.rogiel.com">Rogiel</a>
  */
-public class FileSonicAPI {
-	private static final String BASE_URI = "http://api.filesonic.com/";
-	
+public class WUploadAPI {
+	private static final String BASE_URI = "http://api.wupload.com/";
+
 	private final HttpContext ctx;
 
 	private String email;
 	private String password;
-	
-	public FileSonicAPI(HttpContext ctx) {
+
+	public WUploadAPI(HttpContext ctx) {
 		this.ctx = ctx;
 	}
 

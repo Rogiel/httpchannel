@@ -1,7 +1,7 @@
 /**
  * 
  */
-package org.httpchannel.service.fourshared;
+package com.rogiel.httpchannel.service.wupload;
 
 import java.io.IOException;
 import java.net.URI;
@@ -22,8 +22,8 @@ import com.rogiel.httpchannel.util.ChannelUtils;
  * @author <a href="http://www.rogiel.com">Rogiel</a>
  * 
  */
-public class FourSharedServiceTest {
-	private final FourSharedService service = new FourSharedService();
+public class WUploadServiceTest {
+	private final WUploadService service = new WUploadService();
 	private final Properties properties = new Properties();
 
 	@Before
@@ -35,8 +35,8 @@ public class FourSharedServiceTest {
 	@Test
 	public void testUpload() throws IOException {
 		AuthenticationServices.authenticator(service,
-				properties.getProperty("4shared.username"),
-				properties.getProperty("4shared.password")).login();
+				properties.getProperty("wupload.username"),
+				properties.getProperty("wupload.password")).login();
 
 		final Path path = Paths
 				.get("../src/test/resources/upload-test-file.txt");

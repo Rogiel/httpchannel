@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package com.rogiel.httpchannel.service.filesonic;
+package com.rogiel.httpchannel.service.wupload;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutionException;
@@ -45,28 +45,28 @@ import com.rogiel.httpchannel.service.config.NullUploaderConfiguration;
 import com.rogiel.httpchannel.util.PatternUtils;
 
 /**
- * This service handles login, upload and download to MegaUpload.com.
+ * This service handles login, upload and download to WUpload.com.
  * 
  * @author <a href="http://www.rogiel.com">Rogiel</a>
  * @since 1.0
  */
-public class FileSonicService extends AbstractHttpService implements Service,
+public class WUploadService extends AbstractHttpService implements Service,
 		UploadService<NullUploaderConfiguration>,
 		AuthenticationService<NullAuthenticatorConfiguration> {
 	/**
 	 * This service ID
 	 */
-	public static final ServiceID SERVICE_ID = ServiceID.create("filesonic");
+	public static final ServiceID SERVICE_ID = ServiceID.create("wupload");
 
 	/**
 	 * The download URI pattern
 	 */
 	private static final Pattern DOWNLOAD_URI_PATTERN = Pattern
-			.compile("http://www\\.filesonic\\.com/file/[0-9A-z]*");
+			.compile("http://www\\.wupload\\.com/file/[0-9]*(/.*)?");
 	/**
 	 * The FileSonic API
 	 */
-	private final FileSonicAPI api = new FileSonicAPI(http);
+	private final WUploadAPI api = new WUploadAPI(http);
 
 	@Override
 	public ServiceID getServiceID() {
@@ -157,12 +157,12 @@ public class FileSonicService extends AbstractHttpService implements Service,
 
 		public UploaderImpl(String filename, long filesize,
 				NullUploaderConfiguration configuration) {
-			super(FileSonicService.this, filename, filesize, configuration);
+			super(WUploadService.this, filename, filesize, configuration);
 		}
 
 		@Override
 		public UploadChannel openChannel() throws IOException {
-			logger.debug("Starting upload to filesonic.com");
+			logger.debug("Starting upload to wupload.com");
 			final LinkedUploadChannel channel = createLinkedChannel(this);
 			uploadFuture = multipartPost(api.getUploadURI().toString())
 					.parameter("files[]", channel).asStringAsync();
@@ -192,11 +192,9 @@ public class FileSonicService extends AbstractHttpService implements Service,
 
 		@Override
 		public void login() throws IOException {
-			logger.debug("Logging to filesonic.com");
+			logger.debug("Logging to wupload.com");
 			api.login(credential.getUsername(), credential.getPassword());
 			serviceMode = ServiceMode.NON_PREMIUM;
-			// if (username == null)
-			// throw new AuthenticationInvalidCredentialException();
 		}
 
 		@Override

@@ -19,16 +19,21 @@
 package com.rogiel.httpchannel.http;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 import com.rogiel.httpchannel.util.HttpClientUtils;
 import com.rogiel.httpchannel.util.htmlparser.HTMLPage;
 
 public abstract class Request {
+	private static final JSONParser jsonParser = new JSONParser();
+	
 	protected final HttpContext ctx;
 	protected final String uri;
 
@@ -60,6 +65,19 @@ public abstract class Request {
 			}
 		});
 	}
+	
+	public InputStream asStream() throws ClientProtocolException, IOException {
+		return request().getEntity().getContent();
+	}
+
+	public Future<InputStream> asStreamAsync() throws IOException {
+		return ctx.threadPool.submit(new Callable<InputStream>() {
+			@Override
+			public InputStream call() throws Exception {
+				return asStream();
+			}
+		});
+	}
 
 	public HTMLPage asPage() throws ClientProtocolException, IOException {
 		return HTMLPage.parse(asString());
@@ -70,6 +88,19 @@ public abstract class Request {
 			@Override
 			public HTMLPage call() throws Exception {
 				return asPage();
+			}
+		});
+	}
+	
+	public Object asJson() throws ClientProtocolException, IOException, ParseException {
+		return jsonParser.parse(asString());
+	}
+
+	public Future<Object> asJsonAsync() throws IOException {
+		return ctx.threadPool.submit(new Callable<Object>() {
+			@Override
+			public Object call() throws Exception {
+				return asJson();
 			}
 		});
 	}
