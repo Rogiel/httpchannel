@@ -202,7 +202,7 @@ public class ZShareService extends AbstractHttpService implements Service/*
 	// .parameter("descr", configuration.description())
 	// .parameter("TOS", true).parameter("is_private", false)
 	// .asStringAsync();
-	// return waitChannelLink(channel, uploadFuture);
+	// return waitChannelLink(channel);
 	// }
 	//
 	// @Override

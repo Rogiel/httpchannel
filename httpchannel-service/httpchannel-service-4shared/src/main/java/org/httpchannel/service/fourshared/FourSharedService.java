@@ -201,7 +201,7 @@ public class FourSharedService extends AbstractHttpService implements Service,
 						.parameter("FilePart", channel).asPageAsync();
 
 				// wait for channel link
-				return waitChannelLink(channel, uploadFuture);
+				return waitChannelLink(channel);
 			} catch (ApiException e) {
 				throw new ChannelServiceException(e);
 			}

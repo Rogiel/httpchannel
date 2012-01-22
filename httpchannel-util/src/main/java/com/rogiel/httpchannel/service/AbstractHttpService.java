@@ -19,14 +19,14 @@
 package com.rogiel.httpchannel.service;
 
 import java.net.URI;
-import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import com.rogiel.httpchannel.http.GetRequest;
 import com.rogiel.httpchannel.http.HttpContext;
 import com.rogiel.httpchannel.http.PostMultipartRequest;
 import com.rogiel.httpchannel.http.PostRequest;
 import com.rogiel.httpchannel.service.channel.LinkedUploadChannel;
-import com.rogiel.httpchannel.util.ThreadUtils;
+import com.rogiel.httpchannel.service.exception.UploadServiceException;
 
 /**
  * Abstract base service for HTTP enabled services.
@@ -38,13 +38,9 @@ public abstract class AbstractHttpService extends AbstractService implements
 		Service {
 	protected final HttpContext http = new HttpContext();
 
-	protected LinkedUploadChannel waitChannelLink(LinkedUploadChannel channel,
-			Future<?> future) {
-		logger.debug("Waiting channel {} to link", channel);
-		while (!channel.isLinked() && !future.isDone()) {
-			ThreadUtils.sleep(100);
-		}
-		return channel;
+	protected LinkedUploadChannel waitChannelLink(LinkedUploadChannel channel)
+			throws UploadServiceException {
+		return channel.waitLink(20, TimeUnit.SECONDS);
 	}
 
 	public GetRequest get(String uri) {

@@ -183,7 +183,7 @@ public class DepositFilesService extends AbstractHttpService implements
 					.parameter("UPLOAD_IDENTIFIER", uploadID)
 					.parameter("agree", true)
 					.parameter("MAX_FILE_SIZE", maxFileSize).asPageAsync();
-			return waitChannelLink(channel, uploadFuture);
+			return waitChannelLink(channel);
 		}
 
 		@Override

@@ -24,6 +24,7 @@
 		<module>httpchannel-service-wupload</module>
 		<module>httpchannel-service-zshare</module>
 		<module>httpchannel-service-4shared</module>
+		<module>httpchannel-service-2shared</module>
 	</modules>
 
 	<dependencies>

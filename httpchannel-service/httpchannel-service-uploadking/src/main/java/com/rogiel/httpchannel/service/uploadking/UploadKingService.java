@@ -228,7 +228,7 @@ public class UploadKingService extends AbstractHttpService implements Service,
 			uploadFuture = multipartPost(uri).parameter("file", channel)
 					.parameter("u", userCookie)
 					.parameter("UPLOAD_IDENTIFIER", uploadID).asStringAsync();
-			return waitChannelLink(channel, uploadFuture);
+			return waitChannelLink(channel);
 		}
 
 		@Override

@@ -232,7 +232,7 @@ public class MegaUploadService extends AbstractHttpService implements Service,
 			uploadFuture = multipartPost(uri)
 					.parameter("multimessage_0", configuration.description())
 					.parameter("multifile_0", channel).asStringAsync();
-			return waitChannelLink(channel, uploadFuture);
+			return waitChannelLink(channel);
 		}
 
 		@Override

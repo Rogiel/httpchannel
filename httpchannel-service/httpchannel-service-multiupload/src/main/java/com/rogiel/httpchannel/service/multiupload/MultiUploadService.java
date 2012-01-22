@@ -239,7 +239,7 @@ public class MultiUploadService extends AbstractHttpService implements Service,
 			}
 
 			uploadFuture = request.asStringAsync();
-			return waitChannelLink(channel, uploadFuture);
+			return waitChannelLink(channel);
 		}
 
 		@Override

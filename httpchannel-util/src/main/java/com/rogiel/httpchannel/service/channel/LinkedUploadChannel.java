@@ -24,6 +24,9 @@ import java.nio.ByteBuffer;
 import java.nio.channels.Channel;
 import java.nio.channels.ClosedChannelException;
 import java.nio.channels.WritableByteChannel;
+import java.util.concurrent.Phaser;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,6 +35,7 @@ import com.rogiel.httpchannel.service.UploadChannel;
 import com.rogiel.httpchannel.service.UploadService;
 import com.rogiel.httpchannel.service.Uploader;
 import com.rogiel.httpchannel.service.exception.UploadLinkNotFoundException;
+import com.rogiel.httpchannel.service.exception.UploadServiceException;
 
 /**
  * This channel is linked onto another {@link Channel} that actually writes data
@@ -44,6 +48,11 @@ public class LinkedUploadChannel implements UploadChannel {
 	 * The logger instance
 	 */
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
+
+	/**
+	 * The synchronization phaser
+	 */
+	private final Phaser phaser = new Phaser();
 
 	/**
 	 * The upload service
@@ -90,6 +99,9 @@ public class LinkedUploadChannel implements UploadChannel {
 		this.closeCallback = closeCallback;
 		this.filename = filename;
 		this.length = filesize;
+
+		// register on the phaser
+		phaser.register();
 	}
 
 	@Override
@@ -167,6 +179,7 @@ public class LinkedUploadChannel implements UploadChannel {
 		if (!channel.isOpen())
 			throw new IOException("The destination channel is closed");
 		this.channel = channel;
+		phaser.arrive();
 	}
 
 	/**
@@ -175,5 +188,29 @@ public class LinkedUploadChannel implements UploadChannel {
 	 */
 	public boolean isLinked() {
 		return channel != null;
+	}
+
+	/**
+	 * Waits for the channels to get linked
+	 * 
+	 * @param timeout
+	 *            the amount of time to wait
+	 * @param unit
+	 *            the time unit for the wait
+	 * 
+	 * @throws UploadServiceException
+	 *             if the channel has not been linked after the timeout has
+	 *             expired
+	 */
+	public LinkedUploadChannel waitLink(int timeout, TimeUnit unit)
+			throws UploadServiceException {
+		logger.debug("Waiting channel {} to link", this);
+		try {
+			phaser.awaitAdvanceInterruptibly(phaser.getPhase(), timeout, unit);
+		} catch (InterruptedException | TimeoutException e) {
+			throw new UploadServiceException("Channel has not linked in "
+					+ timeout + " " + unit);
+		}
+		return this;
 	}
 }

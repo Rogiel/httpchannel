@@ -35,6 +35,7 @@ import org.htmlparser.tags.ImageTag;
 import org.htmlparser.tags.InputTag;
 import org.htmlparser.tags.LinkTag;
 import org.htmlparser.tags.ScriptTag;
+import org.htmlparser.tags.TextareaTag;
 import org.htmlparser.util.NodeIterator;
 import org.htmlparser.util.NodeList;
 import org.htmlparser.util.ParserException;
@@ -184,15 +185,19 @@ public class HTMLPage {
 	public String getInputValueById(final String id) {
 		return inputValue(filter(InputTag.class, new InputIDFilter(id)));
 	}
-	
-	public int getInputValueByIdInt(final String id) {
-		return Integer.parseInt(inputValue(filter(InputTag.class, new InputIDFilter(id))));
-	}
 
+	public int getInputValueByIdInt(final String id) {
+		return Integer.parseInt(inputValue(filter(InputTag.class,
+				new InputIDFilter(id))));
+	}
 
 	public String getInputValue(final Pattern pattern) {
 		return inputValue(filter(InputTag.class, new InputValuePatternFilter(
 				pattern)));
+	}
+
+	public String getTextareaValueById(String id) {
+		return ((TextareaTag) getTagByID(id)).getStringText();
 	}
 
 	public Tag getTagByID(final String id) {

@@ -174,7 +174,7 @@ public class FileSonicService extends AbstractHttpService implements Service,
 			final LinkedUploadChannel channel = createLinkedChannel(this);
 			uploadFuture = multipartPost(api.getUploadURI().toString())
 					.parameter("files[]", channel).asStringAsync();
-			return waitChannelLink(channel, uploadFuture);
+			return waitChannelLink(channel);
 		}
 
 		@Override

@@ -135,7 +135,7 @@ public class ${serviceName}Service extends AbstractHttpService implements
 			uploadFuture = multipartPost(uri).parameter("[file-parameter]", channel).asPageAsync();
 			
 			// wait for channel link
-			return waitChannelLink(channel, uploadFuture);
+			return waitChannelLink(channel);
 		}
 
 		@Override

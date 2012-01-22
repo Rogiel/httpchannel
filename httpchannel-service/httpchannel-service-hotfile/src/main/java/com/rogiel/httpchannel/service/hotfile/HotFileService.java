@@ -220,7 +220,7 @@ public class HotFileService extends AbstractHttpService implements Service,
 
 			uploadFuture = multipartPost(action)
 					.parameter("uploads[]", channel).asPageAsync();
-			return waitChannelLink(channel, uploadFuture);
+			return waitChannelLink(channel);
 		}
 
 		@Override
