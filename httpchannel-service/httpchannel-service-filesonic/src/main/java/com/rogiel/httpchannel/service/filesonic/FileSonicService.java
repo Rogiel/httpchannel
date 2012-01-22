@@ -23,9 +23,12 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.regex.Pattern;
 
+import com.rogiel.httpchannel.service.AbstractAccountDetails;
 import com.rogiel.httpchannel.service.AbstractAuthenticator;
 import com.rogiel.httpchannel.service.AbstractHttpService;
 import com.rogiel.httpchannel.service.AbstractUploader;
+import com.rogiel.httpchannel.service.AccountDetails;
+import com.rogiel.httpchannel.service.AccountDetails.PremiumAccountDetails;
 import com.rogiel.httpchannel.service.AuthenticationService;
 import com.rogiel.httpchannel.service.Authenticator;
 import com.rogiel.httpchannel.service.AuthenticatorCapability;
@@ -146,10 +149,15 @@ public class FileSonicService extends AbstractHttpService implements Service,
 
 	@Override
 	public CapabilityMatrix<AuthenticatorCapability> getAuthenticationCapability() {
-		return new CapabilityMatrix<AuthenticatorCapability>();
+		return new CapabilityMatrix<AuthenticatorCapability>(AuthenticatorCapability.ACCOUNT_DETAILS);
+	}
+	
+	@Override
+	public AccountDetails getAccountDetails() {
+		return account;
 	}
 
-	protected class UploaderImpl extends
+	private class UploaderImpl extends
 			AbstractUploader<NullUploaderConfiguration> implements
 			Uploader<NullUploaderConfiguration>,
 			LinkedUploadChannelCloseCallback {
@@ -182,7 +190,7 @@ public class FileSonicService extends AbstractHttpService implements Service,
 		}
 	}
 
-	protected class AuthenticatorImpl extends
+	private class AuthenticatorImpl extends
 			AbstractAuthenticator<NullAuthenticatorConfiguration> implements
 			Authenticator<NullAuthenticatorConfiguration> {
 		public AuthenticatorImpl(Credential credential,
@@ -191,17 +199,31 @@ public class FileSonicService extends AbstractHttpService implements Service,
 		}
 
 		@Override
-		public void login() throws IOException {
+		public AccountDetails login() throws IOException {
 			logger.debug("Logging to filesonic.com");
 			api.login(credential.getUsername(), credential.getPassword());
-			serviceMode = ServiceMode.NON_PREMIUM;
-			// if (username == null)
-			// throw new AuthenticationInvalidCredentialException();
+			return (account = new AccountDetailsImpl(credential.getUsername()));
 		}
 
 		@Override
 		public void logout() throws IOException {
 			api.logout();
+		}
+	}
+
+	private class AccountDetailsImpl extends AbstractAccountDetails implements PremiumAccountDetails {
+		/**
+		 * @param username
+		 *            the username
+		 */
+		public AccountDetailsImpl(String username) {
+			super(FileSonicService.this, username);
+		}
+
+		@Override
+		public boolean isPremium() {
+			//TODO implement this
+			return false;
 		}
 	}
 

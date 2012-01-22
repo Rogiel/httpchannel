@@ -41,17 +41,17 @@ import com.rogiel.httpchannel.service.config.NullUploaderConfiguration;
 import com.rogiel.httpchannel.util.htmlparser.HTMLPage;
 
 /**
- * This service handles uploads to MyService.com.
+ * This service handles uploads to ${serviceName}.
  * 
  * @author <a href="http://www.rogiel.com/">Rogiel</a>
  * @since 1.0
  */
-public class MyServiceService extends AbstractHttpService implements
+public class ${serviceName}Service extends AbstractHttpService implements
 		Service, UploadService<NullUploaderConfiguration> {
 	/**
 	 * This service ID
 	 */
-	public static final ServiceID SERVICE_ID = ServiceID.create("myservice");
+	public static final ServiceID SERVICE_ID = ServiceID.create("${serviceID}");
 
 	@Override
 	public ServiceID getServiceID() {
@@ -122,7 +122,7 @@ public class MyServiceService extends AbstractHttpService implements
 
 		@Override
 		public UploadChannel openChannel() throws IOException {
-			logger.debug("Starting upload to myservice.com");
+			logger.debug("Starting upload to ${serviceName}");
 			final HTMLPage page = get("http://www.example.com/").asPage();
 			
 			// locate upload uri

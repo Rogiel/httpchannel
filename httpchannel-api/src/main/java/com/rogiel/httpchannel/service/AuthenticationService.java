@@ -69,4 +69,10 @@ public interface AuthenticationService<C extends AuthenticatorConfiguration>
 	 * @see AuthenticatorCapability
 	 */
 	CapabilityMatrix<AuthenticatorCapability> getAuthenticationCapability();
+
+	/**
+	 * @return the currently authenticated account. Can be <code>null</code> and
+	 *         this indicates that the service is not authenticated.
+	 */
+	AccountDetails getAccountDetails();
 }

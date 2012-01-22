@@ -23,9 +23,12 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.regex.Pattern;
 
+import com.rogiel.httpchannel.service.AbstractAccountDetails;
 import com.rogiel.httpchannel.service.AbstractAuthenticator;
 import com.rogiel.httpchannel.service.AbstractHttpService;
 import com.rogiel.httpchannel.service.AbstractUploader;
+import com.rogiel.httpchannel.service.AccountDetails;
+import com.rogiel.httpchannel.service.AccountDetails.PremiumAccountDetails;
 import com.rogiel.httpchannel.service.AuthenticationService;
 import com.rogiel.httpchannel.service.Authenticator;
 import com.rogiel.httpchannel.service.AuthenticatorCapability;
@@ -146,7 +149,13 @@ public class WUploadService extends AbstractHttpService implements Service,
 
 	@Override
 	public CapabilityMatrix<AuthenticatorCapability> getAuthenticationCapability() {
-		return new CapabilityMatrix<AuthenticatorCapability>();
+		return new CapabilityMatrix<AuthenticatorCapability>(
+				AuthenticatorCapability.ACCOUNT_DETAILS);
+	}
+
+	@Override
+	public AccountDetails getAccountDetails() {
+		return account;
 	}
 
 	protected class UploaderImpl extends
@@ -191,15 +200,32 @@ public class WUploadService extends AbstractHttpService implements Service,
 		}
 
 		@Override
-		public void login() throws IOException {
+		public AccountDetails login() throws IOException {
 			logger.debug("Logging to wupload.com");
 			api.login(credential.getUsername(), credential.getPassword());
-			serviceMode = ServiceMode.NON_PREMIUM;
+			return (account = new AccountDetailsImpl(credential.getUsername()));
 		}
 
 		@Override
 		public void logout() throws IOException {
 			api.logout();
+		}
+	}
+
+	private class AccountDetailsImpl extends AbstractAccountDetails implements
+			PremiumAccountDetails {
+		/**
+		 * @param username
+		 *            the username
+		 */
+		public AccountDetailsImpl(String username) {
+			super(WUploadService.this, username);
+		}
+
+		@Override
+		public boolean isPremium() {
+			// TODO implement this
+			return false;
 		}
 	}
 

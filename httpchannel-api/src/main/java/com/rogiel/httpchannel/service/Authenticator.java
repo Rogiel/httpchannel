@@ -38,6 +38,16 @@ public interface Authenticator<C extends AuthenticatorConfiguration> {
 	 * persistent for the entire service's operation.<br>
 	 * <b>Note</b>: If you want to logout the user, see
 	 * {@link Authenticator#logout()}
+	 * <p>
+	 * Return <code>null</code> is only allowed if
+	 * {@link AuthenticatorCapability#ACCOUNT_DETAILS} is not supported by the
+	 * service.
+	 * 
+	 * @return the authenticated account {@link AccountDetails}. If
+	 *         {@link AuthenticationService#getAuthenticationCapability()}
+	 *         contains {@link AuthenticatorCapability#ACCOUNT_DETAILS}
+	 *         <code>null</code> cannot be returned. Otherwise,
+	 *         <code>null</code> should always be returned.
 	 * 
 	 * @throws IOException
 	 *             if any IO error occur
@@ -51,7 +61,8 @@ public interface Authenticator<C extends AuthenticatorConfiguration> {
 	 *             if the service required an {@link CaptchaService}
 	 *             implementation to be present, but none was available
 	 */
-	void login() throws IOException, AuthenticationInvalidCredentialException,
+	AccountDetails login() throws IOException,
+			AuthenticationInvalidCredentialException,
 			UnsolvableCaptchaServiceException, NoCaptchaServiceException;
 
 	/**

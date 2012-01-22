@@ -25,10 +25,13 @@ import java.util.concurrent.Future;
 import java.util.regex.Pattern;
 
 import com.rogiel.httpchannel.http.PostMultipartRequest;
+import com.rogiel.httpchannel.service.AbstractAccountDetails;
 import com.rogiel.httpchannel.service.AbstractAuthenticator;
 import com.rogiel.httpchannel.service.AbstractHttpDownloader;
 import com.rogiel.httpchannel.service.AbstractHttpService;
 import com.rogiel.httpchannel.service.AbstractUploader;
+import com.rogiel.httpchannel.service.AccountDetails;
+import com.rogiel.httpchannel.service.AccountDetails.PremiumAccountDetails;
 import com.rogiel.httpchannel.service.AuthenticationService;
 import com.rogiel.httpchannel.service.Authenticator;
 import com.rogiel.httpchannel.service.AuthenticatorCapability;
@@ -50,14 +53,15 @@ import com.rogiel.httpchannel.service.channel.LinkedUploadChannel;
 import com.rogiel.httpchannel.service.channel.LinkedUploadChannel.LinkedUploadChannelCloseCallback;
 import com.rogiel.httpchannel.service.config.NullAuthenticatorConfiguration;
 import com.rogiel.httpchannel.service.config.NullDownloaderConfiguration;
-import com.rogiel.httpchannel.service.exception.AuthenticationInvalidCredentialException;
 import com.rogiel.httpchannel.service.exception.DownloadLimitExceededException;
 import com.rogiel.httpchannel.service.exception.DownloadLinkNotFoundException;
 import com.rogiel.httpchannel.service.exception.DownloadNotAuthorizedException;
 import com.rogiel.httpchannel.service.exception.DownloadNotResumableException;
+import com.rogiel.httpchannel.service.exception.AuthenticationInvalidCredentialException;
 import com.rogiel.httpchannel.service.multiupload.MultiUploadUploaderConfiguration.MultiUploadMirrorService;
 import com.rogiel.httpchannel.util.PatternUtils;
 import com.rogiel.httpchannel.util.htmlparser.HTMLPage;
+
 
 /**
  * This service handles uploads to MultiUpload.com.
@@ -192,7 +196,12 @@ public class MultiUploadService extends AbstractHttpService implements Service,
 
 	@Override
 	public CapabilityMatrix<AuthenticatorCapability> getAuthenticationCapability() {
-		return new CapabilityMatrix<AuthenticatorCapability>();
+		return new CapabilityMatrix<AuthenticatorCapability>(AuthenticatorCapability.ACCOUNT_DETAILS);
+	}
+	
+	@Override
+	public AccountDetails getAccountDetails() {
+		return account;
 	}
 
 	protected class UploaderImpl extends
@@ -282,14 +291,14 @@ public class MultiUploadService extends AbstractHttpService implements Service,
 		}
 
 		@Override
-		public void login() throws IOException {
+		public AccountDetails login() throws IOException {
 			final HTMLPage page = post("http://www.multiupload.com/login")
 					.parameter("username", credential.getUsername())
 					.parameter("password", credential.getPassword()).asPage();
 
 			if (!page.containsIgnoreCase(credential.getUsername()))
 				throw new AuthenticationInvalidCredentialException();
-			serviceMode = ServiceMode.NON_PREMIUM;
+			return (account = new AccountDetailsImpl(credential.getUsername()));
 		}
 
 		@Override
@@ -297,6 +306,23 @@ public class MultiUploadService extends AbstractHttpService implements Service,
 			post("http://www.multiupload.com/login").parameter("do", "logout")
 					.request();
 			// TODO check logout status
+		}
+	}
+
+	private class AccountDetailsImpl extends AbstractAccountDetails implements
+			PremiumAccountDetails {
+		/**
+		 * @param username
+		 *            the username
+		 */
+		public AccountDetailsImpl(String username) {
+			super(MultiUploadService.this, username);
+		}
+
+		@Override
+		public boolean isPremium() {
+			// TODO implement this
+			return false;
 		}
 	}
 }

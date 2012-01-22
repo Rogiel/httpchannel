@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import com.rogiel.httpchannel.captcha.Captcha;
 import com.rogiel.httpchannel.captcha.CaptchaService;
 import com.rogiel.httpchannel.captcha.exception.UnsolvableCaptchaServiceException;
+import com.rogiel.httpchannel.service.AccountDetails.PremiumAccountDetails;
 import com.rogiel.httpchannel.service.exception.NoCaptchaServiceException;
 
 /**
@@ -41,9 +42,9 @@ public abstract class AbstractService implements Service {
 	protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	/**
-	 * The currently active service mode
+	 * The currently active account
 	 */
-	protected ServiceMode serviceMode = ServiceMode.UNAUTHENTICATED;
+	protected AccountDetails account;
 
 	/**
 	 * This service {@link CaptchaService} that is used to resolve CAPTCHAS
@@ -52,7 +53,16 @@ public abstract class AbstractService implements Service {
 
 	@Override
 	public ServiceMode getServiceMode() {
-		return serviceMode;
+		if (account == null) {
+			return ServiceMode.UNAUTHENTICATED;
+		} else {
+			if (account.is(PremiumAccountDetails.class)) {
+				return (account.as(PremiumAccountDetails.class).isPremium() ? ServiceMode.PREMIUM
+						: ServiceMode.NON_PREMIUM);
+			} else {
+				return ServiceMode.NON_PREMIUM;
+			}
+		}
 	}
 
 	@Override

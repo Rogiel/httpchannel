@@ -26,7 +26,7 @@ package com.rogiel.httpchannel.service;
  */
 public enum AuthenticatorCapability {
 	/**
-	 * Mark an {@link Authenticator} capable of fetching account information.
+	 * Mark an {@link Authenticator} capable of providing account details.
 	 */
-	FETCH_ACCOUNT_INFORMATION;
+	ACCOUNT_DETAILS;
 }

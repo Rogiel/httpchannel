@@ -1,1 +1,1 @@
-com.rogiel.httpchannel.service.impl.MyService
+${package}.${serviceName}Service

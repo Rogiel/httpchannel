@@ -25,9 +25,14 @@ import java.util.concurrent.Future;
 import com.pmstation.shared.soap.client.ApiException;
 import com.pmstation.shared.soap.client.DesktopAppJax2;
 import com.pmstation.shared.soap.client.DesktopAppJax2Service;
+import com.rogiel.httpchannel.service.AbstractAccountDetails;
 import com.rogiel.httpchannel.service.AbstractAuthenticator;
 import com.rogiel.httpchannel.service.AbstractHttpService;
 import com.rogiel.httpchannel.service.AbstractUploader;
+import com.rogiel.httpchannel.service.AccountDetails;
+import com.rogiel.httpchannel.service.AccountDetails.DiskQuotaAccountDetails;
+import com.rogiel.httpchannel.service.AccountDetails.FilesizeLimitAccountDetails;
+import com.rogiel.httpchannel.service.AccountDetails.PremiumAccountDetails;
 import com.rogiel.httpchannel.service.AuthenticationService;
 import com.rogiel.httpchannel.service.Authenticator;
 import com.rogiel.httpchannel.service.AuthenticatorCapability;
@@ -45,7 +50,6 @@ import com.rogiel.httpchannel.service.channel.LinkedUploadChannel.LinkedUploadCh
 import com.rogiel.httpchannel.service.config.NullAuthenticatorConfiguration;
 import com.rogiel.httpchannel.service.config.NullUploaderConfiguration;
 import com.rogiel.httpchannel.service.exception.AuthenticationInvalidCredentialException;
-import com.rogiel.httpchannel.service.exception.AuthenticationServiceException;
 import com.rogiel.httpchannel.service.exception.ChannelServiceException;
 import com.rogiel.httpchannel.service.exception.DownloadLinkNotFoundException;
 import com.rogiel.httpchannel.util.htmlparser.HTMLPage;
@@ -66,9 +70,6 @@ public class FourSharedService extends AbstractHttpService implements Service,
 
 	private final DesktopAppJax2 api = new DesktopAppJax2Service()
 			.getDesktopAppJax2Port();
-
-	private String username;
-	private String password;
 
 	@Override
 	public ServiceID getServiceID() {
@@ -110,16 +111,16 @@ public class FourSharedService extends AbstractHttpService implements Service,
 
 	@Override
 	public long getMaximumFilesize() {
-		try {
-			final long free = api.getFreeSpace(username, password);
-			final long max = api.getMaxFileSize(username, password);
-			if (max < free)
-				return max;
-			else
-				return free;
-		} catch (ApiException e) {
-			return 0;
-		}
+		final long max = account.as(FilesizeLimitAccountDetails.class)
+				.getMaximumFilesize();
+		if(max <= -1)
+			return -1;
+		final long free = account.as(DiskQuotaAccountDetails.class)
+				.getFreeDiskSpace();
+		if (max < free)
+			return max;
+		else
+			return free;
 	}
 
 	@Override
@@ -154,10 +155,16 @@ public class FourSharedService extends AbstractHttpService implements Service,
 
 	@Override
 	public CapabilityMatrix<AuthenticatorCapability> getAuthenticationCapability() {
-		return new CapabilityMatrix<AuthenticatorCapability>();
+		return new CapabilityMatrix<AuthenticatorCapability>(
+				AuthenticatorCapability.ACCOUNT_DETAILS);
 	}
 
-	protected class UploaderImpl extends
+	@Override
+	public AccountDetails getAccountDetails() {
+		return account;
+	}
+
+	private class UploaderImpl extends
 			AbstractUploader<NullUploaderConfiguration> implements
 			Uploader<NullUploaderConfiguration>,
 			LinkedUploadChannelCloseCallback {
@@ -172,14 +179,14 @@ public class FourSharedService extends AbstractHttpService implements Service,
 		public UploadChannel openChannel() throws IOException {
 			try {
 				logger.debug("Starting upload to 4shared.com");
-				final String sessionID = api.createUploadSessionKey(username,
-						password, -1);
+				final String sessionID = api.createUploadSessionKey(
+						account.getUsername(), getPassword(), -1);
 				logger.debug("SessionID: {}", sessionID);
 				if (sessionID == null || sessionID.length() == 0)
 					throw new ChannelServiceException("SessionID is invalid");
 
-				final long datacenterID = api.getNewFileDataCenter(username,
-						password);
+				final long datacenterID = api.getNewFileDataCenter(
+						account.getUsername(), getPassword());
 				logger.debug("DatacenterID: {}", datacenterID);
 				if (datacenterID <= 0)
 					throw new ChannelServiceException("DatacenterID is invalid");
@@ -205,7 +212,8 @@ public class FourSharedService extends AbstractHttpService implements Service,
 			try {
 				final long linkID = Long.parseLong(uploadFuture.get()
 						.getInputValueById("uploadedFileId"));
-				return api.getFileDownloadLink(username, password, linkID);
+				return api.getFileDownloadLink(account.getUsername(),
+						getPassword(), linkID);
 			} catch (InterruptedException e) {
 				return null;
 			} catch (ExecutionException e) {
@@ -216,7 +224,7 @@ public class FourSharedService extends AbstractHttpService implements Service,
 		}
 	}
 
-	protected class AuthenticatorImpl extends
+	private class AuthenticatorImpl extends
 			AbstractAuthenticator<NullAuthenticatorConfiguration> implements
 			Authenticator<NullAuthenticatorConfiguration> {
 		public AuthenticatorImpl(Credential credential,
@@ -225,31 +233,90 @@ public class FourSharedService extends AbstractHttpService implements Service,
 		}
 
 		@Override
-		public void login() throws IOException {
+		public AccountDetails login() throws IOException {
 			logger.debug("Logging to 4shared.com");
 
 			final String response = api.login(credential.getUsername(),
 					credential.getPassword());
-			username = credential.getUsername();
-			password = credential.getPassword();
-
-			try {
-				if (api.isAccountPremium(username, password))
-					serviceMode = ServiceMode.PREMIUM;
-				else
-					serviceMode = ServiceMode.NON_PREMIUM;
-			} catch (ApiException e) {
-				throw new AuthenticationServiceException(e);
-			}
 
 			if (!response.isEmpty())
 				throw new AuthenticationInvalidCredentialException();
+			return (account = new AccountDetailsImpl(credential.getUsername(),
+					credential.getPassword()));
 		}
 
 		@Override
 		public void logout() throws IOException {
-			username = null;
-			password = null;
+			account = null;
+		}
+	}
+
+	private class AccountDetailsImpl extends AbstractAccountDetails implements
+			PremiumAccountDetails, DiskQuotaAccountDetails,
+			FilesizeLimitAccountDetails {
+		private final String password;
+
+		private AccountDetailsImpl(String username, String password) {
+			super(FourSharedService.this, username);
+			this.password = password;
+		}
+
+		@Override
+		public boolean isActive() {
+			try {
+				return api.isAccountActive(username, password);
+			} catch (ApiException e) {
+				return false;
+			}
+		}
+
+		@Override
+		public boolean isPremium() {
+			try {
+				return api.isAccountPremium(username, password);
+			} catch (ApiException e) {
+				return false;
+			}
+		}
+
+		@Override
+		public long getFreeDiskSpace() {
+			try {
+				return api.getFreeSpace(username, password);
+			} catch (ApiException e) {
+				return -1;
+			}
+		}
+
+		@Override
+		public long getUsedDiskSpace() {
+			return getMaximumDiskSpace() - getFreeDiskSpace();
+		}
+
+		@Override
+		public long getMaximumDiskSpace() {
+			try {
+				return api.getSpaceLimit(username, password);
+			} catch (ApiException e) {
+				return -1;
+			}
+		}
+
+		@Override
+		public long getMaximumFilesize() {
+			try {
+				return api.getMaxFileSize(username, password);
+			} catch (ApiException e) {
+				return -1;
+			}
+		}
+	}
+
+	private String getPassword() {
+		if (account == null) {
+			return null;
+		} else {
+			return ((AccountDetailsImpl) account).password;
 		}
 	}
 

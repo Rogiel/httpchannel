@@ -26,9 +26,11 @@ import java.util.regex.Pattern;
 import com.rogiel.httpchannel.captcha.ImageCaptcha;
 import com.rogiel.httpchannel.captcha.ReCaptchaExtractor;
 import com.rogiel.httpchannel.captcha.exception.UnsolvableCaptchaServiceException;
+import com.rogiel.httpchannel.service.AbstractAccountDetails;
 import com.rogiel.httpchannel.service.AbstractAuthenticator;
 import com.rogiel.httpchannel.service.AbstractHttpService;
 import com.rogiel.httpchannel.service.AbstractUploader;
+import com.rogiel.httpchannel.service.AccountDetails;
 import com.rogiel.httpchannel.service.AuthenticationService;
 import com.rogiel.httpchannel.service.Authenticator;
 import com.rogiel.httpchannel.service.AuthenticatorCapability;
@@ -145,10 +147,15 @@ public class DepositFilesService extends AbstractHttpService implements
 
 	@Override
 	public CapabilityMatrix<AuthenticatorCapability> getAuthenticationCapability() {
-		return new CapabilityMatrix<AuthenticatorCapability>();
+		return new CapabilityMatrix<AuthenticatorCapability>(AuthenticatorCapability.ACCOUNT_DETAILS);
+	}
+	
+	@Override
+	public AccountDetails getAccountDetails() {
+		return account;
 	}
 
-	protected class UploaderImpl extends
+	private class UploaderImpl extends
 			AbstractUploader<NullUploaderConfiguration> implements
 			Uploader<NullUploaderConfiguration>,
 			LinkedUploadChannelCloseCallback {
@@ -195,7 +202,7 @@ public class DepositFilesService extends AbstractHttpService implements
 		}
 	}
 
-	protected class AuthenticatorImpl extends
+	private class AuthenticatorImpl extends
 			AbstractAuthenticator<NullAuthenticatorConfiguration> implements
 			Authenticator<NullAuthenticatorConfiguration> {
 		public AuthenticatorImpl(Credential credential,
@@ -204,7 +211,7 @@ public class DepositFilesService extends AbstractHttpService implements
 		}
 
 		@Override
-		public void login() throws IOException {
+		public AccountDetails login() throws IOException {
 			logger.debug("Authenticating into depositfiles.com");
 			HTMLPage page = post("http://depositfiles.com/login.php?return=%2F")
 					.parameter("go", true)
@@ -234,8 +241,7 @@ public class DepositFilesService extends AbstractHttpService implements
 				captchaService.valid(captcha);
 				if (!page.contains(VALID_LOGIN_REDIRECT))
 					throw new AuthenticationInvalidCredentialException();
-				serviceMode = ServiceMode.NON_PREMIUM;
-				return;
+				return (account = new AccountDetailsImpl(credential.getUsername()));
 			}
 		}
 
@@ -244,6 +250,16 @@ public class DepositFilesService extends AbstractHttpService implements
 			post("http://www.uploadking.com/login").parameter("do", "logout")
 					.request();
 			// TODO check logout status
+		}
+	}
+
+	private class AccountDetailsImpl extends AbstractAccountDetails {
+		/**
+		 * @param username
+		 *            the account username
+		 */
+		public AccountDetailsImpl(String username) {
+			super(DepositFilesService.this, username);
 		}
 	}
 }
