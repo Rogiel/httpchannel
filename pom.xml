@@ -22,6 +22,11 @@
 	</scm>
 	<distributionManagement>
 		<downloadUrl>http://github.com/seedbox/httpchannel/downloads</downloadUrl>
+		<site>
+			<id>httpchannel-site</id>
+			<name>HttpChannel site</name>
+			<url>gitsite:git@github.com/seedbox/httpchannel.github.com.git</url>
+		</site>
 		<repository>
 			<id>sonatype-nexus-staging</id>
 			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
@@ -76,6 +81,25 @@
 
 	<build>
 		<defaultGoal>package</defaultGoal>
+
+		<extensions>
+			<extension>
+				<groupId>org.apache.maven.scm</groupId>
+				<artifactId>maven-scm-provider-gitexe</artifactId>
+				<version>1.6</version>
+			</extension>
+			<extension>
+				<groupId>org.apache.maven.scm</groupId>
+				<artifactId>maven-scm-manager-plexus</artifactId>
+				<version>1.6</version>
+			</extension>
+			<extension>
+				<groupId>org.kathrynhuxtable.maven.wagon</groupId>
+				<artifactId>wagon-gitsite</artifactId>
+				<version>0.3.1</version>
+			</extension>
+		</extensions>
+
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -128,7 +152,6 @@
 				<artifactId>maven-site-plugin</artifactId>
 				<version>3.0</version>
 				<configuration>
-					<skipDeploy>true</skipDeploy> <!-- site is deployed with github plugin -->
 					<outputEncoding>UTF-8</outputEncoding>
 					<reportPlugins>
 						<plugin>
@@ -166,26 +189,6 @@
 						</plugin>
 					</reportPlugins>
 				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>com.github.github</groupId>
-				<artifactId>site-maven-plugin</artifactId>
-				<version>0.4</version>
-				<configuration>
-					<message>Creating ${project.artifactId} site for ${project.version}</message>
-					<repositoryOwner>seedbox</repositoryOwner>
-					<repositoryName>httpchannel.github.com</repositoryName>
-					<merge>true</merge>
-					<path>/</path>
-				</configuration>
-				<executions>
-					<execution>
-						<phase>site-deploy</phase>
-						<goals>
-							<goal>site</goal>
-						</goals>
-					</execution>
-				</executions>
 			</plugin>
 			<plugin>
 				<groupId>com.github.github</groupId>
@@ -228,17 +231,6 @@
 				</executions>
 			</plugin>
 		</plugins>
-		<pluginManagement>
-			<plugins>
-				<plugin>
-					<groupId>com.github.github</groupId>
-					<artifactId>site-maven-plugin</artifactId>
-					<configuration>
-						<path>/${project.artifactId}</path>
-					</configuration>
-				</plugin>
-			</plugins>
-		</pluginManagement>
 	</build>
 
 	<profiles>

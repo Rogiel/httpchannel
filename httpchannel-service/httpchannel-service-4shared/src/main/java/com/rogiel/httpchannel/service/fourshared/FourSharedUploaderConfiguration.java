@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.httpchannel.service.fourshared;
+package com.rogiel.httpchannel.service.fourshared;
 
 import com.rogiel.httpchannel.service.AbstractUploaderConfiguration;
 import com.rogiel.httpchannel.service.Uploader.DescriptionableUploaderConfiguration;

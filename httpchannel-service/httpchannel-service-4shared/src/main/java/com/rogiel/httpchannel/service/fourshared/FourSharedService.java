@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.httpchannel.service.fourshared;
+package com.rogiel.httpchannel.service.fourshared;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutionException;

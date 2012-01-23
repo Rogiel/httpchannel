@@ -1,7 +1,7 @@
 /**
  * 
  */
-package org.httpchannel.service.fourshared;
+package com.rogiel.httpchannel.service.fourshared;
 
 import java.io.IOException;
 import java.net.URI;
@@ -15,6 +15,7 @@ import junit.framework.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.rogiel.httpchannel.service.fourshared.FourSharedService;
 import com.rogiel.httpchannel.service.helper.AuthenticationServices;
 import com.rogiel.httpchannel.util.ChannelUtils;
 
