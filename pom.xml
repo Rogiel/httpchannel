@@ -174,7 +174,7 @@
 				<configuration>
 					<message>Creating ${project.artifactId} site for ${project.version}</message>
 					<repositoryOwner>seedbox</repositoryOwner>
-					<repositoryOwner>httpchannel.github.com</repositoryOwner>
+					<repositoryName>httpchannsel.github.com</repositoryName>
 				</configuration>
 				<executions>
 					<execution>
