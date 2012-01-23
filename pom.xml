@@ -208,7 +208,7 @@
 				<version>2.2.2</version>
 				<configuration>
 					<autoVersionSubmodules>true</autoVersionSubmodules>
-					<goals>deploy</goals><!-- we have to force site-deploy -->
+					<goals>deploy site-deploy</goals><!-- we have to force site-deploy -->
 				</configuration>
 			</plugin>
 			<plugin>
