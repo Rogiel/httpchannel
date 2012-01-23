@@ -31,6 +31,8 @@ package com.rogiel.httpchannel.service;
  * quota</li>
  * <li>{@link BandwidthQuotaAccountDetails} - for services that have limited
  * bandwidth quota</li>
+ * <li>{@link FilesizeLimitAccountDetails} - for services that have limited
+ * file sizes depending on the account</li>
  * </ul>
  * You should not try to cast instances by yourself, instead they should be
  * safely casted as such:
