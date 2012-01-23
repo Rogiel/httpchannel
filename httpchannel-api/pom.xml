@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<artifactId>httpchannel</artifactId>
@@ -10,9 +11,8 @@
 	<name>HttpChannel/API</name>
 	<description>Module that defines the HttpChannel API. HttpChannels abstract complex download and upload steps into a simple and easy to use NIO Channel. NIO Channels can be wrapped into an InputStream or OutputStream and used in any way you may find possible to. Aside from that, Channels can be used natively in most next-gen libraries, meaning that you don't even need to wrap anything, just start writing or reading data to or from the channel wth a ByteBuffer.
 
-
-
 Anyone using the library should try to rely on code from this module only and, only if necessary, on configuration classes that are implementation specific. Relying on any other resource or class is considered an error and should NOT be done.
 
-One of the most interesting usages of channels for uploads and download is that you can easily copy data straight from one channel to the other, with less than 10 lines of code! Also, channels allows the implementation of a "tee" mechanism, in which data redden from a single channel can be copied to several other channels on the fly!</description>
+One of the most interesting usages of channels for uploads and download is that you can easily copy data straight from one channel to the other, with less than 10 lines of code! Also, channels allows the implementation of a &quot;tee&quot; mechanism, in which data redden from a single channel can be copied to several other channels on the fly!</description>
+	<url>http://httpchannel.github.com/httpchannel-api/</url>
 </project>
