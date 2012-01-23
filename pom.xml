@@ -175,6 +175,8 @@
 					<message>Creating ${project.artifactId} site for ${project.version}</message>
 					<repositoryOwner>seedbox</repositoryOwner>
 					<repositoryName>httpchannel.github.com</repositoryName>
+					<merge>true</merge>
+					<path>/</path>
 				</configuration>
 				<executions>
 					<execution>
@@ -226,6 +228,17 @@
 				</executions>
 			</plugin>
 		</plugins>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>com.github.github</groupId>
+					<artifactId>site-maven-plugin</artifactId>
+					<configuration>
+						<path>/${project.artifactId}</path>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
 	</build>
 
 	<profiles>
