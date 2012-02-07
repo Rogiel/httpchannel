@@ -19,20 +19,26 @@
 package com.rogiel.httpchannel.wirecopy;
 
 import java.io.IOException;
+import java.net.URI;
 import java.nio.file.Paths;
+import java.util.List;
 
 import org.junit.Test;
 
 import com.rogiel.httpchannel.copy.ChannelCopy;
-import com.rogiel.httpchannel.service.megaupload.MegaUploadService;
-import com.rogiel.httpchannel.service.multiupload.MultiUploadService;
+import com.rogiel.httpchannel.service.ServiceID;
+import com.rogiel.httpchannel.service.helper.Services;
 
 public class ChannelCopyTest {
 	@Test
 	public void testWireCopy() throws IOException {
 		final ChannelCopy copy = new ChannelCopy(Paths.get("pom.xml"));
-		copy.addOutput(new MegaUploadService());
-		copy.addOutput(new MultiUploadService());
-		System.out.println(copy.call());
+
+		copy.addOutput(Services.getUploadService(ServiceID.create("megaupload")));
+		copy.addOutput(Services.getUploadService(ServiceID.create("hotfile")));
+		copy.addOutput(Services.getUploadService(ServiceID.create("depositfiles")));
+
+		final List<URI> downloadUris = copy.call();
+		System.out.println(downloadUris);
 	}
 }
