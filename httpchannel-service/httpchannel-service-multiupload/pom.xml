@@ -9,5 +9,5 @@
 	<artifactId>httpchannel-service-multiupload</artifactId>
 	<groupId>com.rogiel.httpchannel.services</groupId>
 	<name>HttpChannel/Service/MultiUpload</name>
-	<description>Provides upload access to multiupload.com</description>
+	<description>Provides upload access to multiupload.nl</description>
 </project>

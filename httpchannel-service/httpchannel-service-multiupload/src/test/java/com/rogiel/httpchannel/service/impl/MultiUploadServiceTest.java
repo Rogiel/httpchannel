@@ -61,7 +61,7 @@ public class MultiUploadServiceTest {
 	public void testDownloader() throws IOException, NoSuchAlgorithmException {
 		final byte[] data = ChannelUtils
 				.toByteArray(((DownloadService<?>) service).getDownloader(
-						URI.create("http://www.multiupload.com/TJOYWB4JEW"))
+						URI.create("http://www.multiupload.nl/ITPPI2YSYX"))
 						.openChannel());
 		assertChecksum("Downloaded data checksum did not matched", "SHA1",
 				data, EXPECTED_FULL_CHECKSUM);
@@ -72,7 +72,7 @@ public class MultiUploadServiceTest {
 			NoSuchAlgorithmException {
 		final byte[] data = ChannelUtils
 				.toByteArray(((DownloadService<?>) service).getDownloader(
-						URI.create("http://www.multiupload.com/TJOYWB4JEW"))
+						URI.create("http://www.multiupload.nl/ITPPI2YSYX"))
 						.openChannel(50));
 		assertChecksum("Downloaded data checksum did not matched", "SHA1",
 				data, EXPECTED_RESUME_CHECKSUM);

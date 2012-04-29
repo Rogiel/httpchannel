@@ -76,9 +76,9 @@ public class HotFileServiceTest {
 
 		final Properties properties = new Properties();
 		properties.load(new FileInputStream(
-				"src/test/resources/login.properties"));
-		VALID_USERNAME = properties.getProperty("username");
-		VALID_PASSWORD = properties.getProperty("password");
+				"../src/test/resources/login.properties"));
+		VALID_USERNAME = properties.getProperty("hotfile.username");
+		VALID_PASSWORD = properties.getProperty("hotfile.password");
 	}
 
 	@Test

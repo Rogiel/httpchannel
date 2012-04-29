@@ -64,9 +64,9 @@ import com.rogiel.httpchannel.util.htmlparser.HTMLPage;
 
 
 /**
- * This service handles uploads to MultiUpload.com.
+ * This service handles uploads to MultiUpload.nl.
  * 
- * @author <a href="http://www.rogiel.com/">Rogiel</a>
+ * @author <a href="http://www.rogiel.nl/">Rogiel</a>
  * @since 1.0
  */
 public class MultiUploadService extends AbstractHttpService implements Service,
@@ -78,15 +78,15 @@ public class MultiUploadService extends AbstractHttpService implements Service,
 	 */
 	public static final ServiceID SERVICE_ID = ServiceID.create("multiupload");
 
-	// http://www52.multiupload.com/upload/?UPLOAD_IDENTIFIER=73132658610746
+	// http://www52.multiupload.nl/upload/?UPLOAD_IDENTIFIER=73132658610746
 	private static final Pattern UPLOAD_URI_PATTERN = Pattern
-			.compile("http://www([0-9]*)\\.multiupload\\.com/upload/\\?UPLOAD_IDENTIFIER=[0-9]*");
+			.compile("http://www([0-9]*)\\.multiupload\\.nl/upload/\\?UPLOAD_IDENTIFIER=[0-9]*");
 	private static final Pattern DOWNLOAD_ID_PATTERN = Pattern
 			.compile("\"downloadid\":\"([0-9a-zA-Z]*)\"");
 	private static final Pattern DOWNLOAD_LINK_PATTERN = Pattern
-			.compile("http://(www\\.)?multiupload\\.com/([0-9a-zA-Z]*)");
+			.compile("http://(www\\.)?multiupload\\.nl/([0-9a-zA-Z]*)");
 	private static final Pattern DIRECT_DOWNLOAD_LINK_PATTERN = Pattern
-			.compile("http://www[0-9]*\\.multiupload\\.com(:[0-9]*)?/files/([0-9a-zA-Z]*)/(.*)");
+			.compile("http://www[0-9]*\\.multiupload\\.nl(:[0-9]*)?/files/([0-9a-zA-Z]*)/(.*)");
 
 	@Override
 	public ServiceID getServiceID() {
@@ -217,8 +217,8 @@ public class MultiUploadService extends AbstractHttpService implements Service,
 
 		@Override
 		public UploadChannel openChannel() throws IOException {
-			logger.debug("Starting upload to multiupload.com");
-			final String uri = get("http://www.multiupload.com/").asPage()
+			logger.debug("Starting upload to multiupload.nl");
+			final String uri = get("http://www.multiupload.nl/").asPage()
 					.findFormAction(UPLOAD_URI_PATTERN);
 			logger.debug("Upload URI is {}", uri);
 			final LinkedUploadChannel channel = createLinkedChannel(this);
@@ -247,10 +247,10 @@ public class MultiUploadService extends AbstractHttpService implements Service,
 			try {
 				final String linkId = PatternUtils.find(DOWNLOAD_ID_PATTERN,
 						uploadFuture.get(), 1);
-				logger.debug("Upload to multiupload.com finished");
+				logger.debug("Upload to multiupload.nl finished");
 				if (linkId == null)
 					return null;
-				return new StringBuilder("http://www.multiupload.com/").append(
+				return new StringBuilder("http://www.multiupload.nl/").append(
 						linkId).toString();
 			} catch (InterruptedException e) {
 				return null;
@@ -292,7 +292,7 @@ public class MultiUploadService extends AbstractHttpService implements Service,
 
 		@Override
 		public AccountDetails login() throws IOException {
-			final HTMLPage page = post("http://www.multiupload.com/login")
+			final HTMLPage page = post("http://www.multiupload.nl/login")
 					.parameter("username", credential.getUsername())
 					.parameter("password", credential.getPassword()).asPage();
 
@@ -303,7 +303,7 @@ public class MultiUploadService extends AbstractHttpService implements Service,
 
 		@Override
 		public void logout() throws IOException {
-			post("http://www.multiupload.com/login").parameter("do", "logout")
+			post("http://www.multiupload.nl/login").parameter("do", "logout")
 					.request();
 			// TODO check logout status
 		}

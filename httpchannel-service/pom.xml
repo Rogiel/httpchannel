@@ -14,8 +14,6 @@
 	<description>Parent module that all service implementations should inherit</description>
 
 	<modules>
-		<module>httpchannel-service-archetype</module>
-		<module>httpchannel-service-megaupload</module>
 		<module>httpchannel-service-multiupload</module>
 		<module>httpchannel-service-uploadking</module>
 		<module>httpchannel-service-uploadhere</module>

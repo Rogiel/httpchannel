@@ -54,8 +54,9 @@ public class MultiUploadUploaderConfiguration extends
 	 * @author <a href="http://www.rogiel.com">Rogiel</a>
 	 */
 	public enum MultiUploadMirrorService {
-		MEGAUPLOAD(1), UPLOADKING(16), DEPOSIT_FILES(7), HOTFILE(9), UPLOAD_HERE(
-				17), ZSHARE(6), FILE_SONIC(15), FILE_SERVE(18), WUPLOAD(19);
+		MEGAUPLOAD(1), UPLOADKING(16), DEPOSIT_FILES(7), HOTFILE(9), TWO_SHARED(
+				11), UPLOAD_HERE(17), ZSHARE(6), FILE_SONIC(15), FILE_SERVE(18), PUT_LOCKER(
+				19), ORON(20), FILE_FACTORY(21), FREAK_SHARED(23);
 
 		/**
 		 * The internal multiupload id
