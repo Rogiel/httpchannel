@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.regex.Pattern;
 
+import com.rogiel.httpchannel.captcha.ImageCaptcha;
 import com.rogiel.httpchannel.http.HttpContext;
 import com.rogiel.httpchannel.util.PatternUtils;
 import com.rogiel.httpchannel.util.htmlparser.HTMLPage;

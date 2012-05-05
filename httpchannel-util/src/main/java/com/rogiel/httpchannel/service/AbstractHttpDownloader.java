@@ -29,6 +29,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.rogiel.httpchannel.http.Request;
+import com.rogiel.httpchannel.service.DownloadListener;
+import com.rogiel.httpchannel.service.DownloadService;
+import com.rogiel.httpchannel.service.Downloader;
 import com.rogiel.httpchannel.service.Downloader.DownloaderConfiguration;
 import com.rogiel.httpchannel.service.channel.InputStreamDownloadChannel;
 import com.rogiel.httpchannel.service.exception.DownloadLinkNotFoundException;

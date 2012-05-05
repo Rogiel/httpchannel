@@ -8,6 +8,9 @@
 		<relativePath>..</relativePath>
 	</parent>
 	<artifactId>httpchannel-api</artifactId>
+	<packaging>jar</packaging>
+	
+
 	<name>HttpChannel/API</name>
 	<description>Module that defines the HttpChannel API. HttpChannels abstract complex download and upload steps into a simple and easy to use NIO Channel. NIO Channels can be wrapped into an InputStream or OutputStream and used in any way you may find possible to. Aside from that, Channels can be used natively in most next-gen libraries, meaning that you don't even need to wrap anything, just start writing or reading data to or from the channel wth a ByteBuffer.
 

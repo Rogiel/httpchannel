@@ -18,6 +18,8 @@
  */
 package com.rogiel.httpchannel.service;
 
+import com.rogiel.httpchannel.service.Authenticator;
+import com.rogiel.httpchannel.service.Credential;
 import com.rogiel.httpchannel.service.Authenticator.AuthenticatorConfiguration;
 
 /**

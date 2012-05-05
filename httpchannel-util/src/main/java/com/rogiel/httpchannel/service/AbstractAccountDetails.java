@@ -3,6 +3,9 @@
  */
 package com.rogiel.httpchannel.service;
 
+import com.rogiel.httpchannel.service.AccountDetails;
+import com.rogiel.httpchannel.service.AuthenticationService;
+
 /**
  * @author <a href="http://www.rogiel.com">Rogiel</a>
  * 

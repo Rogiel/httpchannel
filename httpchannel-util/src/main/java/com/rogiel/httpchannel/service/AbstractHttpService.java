@@ -25,6 +25,8 @@ import com.rogiel.httpchannel.http.GetRequest;
 import com.rogiel.httpchannel.http.HttpContext;
 import com.rogiel.httpchannel.http.PostMultipartRequest;
 import com.rogiel.httpchannel.http.PostRequest;
+import com.rogiel.httpchannel.service.AbstractService;
+import com.rogiel.httpchannel.service.Service;
 import com.rogiel.httpchannel.service.channel.LinkedUploadChannel;
 import com.rogiel.httpchannel.service.exception.UploadServiceException;
 

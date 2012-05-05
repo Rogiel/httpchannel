@@ -18,6 +18,8 @@
  */
 package com.rogiel.httpchannel.service;
 
+import com.rogiel.httpchannel.service.UploadService;
+import com.rogiel.httpchannel.service.Uploader;
 import com.rogiel.httpchannel.service.Uploader.UploaderConfiguration;
 import com.rogiel.httpchannel.service.channel.LinkedUploadChannel;
 import com.rogiel.httpchannel.service.channel.LinkedUploadChannel.LinkedUploadChannelCloseCallback;

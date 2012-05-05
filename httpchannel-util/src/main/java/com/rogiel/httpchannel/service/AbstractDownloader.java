@@ -22,6 +22,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 
+import com.rogiel.httpchannel.service.DownloadChannel;
+import com.rogiel.httpchannel.service.DownloadListener;
+import com.rogiel.httpchannel.service.DownloadService;
+import com.rogiel.httpchannel.service.Downloader;
 import com.rogiel.httpchannel.service.Downloader.DownloaderConfiguration;
 import com.rogiel.httpchannel.service.channel.InputStreamDownloadChannel;
 import com.rogiel.httpchannel.service.exception.DownloadLimitExceededException;

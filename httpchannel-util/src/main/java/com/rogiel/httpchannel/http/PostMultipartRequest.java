@@ -21,6 +21,7 @@ package com.rogiel.httpchannel.http;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 
+import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.mime.MultipartEntity;
@@ -35,12 +36,20 @@ public class PostMultipartRequest extends PostRequest {
 
 	public PostMultipartRequest(HttpContext ctx, String uri) {
 		super(ctx, uri);
-		this.entity = new MultipartEntity();
+		this.entity = new MultipartEntity() {
+			@Override
+			protected String generateBoundary() {
+				return "---------------------------9849436581144108930470211272";
+			}
+		};
 	}
 
 	@Override
 	public HttpResponse request() throws IOException {
 		final HttpPost post = new HttpPost(uri);
+		for (final Header header : headers) {
+			post.addHeader(header);
+		}
 		post.setEntity(entity);
 		return ctx.client.execute(post);
 	}

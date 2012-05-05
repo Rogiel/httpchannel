@@ -1,0 +1,23 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: HttpChannel API
+Bundle-SymbolicName: com.rogiel.httpchannel;singleton:=true
+Bundle-Version: 1.0.0
+Export-Package: com.rogiel.httpchannel.captcha,
+ com.rogiel.httpchannel.captcha.exception;uses:="com.rogiel.httpchannel.service.exception",
+ com.rogiel.httpchannel.channel;uses:="com.rogiel.httpchannel.service",
+ com.rogiel.httpchannel.osgi;uses:="org.osgi.framework",
+ com.rogiel.httpchannel.service;uses:="com.rogiel.httpchannel.captcha,org.slf4j",
+ com.rogiel.httpchannel.service.config;uses:="com.rogiel.httpchannel.service",
+ com.rogiel.httpchannel.service.exception,
+ com.rogiel.httpchannel.service.helper;uses:="com.rogiel.httpchannel.service"
+Bundle-Activator: com.rogiel.httpchannel.osgi.Activator
+Import-Package: com.rogiel.httpchannel.captcha,
+ com.rogiel.httpchannel.captcha.exception,
+ com.rogiel.httpchannel.channel,
+ com.rogiel.httpchannel.osgi,
+ com.rogiel.httpchannel.service,
+ com.rogiel.httpchannel.service.config,
+ com.rogiel.httpchannel.service.exception,
+ com.rogiel.httpchannel.service.helper, org.osgi.framework
+ 

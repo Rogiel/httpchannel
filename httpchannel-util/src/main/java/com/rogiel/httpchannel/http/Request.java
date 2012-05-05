@@ -20,11 +20,15 @@ package com.rogiel.httpchannel.http;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 
+import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
+import org.apache.http.message.BasicHeader;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
@@ -34,12 +38,19 @@ import com.rogiel.httpchannel.util.htmlparser.HTMLPage;
 public abstract class Request {
 	private static final JSONParser jsonParser = new JSONParser();
 	
+	protected final List<Header> headers = new ArrayList<>();
+	
 	protected final HttpContext ctx;
 	protected final String uri;
 
 	public Request(HttpContext ctx, String uri) {
 		this.ctx = ctx;
 		this.uri = uri;
+	}
+	
+	public Request header(String name, String value) {
+		headers.add(new BasicHeader(name, value));
+		return this;
 	}
 
 	public abstract HttpResponse request() throws IOException;

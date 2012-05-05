@@ -20,8 +20,8 @@ package com.rogiel.httpchannel.service.helper;
 
 import com.rogiel.httpchannel.service.AuthenticationService;
 import com.rogiel.httpchannel.service.Authenticator;
-import com.rogiel.httpchannel.service.Authenticator.AuthenticatorConfiguration;
 import com.rogiel.httpchannel.service.Credential;
+import com.rogiel.httpchannel.service.Authenticator.AuthenticatorConfiguration;
 
 /**
  * @author <a href="http://www.rogiel.com">Rogiel</a>
