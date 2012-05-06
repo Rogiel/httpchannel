@@ -108,9 +108,7 @@ public class IFileService extends AbstractHttpService implements Service,
 	@Override
 	public CapabilityMatrix<UploaderCapability> getUploadCapabilities() {
 		return new CapabilityMatrix<UploaderCapability>(
-				UploaderCapability.UNAUTHENTICATED_UPLOAD,
-				UploaderCapability.NON_PREMIUM_ACCOUNT_UPLOAD,
-				UploaderCapability.PREMIUM_ACCOUNT_UPLOAD);
+				UploaderCapability.UNAUTHENTICATED_UPLOAD);
 	}
 
 	protected class UploaderImpl extends

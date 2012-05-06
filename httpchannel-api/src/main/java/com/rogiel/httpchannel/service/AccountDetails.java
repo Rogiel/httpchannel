@@ -31,8 +31,8 @@ package com.rogiel.httpchannel.service;
  * quota</li>
  * <li>{@link BandwidthQuotaAccountDetails} - for services that have limited
  * bandwidth quota</li>
- * <li>{@link FilesizeLimitAccountDetails} - for services that have limited
- * file sizes depending on the account</li>
+ * <li>{@link FilesizeLimitAccountDetails} - for services that have limited file
+ * sizes depending on the account</li>
  * </ul>
  * You should not try to cast instances by yourself, instead they should be
  * safely casted as such:
@@ -165,5 +165,35 @@ public interface AccountDetails {
 		 *         no limit
 		 */
 		long getMaximumFilesize();
+	}
+
+	/**
+	 * Service accounts that has referring support
+	 * 
+	 * @author <a href="http://www.rogiel.com">Rogiel</a>
+	 */
+	public interface ReferralAccountDetails extends AccountDetails {
+		/**
+		 * @return the number of members referred
+		 */
+		int getMembersReferred();
+
+		/**
+		 * @return the account referral URL
+		 */
+		String getReferralURL();
+	}
+
+	/**
+	 * Service account that has points attached to it (normally acquired through
+	 * downloads of files from the account)
+	 * 
+	 * @author <a href="http://www.rogiel.com">Rogiel</a>
+	 */
+	public interface PointAccountDetails extends AccountDetails {
+		/**
+		 * @return the number of point on the account
+		 */
+		int getPoints();
 	}
 }

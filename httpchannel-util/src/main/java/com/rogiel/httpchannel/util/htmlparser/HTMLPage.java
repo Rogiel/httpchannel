@@ -75,6 +75,10 @@ public class HTMLPage {
 		return filtered;
 	}
 
+	public boolean containsPlain(Pattern pattern) {
+		return pattern.matcher(asString()).find();
+	}
+
 	public boolean contains(final Pattern pattern) {
 		return !filter(Node.class, new ContainsFilter(pattern)).isEmpty();
 	}
@@ -88,6 +92,21 @@ public class HTMLPage {
 				Node.class,
 				new ContainsInLowerCaseFilter(Pattern.compile(Pattern
 						.quote(text.toLowerCase())))).isEmpty();
+	}
+
+	public String findPlain(final Pattern pattern, int n) {
+		final Matcher matcher = pattern.matcher(asString());
+		if (matcher.find())
+			return matcher.group(n);
+		return null;
+	}
+	
+	public int findIntPlain(final Pattern pattern, int n) {
+		return Integer.parseInt(findPlain(pattern, n));
+	}
+	
+	public double findDoublePlain(final Pattern pattern, int n) {
+		return Double.parseDouble(findPlain(pattern, n));
 	}
 
 	public String find(final Pattern pattern, int n) {
@@ -200,6 +219,10 @@ public class HTMLPage {
 		return ((TextareaTag) getTagByID(id)).getStringText();
 	}
 
+	public String getTextareaValueByName(String name) {
+		return ((TextareaTag) getTagByName(name)).getStringText();
+	}
+
 	public Tag getTagByID(final String id) {
 		for (final Tag tag : filter(Tag.class, new IDFilter(id))) {
 			return tag;
@@ -256,5 +279,26 @@ public class HTMLPage {
 		} catch (ParserException e) {
 			return null;
 		}
+	}
+
+	public String asString() {
+		StringBuffer buff = new StringBuffer();
+		for (int i = 0; i < nodes.size(); i++) {
+			// final String content = nodes.elementAt(i).toPlainTextString()
+			// .replaceAll("\n", "").replaceAll("\\t", "").trim();
+			// if (content.length() > 0) {
+			// buff.append(" ").append(content);
+			// }
+			final String[] lines = nodes.elementAt(i).toPlainTextString()
+					.split("\n");
+			for (final String line : lines) {
+				final String processed = line.trim();
+				if (processed.length() > 0) {
+					buff.append(line.trim()).append(" ");
+				}
+			}
+
+		}
+		return buff.toString();
 	}
 }
