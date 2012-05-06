@@ -31,6 +31,7 @@ import com.rogiel.httpchannel.service.AbstractHttpDownloader;
 import com.rogiel.httpchannel.service.AbstractHttpService;
 import com.rogiel.httpchannel.service.AbstractUploader;
 import com.rogiel.httpchannel.service.AccountDetails;
+import com.rogiel.httpchannel.service.AccountDetails.PremiumAccountDetails;
 import com.rogiel.httpchannel.service.AuthenticationService;
 import com.rogiel.httpchannel.service.Authenticator;
 import com.rogiel.httpchannel.service.AuthenticatorCapability;
@@ -48,7 +49,6 @@ import com.rogiel.httpchannel.service.UploadChannel;
 import com.rogiel.httpchannel.service.UploadService;
 import com.rogiel.httpchannel.service.Uploader;
 import com.rogiel.httpchannel.service.UploaderCapability;
-import com.rogiel.httpchannel.service.AccountDetails.PremiumAccountDetails;
 import com.rogiel.httpchannel.service.channel.LinkedUploadChannel;
 import com.rogiel.httpchannel.service.channel.LinkedUploadChannel.LinkedUploadChannelCloseCallback;
 import com.rogiel.httpchannel.service.config.NullAuthenticatorConfiguration;
@@ -60,8 +60,7 @@ import com.rogiel.httpchannel.service.exception.DownloadNotAuthorizedException;
 import com.rogiel.httpchannel.service.exception.DownloadNotResumableException;
 import com.rogiel.httpchannel.service.multiupload.MultiUploadUploaderConfiguration.MultiUploadMirrorService;
 import com.rogiel.httpchannel.util.PatternUtils;
-import com.rogiel.httpchannel.util.htmlparser.HTMLPage;
-
+import com.rogiel.httpchannel.util.html.Page;
 
 /**
  * This service handles uploads to MultiUpload.nl.
@@ -196,9 +195,10 @@ public class MultiUploadService extends AbstractHttpService implements Service,
 
 	@Override
 	public CapabilityMatrix<AuthenticatorCapability> getAuthenticationCapability() {
-		return new CapabilityMatrix<AuthenticatorCapability>(AuthenticatorCapability.ACCOUNT_DETAILS);
+		return new CapabilityMatrix<AuthenticatorCapability>(
+				AuthenticatorCapability.ACCOUNT_DETAILS);
 	}
-	
+
 	@Override
 	public AccountDetails getAccountDetails() {
 		return account;
@@ -219,7 +219,7 @@ public class MultiUploadService extends AbstractHttpService implements Service,
 		public UploadChannel openChannel() throws IOException {
 			logger.debug("Starting upload to multiupload.nl");
 			final String uri = get("http://www.multiupload.nl/").asPage()
-					.findFormAction(UPLOAD_URI_PATTERN);
+					.form(UPLOAD_URI_PATTERN).asString();
 			logger.debug("Upload URI is {}", uri);
 			final LinkedUploadChannel channel = createLinkedChannel(this);
 
@@ -273,8 +273,9 @@ public class MultiUploadService extends AbstractHttpService implements Service,
 				long position) throws IOException,
 				DownloadLinkNotFoundException, DownloadLimitExceededException,
 				DownloadNotAuthorizedException, DownloadNotResumableException {
-			final HTMLPage page = get(uri).asPage();
-			final String link = page.findLink(DIRECT_DOWNLOAD_LINK_PATTERN);
+			final Page page = get(uri).asPage();
+			final String link = page.link(DIRECT_DOWNLOAD_LINK_PATTERN)
+					.asString();
 			logger.debug("Direct download link is {}", link);
 			if (link == null)
 				throw new DownloadLinkNotFoundException();
@@ -292,11 +293,13 @@ public class MultiUploadService extends AbstractHttpService implements Service,
 
 		@Override
 		public AccountDetails login() throws IOException {
-			final HTMLPage page = post("http://www.multiupload.nl/login")
+			final Page page = post("http://www.multiupload.nl/login")
 					.parameter("username", credential.getUsername())
 					.parameter("password", credential.getPassword()).asPage();
 
-			if (!page.containsIgnoreCase(credential.getUsername()))
+			if (page.search(Pattern.compile(
+					Pattern.quote(credential.getUsername()),
+					Pattern.CASE_INSENSITIVE)) != null)
 				throw new AuthenticationInvalidCredentialException();
 			return (account = new AccountDetailsImpl(credential.getUsername()));
 		}

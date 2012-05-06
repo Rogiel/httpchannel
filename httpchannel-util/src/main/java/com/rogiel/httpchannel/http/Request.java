@@ -33,7 +33,7 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 import com.rogiel.httpchannel.util.HttpClientUtils;
-import com.rogiel.httpchannel.util.htmlparser.HTMLPage;
+import com.rogiel.httpchannel.util.html.Page;
 
 public abstract class Request {
 	private static final JSONParser jsonParser = new JSONParser();
@@ -90,14 +90,14 @@ public abstract class Request {
 		});
 	}
 
-	public HTMLPage asPage() throws ClientProtocolException, IOException {
-		return HTMLPage.parse(asString());
+	public Page asPage() throws ClientProtocolException, IOException {
+		return Page.parse(asString());
 	}
 
-	public Future<HTMLPage> asPageAsync() throws IOException {
-		return ctx.threadPool.submit(new Callable<HTMLPage>() {
+	public Future<Page> asPageAsync() throws IOException {
+		return ctx.threadPool.submit(new Callable<Page>() {
 			@Override
-			public HTMLPage call() throws Exception {
+			public Page call() throws Exception {
 				return asPage();
 			}
 		});

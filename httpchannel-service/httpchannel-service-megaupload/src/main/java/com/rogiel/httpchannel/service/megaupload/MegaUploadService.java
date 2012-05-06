@@ -34,6 +34,7 @@ import com.rogiel.httpchannel.service.AbstractHttpDownloader;
 import com.rogiel.httpchannel.service.AbstractHttpService;
 import com.rogiel.httpchannel.service.AbstractUploader;
 import com.rogiel.httpchannel.service.AccountDetails;
+import com.rogiel.httpchannel.service.AccountDetails.PremiumAccountDetails;
 import com.rogiel.httpchannel.service.AuthenticationService;
 import com.rogiel.httpchannel.service.Authenticator;
 import com.rogiel.httpchannel.service.AuthenticatorCapability;
@@ -51,7 +52,6 @@ import com.rogiel.httpchannel.service.UploadChannel;
 import com.rogiel.httpchannel.service.UploadService;
 import com.rogiel.httpchannel.service.Uploader;
 import com.rogiel.httpchannel.service.UploaderCapability;
-import com.rogiel.httpchannel.service.AccountDetails.PremiumAccountDetails;
 import com.rogiel.httpchannel.service.channel.LinkedUploadChannel;
 import com.rogiel.httpchannel.service.channel.LinkedUploadChannel.LinkedUploadChannelCloseCallback;
 import com.rogiel.httpchannel.service.config.NullAuthenticatorConfiguration;
@@ -60,7 +60,7 @@ import com.rogiel.httpchannel.service.exception.DownloadLimitExceededException;
 import com.rogiel.httpchannel.service.exception.DownloadLinkNotFoundException;
 import com.rogiel.httpchannel.util.HttpClientUtils;
 import com.rogiel.httpchannel.util.PatternUtils;
-import com.rogiel.httpchannel.util.htmlparser.HTMLPage;
+import com.rogiel.httpchannel.util.html.Page;
 
 /**
  * This service handles login, upload and download to MegaUpload.com.
@@ -223,9 +223,9 @@ public class MegaUploadService extends AbstractHttpService implements Service,
 		@Override
 		public UploadChannel openChannel() throws IOException {
 			logger.debug("Starting upload to megaupload.com");
-			final HTMLPage page = get("http://www.megaupload.com/multiupload/")
+			final Page page = get("http://www.megaupload.com/multiupload/")
 					.asPage();
-			final String uri = page.findFormAction(UPLOAD_URL_PATTERN);
+			final String uri = page.form(UPLOAD_URL_PATTERN).asString();
 			logger.debug("Upload URI is {}", uri);
 
 			final LinkedUploadChannel channel = createLinkedChannel(this);
@@ -279,16 +279,16 @@ public class MegaUploadService extends AbstractHttpService implements Service,
 				response = get(uri).request();
 			}
 
-			final HTMLPage page = HttpClientUtils.toPage(response);
+			final Page page = HttpClientUtils.toPage(response);
 
 			// try to find timer
-			int timer = page.findScriptAsInt(DOWNLOAD_TIMER, 1);
+			int timer = page.script(DOWNLOAD_TIMER).asInteger(1);
 			if (timer > 0 && configuration.getRespectWaitTime()) {
 				logger.debug("");
 				timer(listener, timer * 1000);
 			}
 			final String downloadUrl = page
-					.findLink(DOWNLOAD_DIRECT_LINK_PATTERN);
+					.link(DOWNLOAD_DIRECT_LINK_PATTERN).asString();
 			if (downloadUrl != null && downloadUrl.length() > 0) {
 				final HttpResponse downloadResponse = get(downloadUrl)
 						.position(position).request();
@@ -322,12 +322,12 @@ public class MegaUploadService extends AbstractHttpService implements Service,
 		@Override
 		public AccountDetails login() throws IOException {
 			logger.debug("Starting login to megaupload.com");
-			final HTMLPage page = post("http://www.megaupload.com/?c=login")
+			final Page page = post("http://www.megaupload.com/?c=login")
 					.parameter("login", true)
 					.parameter("username", credential.getUsername())
 					.parameter("", credential.getPassword()).asPage();
 
-			String username = page.findScript(LOGIN_USERNAME_PATTERN, 1);
+			String username = page.script(LOGIN_USERNAME_PATTERN).asString(1);
 			if (username == null)
 				throw new AuthenticationInvalidCredentialException();
 			return (account = new AccountDetailsImpl(credential.getUsername()));

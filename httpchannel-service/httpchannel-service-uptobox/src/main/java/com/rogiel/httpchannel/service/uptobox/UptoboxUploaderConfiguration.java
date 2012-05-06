@@ -28,7 +28,7 @@ import com.rogiel.httpchannel.service.uptobox.UptoboxService.UploaderImpl;
  * 
  * @author <a href="http://www.rogiel.com">Rogiel</a>
  */
-public class UptoboxConfiguration extends
+public class UptoboxUploaderConfiguration extends
 		AbstractUploaderConfiguration implements UploaderConfiguration,
 		DescriptionableUploaderConfiguration {
 	/**
@@ -42,7 +42,7 @@ public class UptoboxConfiguration extends
 	}
 
 	@Override
-	public UptoboxConfiguration description(String description) {
+	public UptoboxUploaderConfiguration description(String description) {
 		this.description = description;
 		return this;
 	}

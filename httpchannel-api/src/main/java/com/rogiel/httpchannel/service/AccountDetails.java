@@ -154,6 +154,20 @@ public interface AccountDetails {
 	}
 
 	/**
+	 * Service accounts that has accounts with hotlink traffic should implement
+	 * this interface
+	 * 
+	 * @author <a href="http://www.rogiel.com">Rogiel</a>
+	 */
+	public interface HotLinkingAccountDetails extends AccountDetails {
+		/**
+		 * @return the currently free hotlink traffic. <code>-1</code> means no
+		 *         limit
+		 */
+		long getHotlinkTraffic();
+	}
+
+	/**
 	 * Service accounts that has accounts with limited bandwidth should
 	 * implement this interface
 	 * 

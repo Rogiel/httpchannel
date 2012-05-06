@@ -48,7 +48,7 @@ import com.rogiel.httpchannel.service.channel.LinkedUploadChannel.LinkedUploadCh
 import com.rogiel.httpchannel.service.config.NullAuthenticatorConfiguration;
 import com.rogiel.httpchannel.service.config.NullUploaderConfiguration;
 import com.rogiel.httpchannel.service.exception.AuthenticationInvalidCredentialException;
-import com.rogiel.httpchannel.util.htmlparser.HTMLPage;
+import com.rogiel.httpchannel.util.html.Page;
 
 /**
  * This service handles uploads to UploadKing.com.
@@ -147,9 +147,10 @@ public class DepositFilesService extends AbstractHttpService implements
 
 	@Override
 	public CapabilityMatrix<AuthenticatorCapability> getAuthenticationCapability() {
-		return new CapabilityMatrix<AuthenticatorCapability>(AuthenticatorCapability.ACCOUNT_DETAILS);
+		return new CapabilityMatrix<AuthenticatorCapability>(
+				AuthenticatorCapability.ACCOUNT_DETAILS);
 	}
-	
+
 	@Override
 	public AccountDetails getAccountDetails() {
 		return account;
@@ -159,7 +160,7 @@ public class DepositFilesService extends AbstractHttpService implements
 			AbstractUploader<NullUploaderConfiguration> implements
 			Uploader<NullUploaderConfiguration>,
 			LinkedUploadChannelCloseCallback {
-		private Future<HTMLPage> uploadFuture;
+		private Future<Page> uploadFuture;
 
 		public UploaderImpl(String filename, long filesize,
 				NullUploaderConfiguration configuration) {
@@ -169,11 +170,13 @@ public class DepositFilesService extends AbstractHttpService implements
 		@Override
 		public UploadChannel openChannel() throws IOException {
 			logger.debug("Starting upload to depositfiles.com");
-			final HTMLPage page = get("http://www.depositfiles.com/").asPage();
+			final Page page = get("http://www.depositfiles.com/").asPage();
 
-			final String uri = page.findFormAction(UPLOAD_URI_PATTERN);
-			final String uploadID = page.getInputValue("UPLOAD_IDENTIFIER");
-			final String maxFileSize = page.getInputValue("MAX_FILE_SIZE");
+			final String uri = page.form(UPLOAD_URI_PATTERN).asString();
+			final String uploadID = page.inputByName("UPLOAD_IDENTIFIER")
+					.asString();
+			final String maxFileSize = page.formByName("MAX_FILE_SIZE")
+					.asString();
 
 			logger.debug("Upload URI: {}, ID: {}", uri, uploadID);
 
@@ -189,8 +192,8 @@ public class DepositFilesService extends AbstractHttpService implements
 		@Override
 		public String finish() throws IOException {
 			try {
-				final String link = uploadFuture.get().findScript(
-						DOWNLOAD_URI_PATTERN, 0);
+				final String link = uploadFuture.get()
+						.script(DOWNLOAD_URI_PATTERN).asString();
 				if (link == null)
 					return null;
 				return link;
@@ -213,7 +216,7 @@ public class DepositFilesService extends AbstractHttpService implements
 		@Override
 		public AccountDetails login() throws IOException {
 			logger.debug("Authenticating into depositfiles.com");
-			HTMLPage page = post("http://depositfiles.com/login.php?return=%2F")
+			Page page = post("http://depositfiles.com/login.php?return=%2F")
 					.parameter("go", true)
 					.parameter("login", credential.getUsername())
 					.parameter("password", credential.getPassword()).asPage();
@@ -239,9 +242,10 @@ public class DepositFilesService extends AbstractHttpService implements
 				throw new UnsolvableCaptchaServiceException();
 			} else {
 				captchaService.valid(captcha);
-				if (!page.contains(VALID_LOGIN_REDIRECT))
+				if (!page.search(VALID_LOGIN_REDIRECT).hasResults())
 					throw new AuthenticationInvalidCredentialException();
-				return (account = new AccountDetailsImpl(credential.getUsername()));
+				return (account = new AccountDetailsImpl(
+						credential.getUsername()));
 			}
 		}
 

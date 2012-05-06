@@ -22,10 +22,9 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.regex.Pattern;
 
-import com.rogiel.httpchannel.captcha.ImageCaptcha;
 import com.rogiel.httpchannel.http.HttpContext;
 import com.rogiel.httpchannel.util.PatternUtils;
-import com.rogiel.httpchannel.util.htmlparser.HTMLPage;
+import com.rogiel.httpchannel.util.html.Page;
 
 /**
  * This class provides utility methods to extract an {@link ImageCaptcha} from
@@ -57,8 +56,8 @@ public class ReCaptchaExtractor {
 	 *            the {@link HttpContext}
 	 * @return the {@link ImageCaptcha} embedded at the given <code>page</code>
 	 */
-	public static ImageCaptcha extractCaptcha(HTMLPage page, HttpContext ctx) {
-		final String uri = page.findScriptSrc(CAPTCHA_URI_PATTERN);
+	public static ImageCaptcha extractCaptcha(Page page, HttpContext ctx) {
+		final String uri = page.scriptBySource(CAPTCHA_URI_PATTERN).asString();
 		if (uri == null)
 			return null;
 		try {
@@ -77,8 +76,8 @@ public class ReCaptchaExtractor {
 	 *            the {@link HttpContext}
 	 * @return the {@link ImageCaptcha} contained at the given <code>page</code>
 	 */
-	public static ImageCaptcha extractAjaxCaptcha(HTMLPage page, HttpContext ctx) {
-		final String siteID = page.findScript(CAPTCHA_ID_PATTERN, 1);
+	public static ImageCaptcha extractAjaxCaptcha(Page page, HttpContext ctx) {
+		final String siteID = page.script(CAPTCHA_ID_PATTERN).asString(1);
 		try {
 			return doExtract(ctx.get(CHALLENGE_BASE_URI + siteID).asString());
 		} catch (IOException e) {

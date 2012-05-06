@@ -31,7 +31,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpUriRequest;
 
-import com.rogiel.httpchannel.util.htmlparser.HTMLPage;
+import com.rogiel.httpchannel.util.html.Page;
 
 public class HttpClientUtils {
 	private static final ExecutorService threadPool = Executors
@@ -82,7 +82,7 @@ public class HttpClientUtils {
 		}
 	}
 
-	public static HTMLPage toPage(HttpResponse response) throws IOException {
-		return HTMLPage.parse(toString(response));
+	public static Page toPage(HttpResponse response) throws IOException {
+		return Page.parse(toString(response));
 	}
 }

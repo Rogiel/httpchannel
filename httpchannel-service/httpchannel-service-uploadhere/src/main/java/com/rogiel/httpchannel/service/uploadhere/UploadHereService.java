@@ -32,6 +32,7 @@ import com.rogiel.httpchannel.service.AbstractHttpDownloader;
 import com.rogiel.httpchannel.service.AbstractHttpService;
 import com.rogiel.httpchannel.service.AbstractUploader;
 import com.rogiel.httpchannel.service.AccountDetails;
+import com.rogiel.httpchannel.service.AccountDetails.PremiumAccountDetails;
 import com.rogiel.httpchannel.service.AuthenticationService;
 import com.rogiel.httpchannel.service.Authenticator;
 import com.rogiel.httpchannel.service.AuthenticatorCapability;
@@ -49,7 +50,6 @@ import com.rogiel.httpchannel.service.UploadChannel;
 import com.rogiel.httpchannel.service.UploadService;
 import com.rogiel.httpchannel.service.Uploader;
 import com.rogiel.httpchannel.service.UploaderCapability;
-import com.rogiel.httpchannel.service.AccountDetails.PremiumAccountDetails;
 import com.rogiel.httpchannel.service.channel.LinkedUploadChannel;
 import com.rogiel.httpchannel.service.channel.LinkedUploadChannel.LinkedUploadChannelCloseCallback;
 import com.rogiel.httpchannel.service.config.NullAuthenticatorConfiguration;
@@ -59,7 +59,7 @@ import com.rogiel.httpchannel.service.exception.AuthenticationInvalidCredentialE
 import com.rogiel.httpchannel.service.exception.DownloadLinkNotFoundException;
 import com.rogiel.httpchannel.service.exception.InvalidCaptchaException;
 import com.rogiel.httpchannel.util.PatternUtils;
-import com.rogiel.httpchannel.util.htmlparser.HTMLPage;
+import com.rogiel.httpchannel.util.html.Page;
 
 /**
  * This service handles uploads to UploadKing.com.
@@ -215,11 +215,11 @@ public class UploadHereService extends AbstractHttpService implements Service,
 
 		@Override
 		public UploadChannel openChannel() throws IOException {
-			final HTMLPage page = get("http://www.uploadhere.com/").asPage();
+			final Page page = get("http://www.uploadhere.com/").asPage();
 
-			final String userCookie = page.getInputValueById("usercookie");
-			final String uri = page.findFormAction(UPLOAD_URI_PATTERN);
-			final String uploadID = page.getInputValue("UPLOAD_IDENTIFIER");
+			final String userCookie = page.inputByID("usercookie").asString();
+			final String uri = page.form(UPLOAD_URI_PATTERN).asString();
+			final String uploadID = page.inputByName("UPLOAD_IDENTIFIER").asString();
 
 			logger.debug("Upload URI: {}, UserCookie: {}, UploadID: {}",
 					new Object[] { uri, userCookie, uploadID });
@@ -262,9 +262,9 @@ public class UploadHereService extends AbstractHttpService implements Service,
 		@Override
 		public DownloadChannel openChannel(DownloadListener listener,
 				long position) throws IOException {
-			HTMLPage page = get(uri).asPage();
+			Page page = get(uri).asPage();
 
-			final int waitTime = page.findScriptAsInt(TIMER_PATTERN, 1) * 1000;
+			final int waitTime = page.script(TIMER_PATTERN).asInteger(1) * 1000;
 			logger.debug("Wait time is {}", waitTime);
 
 			timer(listener, waitTime);
@@ -309,11 +309,11 @@ public class UploadHereService extends AbstractHttpService implements Service,
 
 		@Override
 		public AccountDetails login() throws IOException {
-			final HTMLPage page = post("http://www.uploadhere.com/login")
+			final Page page = post("http://www.uploadhere.com/login")
 					.parameter("do", "login")
 					.parameter("username", credential.getUsername())
 					.parameter("password", credential.getPassword()).asPage();
-			if (page.contains(INVALID_LOGIN_STRING))
+			if (page.searchFirst(INVALID_LOGIN_STRING).hasResults())
 				throw new AuthenticationInvalidCredentialException();
 			return (account = new AccountDetailsImpl(credential.getUsername()));
 		}

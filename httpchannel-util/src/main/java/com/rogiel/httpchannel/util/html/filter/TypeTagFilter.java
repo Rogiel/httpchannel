@@ -16,27 +16,36 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package com.rogiel.httpchannel.util.htmlparser;
-
-import java.util.regex.Pattern;
+package com.rogiel.httpchannel.util.html.filter;
 
 import org.htmlparser.Node;
 import org.htmlparser.NodeFilter;
-import org.htmlparser.tags.FormTag;
+import org.htmlparser.Tag;
 
-public class FormActionPatternFilter implements NodeFilter {
+/**
+ * An filter that selects all tags matching an given type
+ * 
+ * @author <a href="http://www.rogiel.com">Rogiel</a>
+ */
+public class TypeTagFilter implements NodeFilter {
 	private static final long serialVersionUID = 1L;
-	private final Pattern pattern;
+	/**
+	 * The tag type
+	 */
+	private final Class<? extends Tag> type;
 
-	public FormActionPatternFilter(Pattern pattern) {
-		this.pattern = pattern;
+	/**
+	 * Creates a new instance
+	 * 
+	 * @param type
+	 *            the tag type
+	 */
+	public TypeTagFilter(Class<? extends Tag> type) {
+		this.type = type;
 	}
 
 	@Override
 	public boolean accept(Node node) {
-		if (!(node instanceof FormTag))
-			return false;
-		final FormTag form = (FormTag) node;
-		return pattern.matcher(form.getFormLocation()).matches();
+		return type.isAssignableFrom(node.getClass());
 	}
 }

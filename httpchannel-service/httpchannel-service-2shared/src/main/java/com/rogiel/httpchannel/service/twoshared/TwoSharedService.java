@@ -51,7 +51,7 @@ import com.rogiel.httpchannel.service.exception.DownloadNotAuthorizedException;
 import com.rogiel.httpchannel.service.exception.DownloadNotResumableException;
 import com.rogiel.httpchannel.service.exception.NoCaptchaServiceException;
 import com.rogiel.httpchannel.util.ExceptionUtils;
-import com.rogiel.httpchannel.util.htmlparser.HTMLPage;
+import com.rogiel.httpchannel.util.html.Page;
 
 /**
  * This service handles uploads to TwoShared.
@@ -165,7 +165,7 @@ public class TwoSharedService extends AbstractHttpService implements Service,
 			AbstractUploader<NullUploaderConfiguration> implements
 			Uploader<NullUploaderConfiguration>,
 			LinkedUploadChannelCloseCallback {
-		private Future<HTMLPage> uploadFuture;
+		private Future<Page> uploadFuture;
 		private String uploadID;
 
 		public UploaderImpl(String filename, long filesize,
@@ -176,12 +176,12 @@ public class TwoSharedService extends AbstractHttpService implements Service,
 		@Override
 		public UploadChannel openChannel() throws IOException {
 			logger.debug("Starting upload to TwoShared");
-			final HTMLPage page = get("http://www.2shared.com/").asPage();
+			final Page page = get("http://www.2shared.com/").asPage();
 
 			// locate upload uri
-			final String uri = page.findFormAction(UPLOAD_URL_PATTERN);
-			final String mainDC = page.getInputValue("mainDC");
-			uploadID = page.find(UPLOAD_ID_PATTERN, 1);
+			final String uri = page.form(UPLOAD_URL_PATTERN).asString();
+			final String mainDC = page.inputByName("mainDC").asString();
+			uploadID = page.search(UPLOAD_ID_PATTERN).asString(1);
 
 			logger.debug("Upload URI: {}, DC: {}", uri, mainDC);
 
@@ -198,10 +198,10 @@ public class TwoSharedService extends AbstractHttpService implements Service,
 		public String finish() throws IOException {
 			try {
 				uploadFuture.get();
-				final HTMLPage page = get(
+				final Page page = get(
 						"http://www.2shared.com/uploadComplete.jsp?sId="
 								+ uploadID).asPage();
-				return page.getTextareaValueById("downloadLink");
+				return page.textareaByID("downloadLink").asString();
 			} catch (InterruptedException e) {
 				return null;
 			} catch (ExecutionException e) {
@@ -232,9 +232,9 @@ public class TwoSharedService extends AbstractHttpService implements Service,
 				DownloadLinkNotFoundException, DownloadLimitExceededException,
 				DownloadNotAuthorizedException, DownloadNotResumableException,
 				UnsolvableCaptchaServiceException, NoCaptchaServiceException {
-			final HTMLPage page = get(uri).asPage();
-			final String downloadUri = page.findScript(
-					DIRECT_DOWNLOAD_URL_PATTERN, 0);
+			final Page page = get(uri).asPage();
+			final String downloadUri = page.script(
+					DIRECT_DOWNLOAD_URL_PATTERN).asString();
 			return download(get(downloadUri));
 		}
 	}

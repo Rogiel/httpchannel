@@ -30,6 +30,9 @@ import com.rogiel.httpchannel.service.AbstractAuthenticator;
 import com.rogiel.httpchannel.service.AbstractHttpService;
 import com.rogiel.httpchannel.service.AbstractUploader;
 import com.rogiel.httpchannel.service.AccountDetails;
+import com.rogiel.httpchannel.service.AccountDetails.DiskQuotaAccountDetails;
+import com.rogiel.httpchannel.service.AccountDetails.FilesizeLimitAccountDetails;
+import com.rogiel.httpchannel.service.AccountDetails.PremiumAccountDetails;
 import com.rogiel.httpchannel.service.AuthenticationService;
 import com.rogiel.httpchannel.service.Authenticator;
 import com.rogiel.httpchannel.service.AuthenticatorCapability;
@@ -42,9 +45,6 @@ import com.rogiel.httpchannel.service.UploadChannel;
 import com.rogiel.httpchannel.service.UploadService;
 import com.rogiel.httpchannel.service.Uploader;
 import com.rogiel.httpchannel.service.UploaderCapability;
-import com.rogiel.httpchannel.service.AccountDetails.DiskQuotaAccountDetails;
-import com.rogiel.httpchannel.service.AccountDetails.FilesizeLimitAccountDetails;
-import com.rogiel.httpchannel.service.AccountDetails.PremiumAccountDetails;
 import com.rogiel.httpchannel.service.channel.LinkedUploadChannel;
 import com.rogiel.httpchannel.service.channel.LinkedUploadChannel.LinkedUploadChannelCloseCallback;
 import com.rogiel.httpchannel.service.config.NullAuthenticatorConfiguration;
@@ -52,7 +52,7 @@ import com.rogiel.httpchannel.service.config.NullUploaderConfiguration;
 import com.rogiel.httpchannel.service.exception.AuthenticationInvalidCredentialException;
 import com.rogiel.httpchannel.service.exception.ChannelServiceException;
 import com.rogiel.httpchannel.service.exception.DownloadLinkNotFoundException;
-import com.rogiel.httpchannel.util.htmlparser.HTMLPage;
+import com.rogiel.httpchannel.util.html.Page;
 
 /**
  * This service handles uploads to 4shared.com.
@@ -168,7 +168,7 @@ public class FourSharedService extends AbstractHttpService implements Service,
 			AbstractUploader<NullUploaderConfiguration> implements
 			Uploader<NullUploaderConfiguration>,
 			LinkedUploadChannelCloseCallback {
-		private Future<HTMLPage> uploadFuture;
+		private Future<Page> uploadFuture;
 
 		public UploaderImpl(String filename, long filesize,
 				NullUploaderConfiguration configuration) {
@@ -210,8 +210,8 @@ public class FourSharedService extends AbstractHttpService implements Service,
 		@Override
 		public String finish() throws IOException {
 			try {
-				final long linkID = Long.parseLong(uploadFuture.get()
-						.getInputValueById("uploadedFileId"));
+				final long linkID = uploadFuture.get()
+						.inputByID("uploadedFileId").asLong();
 				return api.getFileDownloadLink(account.getUsername(),
 						getPassword(), linkID);
 			} catch (InterruptedException e) {

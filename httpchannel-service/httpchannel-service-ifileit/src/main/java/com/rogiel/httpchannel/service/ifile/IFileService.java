@@ -36,7 +36,7 @@ import com.rogiel.httpchannel.service.UploaderCapability;
 import com.rogiel.httpchannel.service.channel.LinkedUploadChannel;
 import com.rogiel.httpchannel.service.channel.LinkedUploadChannel.LinkedUploadChannelCloseCallback;
 import com.rogiel.httpchannel.service.config.NullUploaderConfiguration;
-import com.rogiel.httpchannel.util.htmlparser.HTMLPage;
+import com.rogiel.httpchannel.util.html.Page;
 
 /**
  * This service handles login, upload and download to HotFile.com.
@@ -115,7 +115,7 @@ public class IFileService extends AbstractHttpService implements Service,
 			AbstractUploader<NullUploaderConfiguration> implements
 			Uploader<NullUploaderConfiguration>,
 			LinkedUploadChannelCloseCallback {
-		private Future<HTMLPage> uploadFuture;
+		private Future<Page> uploadFuture;
 
 		public UploaderImpl(String filename, long filesize,
 				NullUploaderConfiguration configuration) {
@@ -125,9 +125,9 @@ public class IFileService extends AbstractHttpService implements Service,
 		@Override
 		public UploadChannel openChannel() throws IOException {
 			logger.debug("Starting upload to ifile.it");
-			final HTMLPage page = get("http://ifile.it/upload-classic.html")
+			final Page page = get("http://ifile.it/upload-classic.html")
 					.asPage();
-			final String action = page.findFormAction(UPLOAD_URI_PATTERN);
+			final String action = page.form(UPLOAD_URI_PATTERN).asString();
 
 			logger.debug("Upload URI is {}", action);
 
@@ -141,7 +141,7 @@ public class IFileService extends AbstractHttpService implements Service,
 		@Override
 		public String finish() throws IOException {
 			try {
-				return uploadFuture.get().getInputValue(DOWNLOAD_URI_PATTERN);
+				return uploadFuture.get().input(DOWNLOAD_URI_PATTERN).asString();
 			} catch (InterruptedException e) {
 				return null;
 			} catch (ExecutionException e) {

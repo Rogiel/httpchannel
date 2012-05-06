@@ -25,7 +25,6 @@ import java.util.concurrent.Future;
 import java.util.regex.Pattern;
 
 import org.apache.http.client.ClientProtocolException;
-import org.htmlparser.Tag;
 
 import com.rogiel.httpchannel.service.AbstractAccountDetails;
 import com.rogiel.httpchannel.service.AbstractAuthenticator;
@@ -33,6 +32,9 @@ import com.rogiel.httpchannel.service.AbstractHttpDownloader;
 import com.rogiel.httpchannel.service.AbstractHttpService;
 import com.rogiel.httpchannel.service.AbstractUploader;
 import com.rogiel.httpchannel.service.AccountDetails;
+import com.rogiel.httpchannel.service.AccountDetails.HotLinkingAccountDetails;
+import com.rogiel.httpchannel.service.AccountDetails.PremiumAccountDetails;
+import com.rogiel.httpchannel.service.AccountDetails.ReferralAccountDetails;
 import com.rogiel.httpchannel.service.AuthenticationService;
 import com.rogiel.httpchannel.service.Authenticator;
 import com.rogiel.httpchannel.service.AuthenticatorCapability;
@@ -50,14 +52,15 @@ import com.rogiel.httpchannel.service.UploadChannel;
 import com.rogiel.httpchannel.service.UploadService;
 import com.rogiel.httpchannel.service.Uploader;
 import com.rogiel.httpchannel.service.UploaderCapability;
-import com.rogiel.httpchannel.service.AccountDetails.PremiumAccountDetails;
 import com.rogiel.httpchannel.service.channel.LinkedUploadChannel;
 import com.rogiel.httpchannel.service.channel.LinkedUploadChannel.LinkedUploadChannelCloseCallback;
 import com.rogiel.httpchannel.service.config.NullAuthenticatorConfiguration;
 import com.rogiel.httpchannel.service.config.NullDownloaderConfiguration;
 import com.rogiel.httpchannel.service.config.NullUploaderConfiguration;
 import com.rogiel.httpchannel.service.exception.AuthenticationInvalidCredentialException;
-import com.rogiel.httpchannel.util.htmlparser.HTMLPage;
+import com.rogiel.httpchannel.util.Filesizes;
+import com.rogiel.httpchannel.util.html.Page;
+import com.rogiel.httpchannel.util.html.SearchResults;
 
 /**
  * This service handles login, upload and download to HotFile.com.
@@ -75,17 +78,31 @@ public class HotFileService extends AbstractHttpService implements Service,
 	public static final ServiceID SERVICE_ID = ServiceID.create("hotfile");
 
 	private static final Pattern UPLOAD_URI_PATTERN = Pattern
-			.compile("http://u[0-9]*\\.hotfile\\.com/upload\\.cgi\\?[0-9]*");
+			.compile("http[s]?://u[0-9]+\\.hotfile\\.com/upload\\.cgi\\?[0-9]*");
 
 	private static final Pattern DOWNLOAD_DIRECT_LINK_PATTERN = Pattern
-			.compile("http://hotfile\\.com/get/([0-9]*)/([A-Za-z0-9]*)/([A-Za-z0-9]*)/(.*)");
+			.compile("http[s]?://hotfile\\.com/get/([0-9]+)/([A-Za-z0-9]+)/([A-Za-z0-9]+)/(.+)");
 	// private static final Pattern DOWNLOAD_TIMER = Pattern
 	// .compile("timerend=d\\.getTime\\(\\)\\+([0-9]*);");
 	// private static final Pattern DOWNLOAD_FILESIZE = Pattern
 	// .compile("[0-9]*(\\.[0-9]*)? (K|M|G)B");
 
 	private static final Pattern DOWNLOAD_URI_PATTERN = Pattern
-			.compile("http://hotfile\\.com/dl/([0-9]*)/([A-Za-z0-9]*)/(.*)");
+			.compile("http[s]?://hotfile\\.com/dl/([0-9]+)/([A-Za-z0-9]+)/(.+)");
+
+	// account
+	private static final Pattern ACCOUNT_NAME_PATTERN = Pattern
+			.compile("User: ([^\\|]+)");
+
+	private static final Pattern ACCOUNT_TYPE_PATTERN = Pattern
+			.compile("Account: Free");
+
+	private static final Pattern HOTLINK_TRAFFIC_PATTERN = Pattern.compile(
+			"Hotlink traffic left: ([0-9]+(\\.[0-9]+))(K|M|G)b",
+			Pattern.CASE_INSENSITIVE);
+
+	private static final Pattern REFERRAL_URL_PATTERN = Pattern
+			.compile("http[s]?://hotfile\\.com/register\\.html\\?reff=[0-9]+");
 
 	@Override
 	public ServiceID getServiceID() {
@@ -189,9 +206,10 @@ public class HotFileService extends AbstractHttpService implements Service,
 
 	@Override
 	public CapabilityMatrix<AuthenticatorCapability> getAuthenticationCapability() {
-		return new CapabilityMatrix<AuthenticatorCapability>(AuthenticatorCapability.ACCOUNT_DETAILS);
+		return new CapabilityMatrix<AuthenticatorCapability>(
+				AuthenticatorCapability.ACCOUNT_DETAILS);
 	}
-	
+
 	@Override
 	public AccountDetails getAccountDetails() {
 		return account;
@@ -201,7 +219,7 @@ public class HotFileService extends AbstractHttpService implements Service,
 			AbstractUploader<NullUploaderConfiguration> implements
 			Uploader<NullUploaderConfiguration>,
 			LinkedUploadChannelCloseCallback {
-		private Future<HTMLPage> uploadFuture;
+		private Future<Page> uploadFuture;
 
 		public UploaderImpl(String filename, long filesize,
 				NullUploaderConfiguration configuration) {
@@ -211,8 +229,8 @@ public class HotFileService extends AbstractHttpService implements Service,
 		@Override
 		public UploadChannel openChannel() throws IOException {
 			logger.debug("Starting upload to hotfile.com");
-			final HTMLPage page = get("http://www.hotfile.com/").asPage();
-			final String action = page.findFormAction(UPLOAD_URI_PATTERN);
+			final Page page = get("http://www.hotfile.com/").asPage();
+			final String action = page.form(UPLOAD_URI_PATTERN).asString();
 
 			logger.debug("Upload URI is {}", action);
 
@@ -226,7 +244,8 @@ public class HotFileService extends AbstractHttpService implements Service,
 		@Override
 		public String finish() throws IOException {
 			try {
-				return uploadFuture.get().getInputValue(DOWNLOAD_URI_PATTERN);
+				return uploadFuture.get().input(DOWNLOAD_URI_PATTERN)
+						.asString();
 			} catch (InterruptedException e) {
 				return null;
 			} catch (ExecutionException e) {
@@ -245,7 +264,7 @@ public class HotFileService extends AbstractHttpService implements Service,
 		public DownloadChannel openChannel(DownloadListener listener,
 				long position) throws IOException {
 			logger.debug("Downloading {} from hotfile.com", uri);
-			final HTMLPage page = get(uri).asPage();
+			final Page page = get(uri).asPage();
 
 			// // try to find timer
 			// final String stringTimer = PatternUtils.find(DOWNLOAD_TIMER,
@@ -259,8 +278,8 @@ public class HotFileService extends AbstractHttpService implements Service,
 			// + " milliseconds");
 			// }
 
-			final String downloadUrl = page
-					.findLink(DOWNLOAD_DIRECT_LINK_PATTERN);
+			final String downloadUrl = page.link(DOWNLOAD_DIRECT_LINK_PATTERN)
+					.asString();
 			logger.debug("Download link is {}", downloadUrl);
 			// final String tmHash = PatternUtils.find(DOWNLOAD_TMHASH_PATTERN,
 			// content);F
@@ -284,15 +303,32 @@ public class HotFileService extends AbstractHttpService implements Service,
 		public AccountDetails login() throws ClientProtocolException,
 				IOException {
 			logger.debug("Authenticating hotfile.com");
-			HTMLPage page = post("http://www.hotfile.com/login.php")
+			Page page = post("http://www.hotfile.com/login.php")
 					.parameter("returnto", "/index.php")
 					.parameter("user", credential.getUsername())
 					.parameter("pass", credential.getPassword()).asPage();
 
-			final Tag accountTag = page.getTagByID("account");
-			if (accountTag == null)
+			page = get("http://www.hotfile.com/myreferals.html?lang=en")
+					.asPage();
+			
+			final SearchResults usernameResults = page
+					.search(ACCOUNT_NAME_PATTERN);
+			if (!usernameResults.hasResults())
 				throw new AuthenticationInvalidCredentialException();
-			return (account = new AccountDetailsImpl(credential.getUsername()));
+
+			final String username = usernameResults.asString(1);
+			final String type = page.search(ACCOUNT_TYPE_PATTERN).asString();
+
+			final SearchResults trafficResults = page
+					.search(HOTLINK_TRAFFIC_PATTERN);
+			final long hotlinkTraffic = Filesizes.auto(
+					trafficResults.asDouble(1), trafficResults.asString(3));
+
+			final String referralURL = page.search(REFERRAL_URL_PATTERN)
+					.asString();
+
+			return (account = new AccountDetailsImpl(username, type == null,
+					hotlinkTraffic, referralURL));
 		}
 
 		@Override
@@ -304,19 +340,48 @@ public class HotFileService extends AbstractHttpService implements Service,
 	}
 
 	private class AccountDetailsImpl extends AbstractAccountDetails implements
-			PremiumAccountDetails {
+			PremiumAccountDetails, ReferralAccountDetails,
+			HotLinkingAccountDetails {
+		private final boolean premium;
+		private final long hotlinkTraffic;
+		private final String referralURL;
+
 		/**
 		 * @param username
 		 *            the username
+		 * @param premium
+		 *            whether the account is premium
+		 * @param hotlinkTraffic
+		 *            the available hotlink traffic
+		 * @param referralURL
+		 *            the referral url
 		 */
-		public AccountDetailsImpl(String username) {
+		public AccountDetailsImpl(String username, boolean premium,
+				long hotlinkTraffic, String referralURL) {
 			super(HotFileService.this, username);
+			this.premium = premium;
+			this.hotlinkTraffic = hotlinkTraffic;
+			this.referralURL = referralURL;
 		}
 
 		@Override
 		public boolean isPremium() {
-			// TODO implement this
-			return false;
+			return premium;
+		}
+
+		@Override
+		public long getHotlinkTraffic() {
+			return hotlinkTraffic;
+		}
+
+		@Override
+		public int getMembersReferred() {
+			return -1;
+		}
+
+		@Override
+		public String getReferralURL() {
+			return referralURL;
 		}
 	}
 

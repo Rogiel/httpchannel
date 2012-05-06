@@ -50,7 +50,8 @@ import com.rogiel.httpchannel.service.channel.LinkedUploadChannel.LinkedUploadCh
 import com.rogiel.httpchannel.service.config.NullAuthenticatorConfiguration;
 import com.rogiel.httpchannel.service.exception.AuthenticationInvalidCredentialException;
 import com.rogiel.httpchannel.util.Filesizes;
-import com.rogiel.httpchannel.util.htmlparser.HTMLPage;
+import com.rogiel.httpchannel.util.html.Page;
+import com.rogiel.httpchannel.util.html.SearchResults;
 
 /**
  * This service handles login, upload and download to uptobox.com.
@@ -59,7 +60,7 @@ import com.rogiel.httpchannel.util.htmlparser.HTMLPage;
  * @since 1.0
  */
 public class UptoboxService extends AbstractHttpService implements Service,
-		UploadService<UptoboxConfiguration>,
+		UploadService<UptoboxUploaderConfiguration>,
 		AuthenticationService<NullAuthenticatorConfiguration> {
 	/**
 	 * This service ID
@@ -97,20 +98,20 @@ public class UptoboxService extends AbstractHttpService implements Service,
 	}
 
 	@Override
-	public Uploader<UptoboxConfiguration> getUploader(String filename,
-			long filesize, UptoboxConfiguration configuration) {
+	public Uploader<UptoboxUploaderConfiguration> getUploader(String filename,
+			long filesize, UptoboxUploaderConfiguration configuration) {
 		return new UploaderImpl(filename, filesize, configuration);
 	}
 
 	@Override
-	public Uploader<UptoboxConfiguration> getUploader(String filename,
+	public Uploader<UptoboxUploaderConfiguration> getUploader(String filename,
 			long filesize) {
 		return getUploader(filename, filesize, newUploaderConfiguration());
 	}
 
 	@Override
-	public UptoboxConfiguration newUploaderConfiguration() {
-		return new UptoboxConfiguration();
+	public UptoboxUploaderConfiguration newUploaderConfiguration() {
+		return new UptoboxUploaderConfiguration();
 	}
 
 	@Override
@@ -164,28 +165,29 @@ public class UptoboxService extends AbstractHttpService implements Service,
 		return account;
 	}
 
-	protected class UploaderImpl extends AbstractUploader<UptoboxConfiguration>
-			implements Uploader<UptoboxConfiguration>,
+	protected class UploaderImpl extends
+			AbstractUploader<UptoboxUploaderConfiguration> implements
+			Uploader<UptoboxUploaderConfiguration>,
 			LinkedUploadChannelCloseCallback {
-		private Future<HTMLPage> uploadFuture;
+		private Future<Page> uploadFuture;
 
 		public UploaderImpl(String filename, long filesize,
-				UptoboxConfiguration configuration) {
+				UptoboxUploaderConfiguration configuration) {
 			super(UptoboxService.this, filename, filesize, configuration);
 		}
 
 		@Override
 		public UploadChannel openChannel() throws IOException {
-			logger.debug("Starting upload to ifile.it");
-			final HTMLPage page = get("http://uptobox.com/").asPage();
-			String action = page.findFormAction(UPLOAD_URI_PATTERN);
-			final String srvTmpUrl = page.getInputValue("srv_tmp_url");
+			logger.debug("Starting upload to uptobox.com");
+			final Page page = get("http://uptobox.com/").asPage();
+			String action = page.form(UPLOAD_URI_PATTERN).asString();
+			final String srvTmpUrl = page.inputByName("srv_tmp_url").asString();
 
 			if (account != null) {
 				action += "&type=reg";
 			}
 
-			final String sessionID = page.getInputValue("sess_id");
+			final String sessionID = page.inputByName("sess_id").asString();
 
 			logger.debug("Upload URI is {}", action);
 
@@ -202,7 +204,7 @@ public class UptoboxService extends AbstractHttpService implements Service,
 		@Override
 		public String finish() throws IOException {
 			try {
-				return uploadFuture.get().findLink(DOWNLOAD_URI_PATTERN);
+				return uploadFuture.get().link(DOWNLOAD_URI_PATTERN).asString();
 			} catch (InterruptedException e) {
 				return null;
 			} catch (ExecutionException e) {
@@ -221,37 +223,42 @@ public class UptoboxService extends AbstractHttpService implements Service,
 
 		@Override
 		public AccountDetails login() throws IOException {
-			final HTMLPage page = post("http://uptobox.com/")
+			final Page page = post("http://uptobox.com/")
 					.parameter("op", "login")
 					.parameter("redirect", "http://uptobox.com/?op=my_account")
 					.parameter("login", credential.getUsername())
 					.parameter("password", credential.getPassword()).asPage();
 
-			final String username = page.findPlain(
-					Pattern.compile("Username:(.+) Apply"), 1);
+			final SearchResults results = page.search(Pattern
+					.compile("Username:(.+) Apply"));
+			if (!results.hasResults())
+				throw new AuthenticationInvalidCredentialException();
+			final String username = results.asString(1);
 			if (username == null)
 				throw new AuthenticationInvalidCredentialException();
-			final boolean premium = !page.containsPlain(Pattern.compile(
-					"Account type Free member", Pattern.MULTILINE));
-			final int points = page.findIntPlain(
-					Pattern.compile("You have collected:([0-9])+"), 1);
-			final int referrals = page.findIntPlain(
-					Pattern.compile("My referrals:([0-9])+"), 1);
-			final String referralURL = page.findLink(Pattern
-					.compile("http://uptobox\\.com/affiliate/[0-9]+"));
+			final boolean premium = !page.search(
+					Pattern.compile("Account type Free member",
+							Pattern.MULTILINE)).hasResults();
+			final int points = page.search(
+					Pattern.compile("You have collected:([0-9])+"))
+					.asInteger(1);
+			final int referrals = page.search(
+					Pattern.compile("My referrals:([0-9])+")).asInteger(1);
+			final String referralURL = page.link(
+					Pattern.compile("http://uptobox\\.com/affiliate/[0-9]+"))
+					.asString();
 
-			final HTMLPage index = get("http://uptobox.com/").asPage();
-			final int maximumFileSize = index.findIntPlain(
-					Pattern.compile("Up to ([0-9]*) Mb"), 1);
+			final Page index = get("http://uptobox.com/").asPage();
+			final int maximumFileSize = index.search(
+					Pattern.compile("Up to ([0-9]*) Mb")).asInteger(1);
 
-			final HTMLPage disk = get("http://uptobox.com/?op=my_files")
-					.asPage();
-			final double usedDiskSpace = disk.findDoublePlain(
-					DISK_USAGE_PATTERN, 1);
-			final String usedDiskSpaceUnit = disk.findPlain(DISK_USAGE_PATTERN,
-					3);
-			final double maximumDiskSpace = disk.findDoublePlain(
-					DISK_USAGE_PATTERN, 4);
+			final Page disk = get("http://uptobox.com/?op=my_files").asPage();
+			final double usedDiskSpace = disk.search(DISK_USAGE_PATTERN)
+					.asDouble(1);
+			final String usedDiskSpaceUnit = disk.search(DISK_USAGE_PATTERN)
+					.asString(3);
+			final double maximumDiskSpace = disk.search(DISK_USAGE_PATTERN)
+					.asDouble(4);
 
 			return (account = new AccountDetailsImpl(username, premium,
 					Filesizes.mb(maximumFileSize),
